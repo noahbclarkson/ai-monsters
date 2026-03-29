@@ -151,8 +151,8 @@ export default function Home() {
               type="Unit"
             />
             <CardComponent 
-              name="Ice Wizard" 
-              description="Master of frost magic with freezing spells"
+              name="Wizard" 
+              description="A mystical wizard casting arcane spells"
               attack={45} 
               defense={40} 
               range={3}

@@ -10,6 +10,19 @@ export class CardGenerator {
     'Beast', 'Creature', 'Entity', 'Being', 'Machine', 'Construct'
   ];
 
+  // Mapping of card names to generated image paths
+  private static readonly REAL_IMAGES: Record<string, string> = {
+    'Dragon': '/home/ubuntu/.openclaw/media/browser/d1f8695d-2f90-409e-a45d-6fb345533485.jpg',
+    'Wizard': '/home/ubuntu/.openclaw/media/browser/f3b8f011-a115-464d-9d7b-034f7de549d6.jpg',
+    'Unicorn': '/home/ubuntu/.openclaw/media/browser/f4aa5d62-914d-406d-86e9-005a07924731.jpg',
+    'Knight': '/home/ubuntu/.openclaw/media/browser/fcb45071-b525-493b-b840-a942e46ba60a.png',
+  };
+
+  // Function to get real image path for a card name, fallback to placeholder
+  static getImagePath(cardName: string): string {
+    return this.REAL_IMAGES[cardName] || `https://via.placeholder.com/832x1248/333333/FFFFFF?text=${cardName}`;
+  }
+
   static generateRandomNoun(): string {
     const randomIndex = Math.floor(Math.random() * this.NOUNS.length);
     return this.NOUNS[randomIndex];
@@ -60,7 +73,7 @@ export class CardGenerator {
       id,
       name: noun,
       description,
-      image_url: `https://via.placeholder.com/832x1248/333333/FFFFFF?text=${noun}`,
+      image_url: this.getImagePath(noun),
       attack,
       defense,
       range,
