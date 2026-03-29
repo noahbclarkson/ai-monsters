@@ -1,4 +1,5 @@
 import { RarityBadge } from './RarityBadge'
+import { CardGenerator } from '@/lib/card-generator'
 
 interface CardProps {
   name: string
@@ -11,32 +12,17 @@ interface CardProps {
 }
 
 export function Card({ name, description, attack, defense, range, rarity, type }: CardProps) {
-  const getRarityColor = (rarity: string) => {
-    switch (rarity) {
-      case 'Common': return 'bg-gray-500'
-      case 'Rare': return 'bg-blue-500'
-      case 'Epic': return 'bg-purple-500'
-      case 'Legendary': return 'bg-yellow-500'
-      default: return 'bg-gray-500'
-    }
-  }
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'Unit': return '⚔️'
-      case 'Spell': return '✨'
-      case 'Building': return '🏰'
-      default: return '🃏'
-    }
-  }
+  const rarityColor = CardGenerator.getRarityColor(rarity)
+  const typeIcon = CardGenerator.getTypeIcon(type)
+  const rarityEmoji = CardGenerator.getRarityEmoji(rarity)
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-200">
       {/* Card Header */}
-      <div className={`p-4 ${getRarityColor(rarity)} text-white`}>
+      <div className={`p-4 ${rarityColor} text-white`}>
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-xl font-bold text-white">{name}</h3>
-          <div className="text-2xl">{getTypeIcon(type)}</div>
+          <div className="text-2xl">{typeIcon}</div>
         </div>
         <div className="flex items-center gap-2">
           <RarityBadge rarity={rarity} />

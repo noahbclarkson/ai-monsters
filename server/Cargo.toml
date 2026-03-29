@@ -1,11 +1,18 @@
 [package]
-name = "ai-monsters"
+name = "ai-monsters-server"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-spacetime-db = "2.1"
+spacetime-db = "0.1.0"
 tokio = { version = "1.0", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+rand = "0.8"
 
 [lib]
 crate-type = ["cdylib"]
+
+[[bin]]
+name = "demo"
+path = "src/lib.rs"
