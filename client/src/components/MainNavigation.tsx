@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { EnhancedCardGenerator } from './EnhancedCardGenerator';
 import { GameLobby } from './GameLobby';
+import { CollectionGallery } from './CollectionGallery';
+import { PackOpening } from './PackOpening';
 
 interface NavigationTab {
   id: string;
@@ -28,6 +30,11 @@ export function MainNavigation() {
       id: 'collection',
       label: 'My Collection',
       icon: '📚'
+    },
+    {
+      id: 'packs',
+      label: 'Pack Opening',
+      icon: '🎁'
     },
     {
       id: 'deck-builder',
@@ -88,18 +95,14 @@ export function MainNavigation() {
       <main className="container mx-auto px-4 py-8">
         {activeTab === 'generator' && <EnhancedCardGenerator />}
         {activeTab === 'lobby' && <GameLobby />}
-        {activeTab === 'collection' && (
-          <div className="bg-gray-800 rounded-lg p-8 text-center">
-            <div className="text-6xl mb-4">📚</div>
-            <h2 className="text-2xl font-bold text-white mb-2">My Collection</h2>
-            <p className="text-gray-300">Your AI-generated card collection will appear here</p>
-          </div>
-        )}
+        {activeTab === 'collection' && <CollectionGallery />}
+        {activeTab === 'packs' && <PackOpening />}
         {activeTab === 'deck-builder' && (
           <div className="bg-gray-800 rounded-lg p-8 text-center">
             <div className="text-6xl mb-4">🔧</div>
             <h2 className="text-2xl font-bold text-white mb-2">Deck Builder</h2>
             <p className="text-gray-300">Build your custom decks from your collection</p>
+            <p className="text-gray-400 text-sm mt-2">Coming soon in Phase 5!</p>
           </div>
         )}
       </main>

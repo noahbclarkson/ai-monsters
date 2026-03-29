@@ -88,7 +88,10 @@ export function EnhancedCardGenerator({ lastCards = [] }: EnhancedCardGeneratorP
       {/* Pack Opening Animation */}
       {showPack && (
         <div className="mb-8">
-          <PackOpening cards={currentPack} onComplete={() => setShowPack(false)} />
+          <PackOpening 
+            pack={{ cards: currentPack, generated_at: Date.now() / 1000 }} 
+            onPackComplete={() => setShowPack(false)} 
+          />
         </div>
       )}
 
