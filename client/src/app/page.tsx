@@ -14,23 +14,27 @@ export default function Home() {
 
   const handleGenerateCard = async () => {
     setIsGenerating(true);
-    // Simulate generation delay
-    setTimeout(() => {
-      const card = CardGenerator.generateCard(Date.now());
+    try {
+      const card = await CardGenerator.generateCard(Date.now());
       setGeneratedCard(card);
+    } catch (error) {
+      console.error('Error generating card:', error);
+    } finally {
       setIsGenerating(false);
-    }, 500);
+    }
   };
 
   const handleGeneratePack = async () => {
     setIsGenerating(true);
-    // Simulate generation delay
-    setTimeout(() => {
-      const newPack = CardGenerator.generatePack();
+    try {
+      const newPack = await CardGenerator.generatePack();
       setPack(newPack);
       setShowPack(true);
+    } catch (error) {
+      console.error('Error generating pack:', error);
+    } finally {
       setIsGenerating(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -78,6 +82,7 @@ export default function Home() {
                 range={generatedCard.range}
                 rarity={generatedCard.rarity}
                 type={generatedCard.card_type}
+                imageUrl={generatedCard.image_url}
               />
             ) : (
               <div className="w-96 h-128 bg-gray-800 rounded-lg border-2 border-dashed border-gray-600 flex items-center justify-center">
@@ -112,6 +117,7 @@ export default function Home() {
                     range={card.range}
                     rarity={card.rarity}
                     type={card.card_type}
+                    imageUrl={card.image_url}
                   />
                 </div>
               ))}
@@ -149,6 +155,7 @@ export default function Home() {
               range={2}
               rarity="Legendary"
               type="Unit"
+              imageUrl="https://via.placeholder.com/832x1248/333333/FFFFFF?text=Fire+Dragon"
             />
             <CardComponent 
               name="Wizard" 
@@ -158,6 +165,7 @@ export default function Home() {
               range={3}
               rarity="Rare"
               type="Unit"
+              imageUrl="https://via.placeholder.com/832x1248/333333/FFFFFF?text=Wizard"
             />
             <CardComponent 
               name="Lightning Bolt" 
@@ -167,6 +175,7 @@ export default function Home() {
               range={4}
               rarity="Epic"
               type="Spell"
+              imageUrl="https://via.placeholder.com/832x1248/333333/FFFFFF?text=Lightning+Bolt"
             />
             <CardComponent 
               name="Castle Tower" 
@@ -176,6 +185,7 @@ export default function Home() {
               range={2}
               rarity="Rare"
               type="Building"
+              imageUrl="https://via.placeholder.com/832x1248/333333/FFFFFF?text=Castle+Tower"
             />
           </div>
         </div>

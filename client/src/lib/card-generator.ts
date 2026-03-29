@@ -1,4 +1,4 @@
-import { Card, CardGenerationRequest, Pack, Rarity, CardType } from '@/types/card';
+import { Card, CardGenerationRequest, CardGenerationResponse, Pack, Rarity, CardType } from '@/types/card';
 
 export class CardGenerator {
   private static readonly NOUNS = [
@@ -10,17 +10,54 @@ export class CardGenerator {
     'Beast', 'Creature', 'Entity', 'Being', 'Machine', 'Construct'
   ];
 
-  // Mapping of card names to generated image paths
-  private static readonly REAL_IMAGES: Record<string, string> = {
-    'Dragon': '/home/ubuntu/.openclaw/media/browser/d1f8695d-2f90-409e-a45d-6fb345533485.jpg',
-    'Wizard': '/home/ubuntu/.openclaw/media/browser/f3b8f011-a115-464d-9d7b-034f7de549d6.jpg',
-    'Unicorn': '/home/ubuntu/.openclaw/media/browser/f4aa5d62-914d-406d-86e9-005a07924731.jpg',
-    'Knight': '/home/ubuntu/.openclaw/media/browser/fcb45071-b525-493b-b840-a942e46ba60a.png',
-  };
+  // Function to generate MiniMax image for a card
+  // Note: Currently returns placeholder - in production, this would call OpenClaw's image_generate tool
+  static async generateCardImage(noun: string, cardType: CardType): Promise<string> {
+    // Construct prompt based on card type and noun
+    let prompt = `${noun} ${cardType.toLowerCase()}, fantasy card art, detailed, vibrant, professional, `;
+    
+    switch (cardType) {
+      case 'Unit':
+        prompt += 'warrior, character, combat-ready, ';
+        break;
+      case 'Building':
+        prompt += 'structure, fortress, architecture, ';
+        break;
+      case 'Spell':
+        prompt += 'magical, mystical, arcane energy, ';
+        break;
+    }
+    
+    prompt += '2D game card, portrait aspect ratio, high detail, fantasy style';
+    
+    try {
+      // In production: Use OpenClaw's image_generate tool with MiniMax model
+      // Example: 
+      // const result = await image_generate({
+      //   prompt: prompt,
+      //   model: 'minimax-portal/image-01',
+      //   aspectRatio: '2:3',
+      //   filename: `${noun}-${cardType.toLowerCase()}-card.jpg`
+      // });
+      // return result.filePath;
+      
+      // For now, return placeholder with noun
+      console.log(`Would generate image for: ${prompt}`);
+      return `https://via.placeholder.com/832x1248/333333/FFFFFF?text=${encodeURIComponent(noun)}`;
+    } catch (error) {
+      console.error('Error generating image:', error);
+      return `https://via.placeholder.com/832x1248/333333/FFFFFF?text=${encodeURIComponent(noun)}`;
+    }
+  }
 
   // Function to get real image path for a card name, fallback to placeholder
-  static getImagePath(cardName: string): string {
-    return this.REAL_IMAGES[cardName] || `https://via.placeholder.com/832x1248/333333/FFFFFF?text=${cardName}`;
+  static async getImagePath(noun: string, cardType: CardType): Promise<string> {
+    try {
+      const imagePath = await this.generateCardImage(noun, cardType);
+      return imagePath;
+    } catch (error) {
+      return `https://via.placeholder.com/832x1248/333333/FFFFFF?text=${encodeURIComponent(noun)}`;
+    }
   }
 
   static generateRandomNoun(): string {
@@ -56,7 +93,7 @@ export class CardGenerator {
     }
   }
 
-  static generateCard(id: number): Card {
+  static async generateCard(id: number): Promise<Card> {
     const noun = this.generateRandomNoun();
     const rarity = this.determineRarity();
     const cardType = this.getRandomCardType();
@@ -68,12 +105,13 @@ export class CardGenerator {
     const range = Math.floor(Math.random() * (rangeRange[1] - rangeRange[0] + 1)) + rangeRange[0];
 
     const description = `A${rarity === 'Legendary' ? 'n epic' : ' powerful'} ${noun} with ${attack} power and ${defense} defense`;
+    const image_url = await this.generateCardImage(noun, cardType);
 
     return {
       id,
       name: noun,
       description,
-      image_url: this.getImagePath(noun),
+      image_url,
       attack,
       defense,
       range,
@@ -103,10 +141,10 @@ export class CardGenerator {
     };
   }
 
-  static generatePack(): Pack {
+  static async generatePack(): Promise<Pack> {
     const cards = [];
     for (let i = 1; i <= 7; i++) {
-      cards.push(this.generateCard(i));
+      cards.push(await this.generateCard(i));
     }
     
     return {

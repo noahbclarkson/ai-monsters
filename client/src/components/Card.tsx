@@ -9,9 +9,10 @@ interface CardProps {
   range: number
   rarity: string
   type: string
+  imageUrl?: string
 }
 
-export function Card({ name, description, attack, defense, range, rarity, type }: CardProps) {
+export function Card({ name, description, attack, defense, range, rarity, type, imageUrl }: CardProps) {
   const rarityColor = CardGenerator.getRarityColor(rarity)
   const typeIcon = CardGenerator.getTypeIcon(type)
   const rarityEmoji = CardGenerator.getRarityEmoji(rarity)
@@ -31,8 +32,22 @@ export function Card({ name, description, attack, defense, range, rarity, type }
       </div>
 
       {/* Card Art */}
-      <div className="w-full h-48 bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-        <div className="text-6xl opacity-50">🎴</div>
+      <div className="w-full h-64 bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center overflow-hidden">
+        {imageUrl ? (
+          <img 
+            src={imageUrl} 
+            alt={`${name} card art`}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              const fallback = target.parentElement?.querySelector('.fallback-art');
+              if (fallback) fallback.classList.remove('hidden');
+            }}
+          />
+        ) : (
+          <div className="fallback-art hidden text-6xl opacity-50">🎴</div>
+        )}
       </div>
 
       {/* Card Stats */}

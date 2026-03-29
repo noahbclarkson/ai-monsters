@@ -9,7 +9,6 @@ dependencies = [
  "rand",
  "serde",
  "serde_json",
- "spacetime-db",
  "tokio",
 ]
 
@@ -259,12 +258,6 @@ dependencies = [
  "libc",
  "windows-sys",
 ]
-
-[[package]]
-name = "spacetime-db"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2895920fbcbaedfff80d7d605f6a03a09e4c21d8b9b6215e7be2ed55f3d7ec27"
 
 [[package]]
 name = "syn"
