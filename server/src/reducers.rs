@@ -151,6 +151,268 @@ pub fn add_card_to_deck(red: &mut Red, deck_id: DeckId, card_id: CardId) -> Resu
     Ok(())
 }
 
+// Board management reducers
+#[reducer]
+pub fn place_card(red: &mut Red, match_id: MatchId, card_id: CardId, tile_x: usize, tile_y: usize, is_face_up: bool, is_attack_mode: bool) -> Result<(), String> {
+    let mut match_data = matches_table().get(red, match_id)
+        .ok_or("Match not found")?;
+    
+    // Check if it's the correct player's turn
+    // TODO: Add player validation
+    
+    // Validate tile coordinates
+    if tile_x >= 6 || tile_y >= 3 {
+        return Err("Invalid tile coordinates".to_string());
+    }
+    
+    // Check if tile is empty
+    if match_data.board_state.tiles[tile_x][tile_y].is_some() {
+        return Err("Tile is already occupied".to_string());
+    }
+    
+    // Get the card to place
+    let card = cards_table().get(red, card_id)
+        .ok_or("Card not found")?;
+    
+    // Create board tile
+    let board_tile = BoardTile {
+        card_id: Some(card_id),
+        is_face_up,
+        is_attack_mode,
+        owner_player_id: Some(match_data.current_turn), // Current player places the card
+    };
+    
+    // Place the card on the board
+    match_data.board_state.tiles[tile_x][tile_y] = Some(board_tile);
+    match_data.updated_at = current_timestamp();
+    
+    matches_table().insert(red, match_id, match_data);
+    
+    Ok(())
+}
+
+#[reducer]
+pub fn flip_card(red: &mut Red, match_id: MatchId, tile_x: usize, tile_y: usize) -> Result<(), String> {
+    let mut match_data = matches_table().get(red, match_id)
+        .ok_or("Match not found")?;
+    
+    // Validate tile coordinates
+    if tile_x >= 6 || tile_y >= 3 {
+        return Err("Invalid tile coordinates".to_string());
+    }
+    
+    let mut tile = match_data.board_state.tiles[tile_x][tile_y]
+        .take()
+        .ok_or("No card at this tile")?;
+    
+    // Flip the card
+    tile.is_face_up = !tile.is_face_up;
+    
+    // Put the tile back
+    match_data.board_state.tiles[tile_x][tile_y] = Some(tile);
+    match_data.updated_at = current_timestamp();
+    
+    matches_table().insert(red, match_id, match_data);
+    
+    Ok(())
+}
+
+#[reducer]
+pub fn switch_card_mode(red: &mut Red, match_id: MatchId, tile_x: usize, tile_y: usize) -> Result<(), String> {
+    let mut match_data = matches_table().get(red, match_id)
+        .ok_or("Match not found")?;
+    
+    // Validate tile coordinates
+    if tile_x >= 6 || tile_y >= 3 {
+        return Err("Invalid tile coordinates".to_string());
+    }
+    
+    let mut tile = match_data.board_state.tiles[tile_x][tile_y]
+        .take()
+        .ok_or("No card at this tile")?;
+    
+    // Switch between attack and defense mode
+    tile.is_attack_mode = !tile.is_attack_mode;
+    
+    // Put the tile back
+    match_data.board_state.tiles[tile_x][tile_y] = Some(tile);
+    match_data.updated_at = current_timestamp();
+    
+    matches_table().insert(red, match_id, match_data);
+    
+    Ok(())
+}
+
+#[reducer]
+pub fn move_card(red: &mut Red, match_id: MatchId, from_x: usize, from_y: usize, to_x: usize, to_y: usize) -> Result<(), String> {
+    let mut match_data = matches_table().get(red, match_id)
+        .ok_or("Match not found")?;
+    
+    // Validate coordinates
+    if from_x >= 6 || from_y >= 3 || to_x >= 6 || to_y >= 3 {
+        return Err("Invalid tile coordinates".to_string());
+    }
+    
+    let mut from_tile = match_data.board_state.tiles[from_x][from_y]
+        .take()
+        .ok_or("No card at source tile")?;
+    
+    let to_tile = match_data.board_state.tiles[to_x][to_y];
+    
+    // Check if destination is empty
+    if to_tile.is_some() {
+        return Err("Destination tile is occupied".to_string());
+    }
+    
+    // Check if card is in attack mode (only attack-mode cards can move)
+    if !from_tile.is_attack_mode {
+        return Err("Only attack-mode cards can move".to_string());
+    }
+    
+    // Move the card
+    match_data.board_state.tiles[to_x][to_y] = Some(from_tile);
+    match_data.board_state.tiles[from_x][from_y] = None;
+    match_data.updated_at = current_timestamp();
+    
+    matches_table().insert(red, match_id, match_data);
+    
+    Ok(())
+}
+
+#[reducer]
+pub fn end_turn(red: &mut Red, match_id: MatchId) -> Result<(), String> {
+    let mut match_data = matches_table().get(red, match_id)
+        .ok_or("Match not found")?;
+    
+    // Switch turns
+    match_data.current_turn = if match_data.current_turn == match_data.player1_id {
+        match_data.player2_id
+    } else {
+        match_data.player1_id
+    };
+    
+    // Increment turn number
+    match_data.board_state.turn_number += 1;
+    
+    // Update phase (cycle through Placement -> Action -> Combat)
+    match_data.board_state.phase = match match_data.board_state.phase {
+        MatchPhase::Placement => MatchPhase::Action,
+        MatchPhase::Action => MatchPhase::Combat,
+        MatchPhase::Combat => MatchPhase::Placement,
+    };
+    
+    match_data.updated_at = current_timestamp();
+    matches_table().insert(red, match_id, match_data);
+    
+    Ok(())
+}
+
+#[reducer]
+pub fn attack_card(red: &mut Red, match_id: MatchId, attacker_x: usize, attacker_y: usize, defender_x: usize, defender_y: usize) -> Result<(), String> {
+    let mut match_data = matches_table().get(red, match_id)
+        .ok_or("Match not found")?;
+    
+    // Validate coordinates
+    if attacker_x >= 6 || attacker_y >= 3 || defender_x >= 6 || defender_y >= 3 {
+        return Err("Invalid tile coordinates".to_string());
+    }
+    
+    let attacker_tile = match_data.board_state.tiles[attacker_x][attacker_y]
+        .as_ref()
+        .ok_or("No attacker card")?;
+    
+    let defender_tile = match_data.board_state.tiles[defender_x][defender_y]
+        .as_ref()
+        .ok_or("No defender card")?;
+    
+    // Get attacker and defender cards
+    let attacker_card = cards_table().get(red, attacker_tile.card_id.unwrap())
+        .ok_or("Attacker card not found")?;
+    
+    let defender_card = cards_table().get(red, defender_tile.card_id.unwrap())
+        .ok_or("Defender card not found")?;
+    
+    // Check if attacker is in attack mode
+    if !attacker_tile.is_attack_mode {
+        return Err("Attacker must be in attack mode".to_string());
+    }
+    
+    // Calculate damage based on range and positions
+    let distance = calculate_distance(attacker_x, attacker_y, defender_x, defender_y);
+    let range = attacker_tile.card_id.map_or(1, |card_id| {
+        cards_table().get(red, card_id).map_or(1, |card| card.range)
+    });
+    
+    if distance > range {
+        return Err("Target is out of range".to_string());
+    }
+    
+    // Calculate attack power
+    let attack_power = attacker_card.attack;
+    let defense_power = if defender_tile.is_attack_mode {
+        defender_card.attack
+    } else {
+        defender_card.defense
+    };
+    
+    // Determine result
+    let attacker_wins = attack_power > defense_power;
+    
+    // Remove the losing card
+    if attacker_wins {
+        // Defender is destroyed
+        match_data.board_state.tiles[defender_x][defender_y] = None;
+        
+        // Check for win condition
+        if check_win_condition(&mut match_data, red) {
+            match_data.status = MatchStatus::Completed;
+            match_data.winner_id = Some(attacker_tile.owner_player_id.unwrap());
+        }
+    } else {
+        // Attacker is destroyed
+        match_data.board_state.tiles[attacker_x][attacker_y] = None;
+        
+        // Check for win condition
+        if check_win_condition(&mut match_data, red) {
+            match_data.status = MatchStatus::Completed;
+            match_data.winner_id = Some(defender_tile.owner_player_id.unwrap());
+        }
+    }
+    
+    match_data.updated_at = current_timestamp();
+    matches_table().insert(red, match_id, match_data);
+    
+    Ok(())
+}
+
+// Helper functions
+fn calculate_distance(x1: usize, y1: usize, x2: usize, y2: usize) -> usize {
+    let dx = (x1 as i32 - x2 as i32).abs();
+    let dy = (y1 as i32 - y2 as i32).abs();
+    std::cmp::max(dx, dy) as usize
+}
+
+fn check_win_condition(match_data: &mut Match, red: &mut Red) -> bool {
+    // Count cards for each player
+    let mut player1_cards = 0;
+    let mut player2_cards = 0;
+    
+    for row in match_data.board_state.tiles.iter() {
+        for tile in row.iter() {
+            if let Some(tile) = tile {
+                if tile.owner_player_id == Some(match_data.player1_id) {
+                    player1_cards += 1;
+                } else if tile.owner_player_id == Some(match_data.player2_id) {
+                    player2_cards += 1;
+                }
+            }
+        }
+    }
+    
+    // Game ends when a player has no cards left
+    player1_cards == 0 || player2_cards == 0
+}
+
 // Match management
 #[reducer]
 pub fn create_match(red: &mut Red, player1_id: PlayerId, player2_id: PlayerId) -> MatchId {

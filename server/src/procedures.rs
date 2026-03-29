@@ -180,6 +180,179 @@ pub async fn get_player_collection(red: &mut Red, player_id: PlayerId) -> Result
     })
 }
 
+// Board game procedures
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlaceCardRequest {
+    pub match_id: MatchId,
+    pub card_id: CardId,
+    pub tile_x: usize,
+    pub tile_y: usize,
+    pub is_face_up: bool,
+    pub is_attack_mode: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MoveCardRequest {
+    pub match_id: MatchId,
+    pub from_x: usize,
+    pub from_y: usize,
+    pub to_x: usize,
+    pub to_y: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AttackCardRequest {
+    pub match_id: MatchId,
+    pub attacker_x: usize,
+    pub attacker_y: usize,
+    pub defender_x: usize,
+    pub defender_y: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FlipCardRequest {
+    pub match_id: MatchId,
+    pub tile_x: usize,
+    pub tile_y: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SwitchCardModeRequest {
+    pub match_id: MatchId,
+    pub tile_x: usize,
+    pub tile_y: usize,
+}
+
+// Place a card on the board
+#[procedure]
+pub async fn place_card(red: &mut Red, req: PlaceCardRequest) -> Result<(), String> {
+    place_card(red, req.match_id, req.card_id, req.tile_x, req.tile_y, req.is_face_up, req.is_attack_mode)
+}
+
+// Move a card on the board
+#[procedure]
+pub async fn move_card(red: &mut Red, req: MoveCardRequest) -> Result<(), String> {
+    move_card(red, req.match_id, req.from_x, req.from_y, req.to_x, req.to_y)
+}
+
+// Attack another card
+#[procedure]
+pub async fn attack_card(red: &mut Red, req: AttackCardRequest) -> Result<(), String> {
+    attack_card(red, req.match_id, req.attacker_x, req.attacker_y, req.defender_x, req.defender_y)
+}
+
+// Flip a card (face-up/face-down)
+#[procedure]
+pub async fn flip_card(red: &mut Red, req: FlipCardRequest) -> Result<(), String> {
+    flip_card(red, req.match_id, req.tile_x, req.tile_y)
+}
+
+// Switch card mode (attack/defense)
+#[procedure]
+pub async fn switch_card_mode(red: &mut Red, req: SwitchCardModeRequest) -> Result<(), String> {
+    switch_card_mode(red, req.match_id, req.tile_x, req.tile_y)
+}
+
+// End current turn
+#[procedure]
+pub async fn end_turn(red: &mut Red, match_id: MatchId) -> Result<(), String> {
+    end_turn(red, match_id)
+}
+
+// Get full match state with board
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MatchStateResponse {
+    pub match_data: Match,
+    pub board_tiles: Vec<Vec<Option<BoardTile>>>,
+    pub current_player_cards: Vec<Card>,
+}
+
+#[procedure]
+pub async fn get_match_state(red: &mut Red, match_id: MatchId) -> Result<MatchStateResponse, String> {
+    let match_data = matches_table().get(red, match_id)
+        .ok_or("Match not found")?;
+    
+    // Get all cards for the current player
+    let mut current_player_cards = Vec::new();
+    
+    for row in match_data.board_state.tiles.iter() {
+        for tile in row.iter() {
+            if let Some(tile) = tile {
+                if tile.owner_player_id == Some(match_data.current_turn) {
+                    if let Some(card_id) = tile.card_id {
+                        if let Some(card) = cards_table().get(red, card_id) {
+                            current_player_cards.push(card.clone());
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    Ok(MatchStateResponse {
+        match_data: match_data.clone(),
+        board_tiles: match_data.board_state.tiles.to_vec(),
+        current_player_cards,
+    })
+}
+
+// Create a new match with starting hands
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateMatchRequest {
+    pub player1_id: PlayerId,
+    pub player2_id: PlayerId,
+    pub use_player_decks: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateMatchResponse {
+    pub match_id: MatchId,
+    pub player1_hand: Vec<CardId>,
+    pub player2_hand: Vec<CardId>,
+}
+
+#[procedure]
+pub async fn create_match_with_hands(red: &mut Red, req: CreateMatchRequest) -> Result<CreateMatchResponse, String> {
+    let match_id = create_match(red, req.player1_id, req.player2_id);
+    
+    // Generate starting hands for both players
+    let player1_hand = generate_starting_hand(red, req.player1_id);
+    let player2_hand = generate_starting_hand(red, req.player2_id);
+    
+    // TODO: Add cards to player hands (need hand tracking system)
+    
+    Ok(CreateMatchResponse {
+        match_id,
+        player1_hand,
+        player2_hand,
+    })
+}
+
+// Helper function to generate starting hand
+fn generate_starting_hand(red: &mut Red, player_id: PlayerId) -> Vec<CardId> {
+    let mut hand = Vec::new();
+    
+    // Generate 7 cards for starting hand
+    let seed_nouns = [
+        "Dragon", "Wizard", "Knight", "Unicorn", "Phoenix", "Goblin", "Elf",
+        "Troll", "Fairy", "Demon", "Angel", "Golem", "Sphinx", "Griffin"
+    ];
+    
+    for noun in seed_nouns.iter().take(7) {
+        let rarity = match rand::random::<usize>() % 100 {
+            r if r < 70 => Rarity::Common,
+            r if r < 90 => Rarity::Rare,
+            r if r < 98 => Rarity::Epic,
+            _ => Rarity::Legendary,
+        };
+        
+        let card_id = generate_card(red, noun.to_string(), Some(rarity), None);
+        hand.push(card_id);
+    }
+    
+    hand
+}
+
 // Current timestamp helper
 fn current_timestamp() -> i64 {
     use std::time::{SystemTime, UNIX_EPOCH};

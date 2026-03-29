@@ -1,1 +1,1 @@
-/home/ubuntu/.openclaw/workspace-aimonsters/ai-monsters/server/target/debug/demo: /home/ubuntu/.openclaw/workspace-aimonsters/ai-monsters/server/src/card_generator.rs /home/ubuntu/.openclaw/workspace-aimonsters/ai-monsters/server/src/lib.rs
+/home/ubuntu/.openclaw/workspace-aimonsters/ai-monsters/server/target/debug/demo: /home/ubuntu/.openclaw/workspace-aimonsters/ai-monsters/server/src/lib.rs
