@@ -339,7 +339,7 @@ fn generate_starting_hand(red: &mut Red, player_id: PlayerId) -> Vec<CardId> {
     ];
     
     for noun in seed_nouns.iter().take(7) {
-        let rarity = match rand::random::<usize>() % 100 {
+        let rarity = match (crate::random_range(100)) {
             r if r < 70 => Rarity::Common,
             r if r < 90 => Rarity::Rare,
             r if r < 98 => Rarity::Epic,
@@ -360,4 +360,66 @@ fn current_timestamp() -> i64 {
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_secs() as i64
+}
+
+// Daily card generation procedure
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DailyCardGenerationResponse {
+    pub cards_generated: Vec<CardId>,
+    pub total_cards: usize,
+    pub summary: String,
+}
+
+#[procedure]
+pub async fn generate_daily_cards(red: &mut Red) -> Result<DailyCardGenerationResponse, String> {
+    // Get existing cards count
+    let existing_card_count = cards_table().len(red);
+    
+    // Generate daily cards using the daily_cards module
+    let seed_nouns = [
+        "Sun", "Moon", "Star", "Fire", "Water", "Earth", "Air", "Light", "Dark", 
+        "Thunder", "Ice", "Nature", "Time", "Space", "Dream", "Shadow", "Crystal",
+        "Flame", "Frost", "Storm", "Mystic", "Celestial", "Ancient", "Divine"
+    ];
+    
+    let mut cards_generated = Vec::new();
+    let mut rng = rand::thread_rng();
+    
+    // Generate one card for each rarity/type combination
+    let mut card_index = 0;
+    for rarity in [Rarity::Common, Rarity::Rare, Rarity::Epic, Rarity::Legendary] {
+        for card_type in [CardType::Unit, CardType::Building, CardType::Spell] {
+            if card_index < 12 { // Limit to 12 daily cards
+                let noun = seed_nouns[rng.gen_range(0..seed_nouns.len())];
+                let card_id = generate_card(red, noun.to_string(), Some(rarity), Some(card_type));
+                cards_generated.push(card_id);
+                card_index += 1;
+            }
+        }
+    }
+    
+    // Add some special cards (1-2 additional rare/epic cards)
+    let special_count = 1 + rng.gen_range(0..2);
+    for _ in 0..special_count {
+        let noun = seed_nouns[rng.gen_range(0..seed_nouns.len())];
+        let special_rarity = if rng.gen_range(0..100) < 70 { Rarity::Rare } else { Rarity::Epic };
+        let card_type = match rng.gen_range(0..3) {
+            0 => CardType::Unit,
+            1 => CardType::Building,
+            2 => CardType::Spell,
+            _ => CardType::Unit,
+        };
+        
+        let card_id = generate_card(red, noun.to_string(), Some(special_rarity), Some(card_type));
+        cards_generated.push(card_id);
+    }
+    
+    let total_cards = cards_table().len(red);
+    let summary = format!("Generated {} new daily cards. Total cards in database: {}", cards_generated.len(), total_cards);
+    
+    Ok(DailyCardGenerationResponse {
+        cards_generated,
+        total_cards,
+        summary,
+    })
 }

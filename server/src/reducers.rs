@@ -2,7 +2,6 @@ use spacetime_db::db::Red;
 use crate::{
     tables::*,
 };
-use rand::Rng;
 
 // Player management reducers
 #[reducer]
@@ -458,25 +457,25 @@ fn generate_card_stats(rarity: Rarity, card_type: CardType) -> (i32, i32, i32) {
         CardType::Unit => {
             // Units focus on attack, some defense
             (
-                base_attack + rng.gen_range(0..3),
-                base_defense + rng.gen_range(0..2),
-                base_range + rng.gen_range(0..1),
+                base_attack + random_range(3) as i32,
+                base_defense + random_range(2) as i32,
+                base_range + random_range(1) as i32,
             )
         },
         CardType::Building => {
             // Buildings focus on defense, no attack
             (
                 0, // Buildings can't attack
-                base_defense + rng.gen_range(0..5),
+                base_defense + random_range(5) as i32,
                 1, // Buildings have range 1
             )
         },
         CardType::Spell => {
             // Spells have balanced stats, high range
             (
-                base_attack + rng.gen_range(0..2),
-                base_defense + rng.gen_range(0..2),
-                base_range + rng.gen_range(1..3),
+                base_attack + random_range(2) as i32,
+                base_defense + random_range(2) as i32,
+                base_range + random_range(3) as i32,
             )
         },
     };
@@ -513,5 +512,33 @@ fn card_type_name(card_type: CardType) -> &'static str {
         CardType::Unit => "Unit",
         CardType::Building => "Building",
         CardType::Spell => "Spell",
+    }
+}
+
+// Daily card generation reducer
+#[reducer]
+pub fn generate_daily_cards(red: &mut Red) {
+    // This would need to be called by a cron job
+    // For now, it's a placeholder that generates cards
+    // In a real implementation, this would use the daily_cards module
+    let seed_nouns = ["Sun", "Moon", "Star", "Fire", "Water", "Earth"];
+    let mut rng = rand::thread_rng();
+    
+    for noun in seed_nouns {
+        let rarity = match rng.gen_range(0..4) {
+            0 => Rarity::Common,
+            1 => Rarity::Rare,
+            2 => Rarity::Epic,
+            _ => Rarity::Legendary,
+        };
+        
+        let card_type = match rng.gen_range(0..3) {
+            0 => CardType::Unit,
+            1 => CardType::Building,
+            2 => CardType::Spell,
+            _ => CardType::Unit,
+        };
+        
+        generate_card(red, noun.to_string(), Some(rarity), Some(card_type));
     }
 }

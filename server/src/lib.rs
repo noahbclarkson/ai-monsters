@@ -1,9 +1,15 @@
 use serde::{Deserialize, Serialize};
 
 pub mod bot_ai;
+pub mod daily_cards;
 pub mod matchmaking;
+pub mod tables;
+pub mod reducers;
+pub mod procedures;
+pub mod views;
 
 pub use bot_ai::*;
+pub use daily_cards::*;
 pub use matchmaking::*;
 
 // Simple pseudo-random number generator for WebAssembly compatibility

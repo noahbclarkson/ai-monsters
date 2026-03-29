@@ -159,12 +159,13 @@ impl GameState {
         }
 
         // Add reward cards to winner's first deck
+        let timestamp = self.current_timestamp();
         if let Some(deck_id) = self.decks.iter().find(|(_, d)| d.player_id == winner_id).map(|(id, _)| *id) {
             for &card_id in &rewards.cards_won {
                 if let Some(deck) = self.decks.get_mut(&deck_id) {
                     if !deck.cards.contains(&card_id) {
                         deck.cards.push(card_id);
-                        deck.updated_at = self.current_timestamp();
+                        deck.updated_at = timestamp;
                     }
                 }
             }
