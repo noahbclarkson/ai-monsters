@@ -73,7 +73,7 @@ impl BoardAnalysis {
 }
 
 fn get_bot_hand(game_state: &GameState, bot_player_id: PlayerId) -> Vec<CardId> {
-    for (_, deck) in &game_state.decks {
+    for deck in game_state.decks.values() {
         if deck.player_id == bot_player_id {
             return deck.cards.iter().take(5).copied().collect();
         }
@@ -100,7 +100,7 @@ pub fn get_bot_action(game_state: &GameState, match_data: &Match, bot_player_id:
 // Easy Bot: Random moves
 // ============================================================
 
-fn easy_bot_action(analysis: &BoardAnalysis, game_state: &GameState) -> BotAction {
+fn easy_bot_action(analysis: &BoardAnalysis, _game_state: &GameState) -> BotAction {
     let roll = random_f32();
 
     if roll < 0.3 && !analysis.bot_hand.is_empty() && !analysis.empty_tiles.is_empty() {
@@ -148,7 +148,7 @@ fn medium_bot_action(analysis: &BoardAnalysis, game_state: &GameState) -> BotAct
     // 2. Place cards in center
     if !analysis.bot_hand.is_empty() && !analysis.empty_tiles.is_empty() {
         let best_pos = analysis.empty_tiles.iter()
-            .min_by_key(|(x, _)| (x.clone() as i32 - 3i32).unsigned_abs())
+            .min_by_key(|(x, _)| (*x as i32 - 3i32).unsigned_abs())
             .unwrap();
         return BotAction::PlaceCard {
             card_id: analysis.bot_hand[0],
@@ -182,7 +182,7 @@ fn medium_bot_action(analysis: &BoardAnalysis, game_state: &GameState) -> BotAct
 // Hard Bot: Optimal play
 // ============================================================
 
-fn hard_bot_action(analysis: &BoardAnalysis, game_state: &GameState, match_data: &Match) -> BotAction {
+fn hard_bot_action(analysis: &BoardAnalysis, game_state: &GameState, _match_data: &Match) -> BotAction {
     // 1. Lethal (win condition)
     if analysis.enemy_cards.len() == 1 {
         if let Some(action) = find_best_attack(analysis, game_state, -100.0) {
@@ -227,7 +227,7 @@ fn hard_bot_action(analysis: &BoardAnalysis, game_state: &GameState, match_data:
 
         for (bx, by, _, is_attack) in &analysis.bot_cards {
             if !is_attack { continue; }
-            for (ex, ey, enemy_card_id, _) in &analysis.enemy_cards {
+            for (ex, ey, _enemy_card_id, _) in &analysis.enemy_cards {
                 let dist = chebyshev_dist(*bx, *by, *ex, *ey);
                 if dist <= 1 { continue; }
 

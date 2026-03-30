@@ -7,9 +7,9 @@ pub mod tables;
 pub mod reducers;
 pub mod procedures;
 pub mod views;
+pub mod types;
 
 pub use bot_ai::*;
-pub use daily_cards::*;
 pub use matchmaking::*;
 
 // Simple pseudo-random number generator for WebAssembly compatibility
@@ -145,7 +145,7 @@ pub struct BoardState {
     pub phase: MatchPhase,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub struct BoardTile {
     pub card_id: Option<CardId>,
     pub is_face_up: bool,
@@ -171,6 +171,12 @@ pub struct GameState {
     pub bots: std::collections::HashMap<PlayerId, BotPlayer>,
     pub matchmaking_queue: MatchmakingQueue,
     pub player_progress: std::collections::HashMap<PlayerId, PlayerProgress>,
+}
+
+impl Default for GameState {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl GameState {

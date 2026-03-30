@@ -50,10 +50,9 @@ impl MatchmakingQueue {
             if entry.player_id == player_id { continue; }
             if matches!(entry.preferred_opponent, OpponentPreference::Bot(_)) { continue; }
             let diff = (entry.rating - my_rating).abs();
-            if diff <= 200 {
-                if best.map_or(true, |(_, bd)| diff < bd) {
+            if diff <= 200
+                && best.is_none_or(|(_, bd)| diff < bd) {
                     best = Some((i, diff));
-                }
             }
         }
 

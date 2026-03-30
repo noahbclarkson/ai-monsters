@@ -16,4 +16,4 @@ serde_json = "1.0"
 log = "0.4"
 env_logger = "0.10"
 chrono = { version = "0.4", features = ["serde"] }
-spacetime-db = "*"
+spacetimedb = "1.0.0"
