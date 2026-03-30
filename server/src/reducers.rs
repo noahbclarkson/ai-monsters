@@ -1,5 +1,6 @@
 use spacetimedb::{reducer, ReducerContext, Table};
 use crate::tables::*;
+use serde_json;
 
 // Player management reducers
 #[reducer]
@@ -88,14 +89,246 @@ pub fn create_match(ctx: &ReducerContext, player1_id: u64, player2_id: u64) -> R
         created_at: current_timestamp(),
         updated_at: current_timestamp(),
     };
-    ctx.db.matches().insert(match_row);
+    ctx.db.game_matches().insert(match_row);
+    Ok(())
+}
+
+// Board game reducers - MISSING FROM CURRENT IMPLEMENTATION
+
+// Place a card on the board
+#[reducer]
+pub fn place_card(ctx: &ReducerContext, match_id: u64, card_id: u64, player_id: u64, row: u32, col: u32) -> Result<(), String> {
+    if row >= 6 || col >= 3 {
+        return Err("Invalid board position".to_string());
+    }
+
+    let match_row = ctx.db.game_matches().id().find(match_id)
+        .ok_or("Match not found")?;
+
+    // Check if it's the player's turn
+    if match_row.current_turn != player_id {
+        return Err("Not your turn".to_string());
+    }
+
+    // Parse board state
+    let mut board: crate::BoardState = serde_json::from_str(&match_row.board_state_json)
+        .map_err(|e| e.to_string())?;
+
+    // Check if the tile is empty
+    if board.tiles[row as usize][col as usize].is_some() {
+        return Err("Tile already occupied".to_string());
+    }
+
+    // Create board tile for the card
+    let tile = crate::BoardTile {
+        card_id: Some(card_id),
+        is_face_up: true, // Cards are placed face-up during placement phase
+        is_attack_mode: true, // Default to attack mode
+        owner_player_id: Some(player_id),
+    };
+
+    // Place the card on the board
+    board.tiles[row as usize][col as usize] = Some(tile);
+
+    // Update match with new board state
+    let board_json = serde_json::to_string(&board).map_err(|e| e.to_string())?;
+
+    ctx.db.game_matches().id().update(MatchRow {
+        id: match_id,
+        player1_id: match_row.player1_id,
+        player2_id: match_row.player2_id,
+        board_state_json: board_json,
+        current_turn: match_row.current_turn,
+        status: match_row.status,
+        winner_id: match_row.winner_id,
+        created_at: match_row.created_at,
+        updated_at: current_timestamp(),
+    });
+
+    Ok(())
+}
+
+// Attack another card
+#[reducer]
+pub fn attack_card(ctx: &ReducerContext, match_id: u64, attacker_row: u32, attacker_col: u32, defender_row: u32, defender_col: u32) -> Result<(), String> {
+    // Validate positions
+    if attacker_row >= 6 || attacker_col >= 3 || defender_row >= 6 || defender_col >= 3 {
+        return Err("Invalid board position".to_string());
+    }
+
+    let match_row = ctx.db.game_matches().id().find(match_id)
+        .ok_or("Match not found")?;
+
+    // Parse board state
+    let mut board: crate::BoardState = serde_json::from_str(&match_row.board_state_json)
+        .map_err(|e| e.to_string())?;
+
+    // Get attacker and defender tiles
+    let attacker_tile = board.tiles[attacker_row as usize][attacker_col as usize].ok_or("No attacker card at position")?;
+    let defender_tile = board.tiles[defender_row as usize][defender_col as usize].ok_or("No defender card at position")?;
+
+    // Check if attacker is in attack mode
+    if !attacker_tile.is_attack_mode {
+        return Err("Attacker is not in attack mode".to_string());
+    }
+
+    // Get attacker and defender cards
+    let attacker_card = ctx.db.cards().id().find(attacker_tile.card_id.unwrap())
+        .ok_or("Attacker card not found")?;
+    let defender_card = ctx.db.cards().id().find(defender_tile.card_id.unwrap())
+        .ok_or("Defender card not found")?;
+
+    // Calculate range
+    let distance = (attacker_row as i32 - defender_row as i32).abs() + 
+                    (attacker_col as i32 - defender_col as i32).abs();
+    
+    if distance > attacker_card.range {
+        return Err("Target is out of range".to_string());
+    }
+
+    // Resolve combat
+    let attacker_wins = attacker_card.attack > defender_card.defense;
+    
+    // Remove the defeated card
+    if attacker_wins {
+        board.tiles[defender_row as usize][defender_col as usize] = None;
+    } else {
+        board.tiles[attacker_row as usize][attacker_col as usize] = None;
+    }
+
+    // Update match with new board state
+    let board_json = serde_json::to_string(&board).map_err(|e| e.to_string())?;
+
+    ctx.db.game_matches().id().update(MatchRow {
+        id: match_id,
+        player1_id: match_row.player1_id,
+        player2_id: match_row.player2_id,
+        board_state_json: board_json,
+        current_turn: match_row.current_turn,
+        status: match_row.status,
+        winner_id: match_row.winner_id,
+        created_at: match_row.created_at,
+        updated_at: current_timestamp(),
+    });
+
+    Ok(())
+}
+
+// Flip a card face up/down
+#[reducer]
+pub fn flip_card(ctx: &ReducerContext, match_id: u64, row: u32, col: u32) -> Result<(), String> {
+    if row >= 6 || col >= 3 {
+        return Err("Invalid board position".to_string());
+    }
+
+    let match_row = ctx.db.game_matches().id().find(match_id)
+        .ok_or("Match not found")?;
+
+    let mut board: crate::BoardState = serde_json::from_str(&match_row.board_state_json)
+        .map_err(|e| e.to_string())?;
+
+    let mut tile = board.tiles[row as usize][col as usize].ok_or("No card at position")?;
+    
+    tile.is_face_up = !tile.is_face_up;
+    board.tiles[row as usize][col as usize] = Some(tile);
+
+    let board_json = serde_json::to_string(&board).map_err(|e| e.to_string())?;
+
+    ctx.db.game_matches().id().update(MatchRow {
+        id: match_id,
+        player1_id: match_row.player1_id,
+        player2_id: match_row.player2_id,
+        board_state_json: board_json,
+        current_turn: match_row.current_turn,
+        status: match_row.status,
+        winner_id: match_row.winner_id,
+        created_at: match_row.created_at,
+        updated_at: current_timestamp(),
+    });
+
+    Ok(())
+}
+
+// Switch card between attack/defense mode
+#[reducer]
+pub fn switch_card_mode(ctx: &ReducerContext, match_id: u64, row: u32, col: u32) -> Result<(), String> {
+    if row >= 6 || col >= 3 {
+        return Err("Invalid board position".to_string());
+    }
+
+    let match_row = ctx.db.game_matches().id().find(match_id)
+        .ok_or("Match not found")?;
+
+    let mut board: crate::BoardState = serde_json::from_str(&match_row.board_state_json)
+        .map_err(|e| e.to_string())?;
+
+    let mut tile = board.tiles[row as usize][col as usize].ok_or("No card at position")?;
+    
+    tile.is_attack_mode = !tile.is_attack_mode;
+    board.tiles[row as usize][col as usize] = Some(tile);
+
+    let board_json = serde_json::to_string(&board).map_err(|e| e.to_string())?;
+
+    ctx.db.game_matches().id().update(MatchRow {
+        id: match_id,
+        player1_id: match_row.player1_id,
+        player2_id: match_row.player2_id,
+        board_state_json: board_json,
+        current_turn: match_row.current_turn,
+        status: match_row.status,
+        winner_id: match_row.winner_id,
+        created_at: match_row.created_at,
+        updated_at: current_timestamp(),
+    });
+
+    Ok(())
+}
+
+// Move a card to a different position
+#[reducer]
+pub fn move_card(ctx: &ReducerContext, match_id: u64, from_row: u32, from_col: u32, to_row: u32, to_col: u32) -> Result<(), String> {
+    if from_row >= 6 || from_col >= 3 || to_row >= 6 || to_col >= 3 {
+        return Err("Invalid board position".to_string());
+    }
+
+    let match_row = ctx.db.game_matches().id().find(match_id)
+        .ok_or("Match not found")?;
+
+    let mut board: crate::BoardState = serde_json::from_str(&match_row.board_state_json)
+        .map_err(|e| e.to_string())?;
+
+    let tile = board.tiles[from_row as usize][from_col as usize].ok_or("No card at source position")?;
+    
+    // Check if destination is empty
+    if board.tiles[to_row as usize][to_col as usize].is_some() {
+        return Err("Destination tile is occupied".to_string());
+    }
+
+    // Move the tile
+    board.tiles[from_row as usize][from_col as usize] = None;
+    board.tiles[to_row as usize][to_col as usize] = Some(tile);
+
+    let board_json = serde_json::to_string(&board).map_err(|e| e.to_string())?;
+
+    ctx.db.game_matches().id().update(MatchRow {
+        id: match_id,
+        player1_id: match_row.player1_id,
+        player2_id: match_row.player2_id,
+        board_state_json: board_json,
+        current_turn: match_row.current_turn,
+        status: match_row.status,
+        winner_id: match_row.winner_id,
+        created_at: match_row.created_at,
+        updated_at: current_timestamp(),
+    });
+
     Ok(())
 }
 
 // End turn
 #[reducer]
 pub fn end_turn(ctx: &ReducerContext, match_id: u64) -> Result<(), String> {
-    let match_row = ctx.db.matches().id().find(match_id)
+    let match_row = ctx.db.game_matches().id().find(match_id)
         .ok_or("Match not found")?;
 
     let next_turn = if match_row.current_turn == match_row.player1_id {
@@ -115,7 +348,7 @@ pub fn end_turn(ctx: &ReducerContext, match_id: u64) -> Result<(), String> {
 
     let board_json = serde_json::to_string(&board).map_err(|e| e.to_string())?;
 
-    ctx.db.matches().id().update(MatchRow {
+    ctx.db.game_matches().id().update(MatchRow {
         id: match_id,
         player1_id: match_row.player1_id,
         player2_id: match_row.player2_id,
@@ -143,6 +376,17 @@ pub fn generate_daily_cards(ctx: &ReducerContext) -> Result<(), String> {
         generate_card(ctx, noun.to_string(), rarity.to_string(), ct.to_string())?;
     }
     Ok(())
+}
+
+// Helper functions
+fn generate_id() -> u64 {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as u64
+}
+
+fn current_timestamp() -> i64 {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as i64
 }
 
 // Helper: generate card stats based on rarity and type

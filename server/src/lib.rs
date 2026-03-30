@@ -6,7 +6,7 @@ pub mod matchmaking;
 pub mod tables;
 pub mod reducers;
 pub mod procedures;
-pub mod views;
+pub mod views; // kept for future use, currently empty
 pub mod types;
 
 pub use bot_ai::*;
