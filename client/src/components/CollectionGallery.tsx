@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { EnhancedCard } from './EnhancedCard';
-import { CardGenerator } from '@/lib/card-generator';
+import { useCards } from '@/lib/useCards';
 
-interface Card {
+interface GalleryCard {
   id: number;
   name: string;
   description: string;
@@ -18,7 +18,7 @@ interface Card {
 }
 
 interface CollectionGalleryProps {
-  initialCards?: Card[];
+  initialCards?: GalleryCard[];
 }
 
 interface FilterOptions {
@@ -29,9 +29,9 @@ interface FilterOptions {
 }
 
 export function CollectionGallery({ initialCards = [] }: CollectionGalleryProps) {
-  const [cards, setCards] = useState<Card[]>(initialCards);
-  const [filteredCards, setFilteredCards] = useState<Card[]>([]);
-  const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+  const { cards: dbCards, loading, error, generateCard } = useCards();
+  const [filteredCards, setFilteredCards] = useState<GalleryCard[]>([]);
+  const [selectedCard, setSelectedCard] = useState<GalleryCard | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<FilterOptions>({
@@ -41,12 +41,24 @@ export function CollectionGallery({ initialCards = [] }: CollectionGalleryProps)
     sortOrder: 'desc'
   });
 
-  // Generate mock cards if none provided
-  useEffect(() => {
-    if (initialCards.length === 0) {
-      generateMockCollection();
+  // Map DB cards to gallery cards
+  const cards: GalleryCard[] = useMemo(() => {
+    if (dbCards.length > 0) {
+      return dbCards.map(c => ({
+        id: Number(c.id),
+        name: c.name,
+        description: c.description,
+        attack: c.attack,
+        defense: c.defense,
+        range: c.range,
+        rarity: c.rarity,
+        type: c.cardType,
+        image_url: c.imageUrl,
+        created_at: Number(c.createdAt),
+      }));
     }
-  }, [initialCards]);
+    return initialCards;
+  }, [dbCards, initialCards]);
 
   // Filter and sort cards
   useEffect(() => {
@@ -90,40 +102,13 @@ export function CollectionGallery({ initialCards = [] }: CollectionGalleryProps)
     setFilteredCards(filtered);
   }, [cards, searchTerm, filters]);
 
-  const generateMockCollection = async () => {
-    setIsGenerating(true);
-    try {
-      const mockCards: Card[] = [];
-      
-      // Generate different types of cards
-      for (let i = 0; i < 20; i++) {
-        const card = await CardGenerator.generateCard(i + 1);
-        mockCards.push({
-          ...card,
-          id: i + 1,
-          type: card.card_type, // Convert card_type to type to match interface
-          created_at: Date.now() / 1000 - Math.random() * 86400 * 30 // Random dates within 30 days
-        });
-      }
-      
-      setCards(mockCards);
-    } catch (error) {
-      console.error('Error generating collection:', error);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
   const handleGenerateNewCard = async () => {
     setIsGenerating(true);
     try {
-      const newCard = await CardGenerator.generateCard(cards.length + 1);
-      setCards(prev => [{
-        ...newCard,
-        type: newCard.card_type // Convert card_type to type
-      }, ...prev]);
+      await generateCard();
+      // Card will appear via subscription update
     } catch (error) {
-      console.error('Error generating new card:', error);
+      console.error('Error generating card:', error);
     } finally {
       setIsGenerating(false);
     }
@@ -280,11 +265,11 @@ export function CollectionGallery({ initialCards = [] }: CollectionGalleryProps)
 
       {/* Cards grid */}
       <div className="max-w-7xl mx-auto">
-        {isGenerating ? (
+        {(isGenerating || loading) ? (
           <div className="flex items-center justify-center h-96">
             <div className="text-center">
               <div className="text-6xl text-white/50 mb-4">🎴</div>
-              <div className="text-white text-xl">Generating your unique AI card...</div>
+              <div className="text-white text-xl">{loading ? 'Loading cards from database...' : 'Generating your unique AI card...'}</div>
             </div>
           </div>
         ) : filteredCards.length === 0 ? (
