@@ -85,6 +85,20 @@ pub struct CardPackRow {
     pub opened_by_player_id: u64,
 }
 
+// Tracks which cards are in each player's hand during a match.
+// A player loses when they have zero cards on the board AND zero cards in hand.
+#[table(name = "player_hands", public, accessor = player_hands)]
+pub struct PlayerHandRow {
+    #[primary_key]
+    pub id: u64,
+    #[index(btree)]
+    pub match_id: u64,
+    #[index(btree)]
+    pub card_id: u64,
+    #[index(btree)]
+    pub player_id: u64,
+}
+
 pub fn generate_id() -> u64 {
     use std::time::{SystemTime, UNIX_EPOCH};
     SystemTime::now()

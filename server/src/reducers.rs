@@ -93,6 +93,41 @@ pub fn create_match(ctx: &ReducerContext, player1_id: u64, player2_id: u64) -> R
     Ok(())
 }
 
+// Initialize hands for both players at match start.
+// Takes the match_id, player1_id + their card_ids, player2_id + their card_ids.
+#[reducer]
+pub fn init_match_hands(ctx: &ReducerContext, match_id: u64, player1_id: u64, player1_card_ids: Vec<u64>, player2_id: u64, player2_card_ids: Vec<u64>) -> Result<(), String> {
+    for card_id in player1_card_ids {
+        ctx.db.player_hands().insert(PlayerHandRow {
+            id: generate_id(),
+            match_id,
+            card_id,
+            player_id: player1_id,
+        });
+    }
+    for card_id in player2_card_ids {
+        ctx.db.player_hands().insert(PlayerHandRow {
+            id: generate_id(),
+            match_id,
+            card_id,
+            player_id: player2_id,
+        });
+    }
+    Ok(())
+}
+
+// Add a card to a player's hand (e.g., for drawing cards during the game)
+#[reducer]
+pub fn add_card_to_hand(ctx: &ReducerContext, match_id: u64, player_id: u64, card_id: u64) -> Result<(), String> {
+    ctx.db.player_hands().insert(PlayerHandRow {
+        id: generate_id(),
+        match_id,
+        card_id,
+        player_id,
+    });
+    Ok(())
+}
+
 // Board game reducers - MISSING FROM CURRENT IMPLEMENTATION
 
 // Place a card on the board
@@ -109,6 +144,14 @@ pub fn place_card(ctx: &ReducerContext, match_id: u64, card_id: u64, player_id: 
     if match_row.current_turn != player_id {
         return Err("Not your turn".to_string());
     }
+
+    // Verify the card is in the player's hand
+    let hand_entry = ctx.db.player_hands().iter()
+        .find(|row| row.match_id == match_id && row.card_id == card_id && row.player_id == player_id);
+    let hand_id = match hand_entry {
+        Some(h) => h.id,
+        None => return Err("Card not in your hand".to_string()),
+    };
 
     // Parse board state
     let mut board: crate::BoardState = serde_json::from_str(&match_row.board_state_json)
@@ -130,6 +173,20 @@ pub fn place_card(ctx: &ReducerContext, match_id: u64, card_id: u64, player_id: 
     // Place the card on the board
     board.tiles[row as usize][col as usize] = Some(tile);
 
+    // Remove card from hand using primary key
+    ctx.db.player_hands().id().delete(hand_id);
+
+    // Count remaining hand cards for win check
+    let p1_hand = ctx.db.player_hands().iter()
+        .filter(|row| row.match_id == match_id && row.player_id == match_row.player1_id)
+        .count();
+    let p2_hand = ctx.db.player_hands().iter()
+        .filter(|row| row.match_id == match_id && row.player_id == match_row.player2_id)
+        .count();
+
+    // Check for winner
+    let winner = crate::check_win(&board, match_row.player1_id, match_row.player2_id, p1_hand, p2_hand);
+
     // Update match with new board state
     let board_json = serde_json::to_string(&board).map_err(|e| e.to_string())?;
 
@@ -139,8 +196,8 @@ pub fn place_card(ctx: &ReducerContext, match_id: u64, card_id: u64, player_id: 
         player2_id: match_row.player2_id,
         board_state_json: board_json,
         current_turn: match_row.current_turn,
-        status: match_row.status,
-        winner_id: match_row.winner_id,
+        status: if winner.is_some() { "Completed".to_string() } else { match_row.status.clone() },
+        winner_id: winner.unwrap_or(match_row.winner_id),
         created_at: match_row.created_at,
         updated_at: current_timestamp(),
     });
@@ -200,8 +257,16 @@ pub fn attack_card(ctx: &ReducerContext, match_id: u64, attacker_row: u32, attac
         board.tiles[attacker_row as usize][attacker_col as usize] = None;
     }
 
+    // Count hand cards for win check
+    let p1_hand = ctx.db.player_hands().iter()
+        .filter(|row| row.match_id == match_id && row.player_id == match_row.player1_id)
+        .count();
+    let p2_hand = ctx.db.player_hands().iter()
+        .filter(|row| row.match_id == match_id && row.player_id == match_row.player2_id)
+        .count();
+
     // Check for a winner
-    let winner = crate::check_win(&board, match_row.player1_id, match_row.player2_id);
+    let winner = crate::check_win(&board, match_row.player1_id, match_row.player2_id, p1_hand, p2_hand);
 
     // Update match with new board state
     let board_json = serde_json::to_string(&board).map_err(|e| e.to_string())?;
@@ -357,8 +422,16 @@ pub fn end_turn(ctx: &ReducerContext, match_id: u64) -> Result<(), String> {
         crate::MatchPhase::Combat => crate::MatchPhase::Placement,
     };
 
+    // Count hand cards for win check
+    let p1_hand = ctx.db.player_hands().iter()
+        .filter(|row| row.match_id == match_id && row.player_id == match_row.player1_id)
+        .count();
+    let p2_hand = ctx.db.player_hands().iter()
+        .filter(|row| row.match_id == match_id && row.player_id == match_row.player2_id)
+        .count();
+
     // Check for winner: if the player whose turn it just became has no cards, opponent wins
-    let winner = crate::check_win(&board, match_row.player1_id, match_row.player2_id);
+    let winner = crate::check_win(&board, match_row.player1_id, match_row.player2_id, p1_hand, p2_hand);
 
     let board_json = serde_json::to_string(&board).map_err(|e| e.to_string())?;
 
