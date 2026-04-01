@@ -167,6 +167,16 @@ pub fn add_card_to_hand(ctx: &ReducerContext, match_id: u64, player_id: u64, car
 
 // Board game reducers - MISSING FROM CURRENT IMPLEMENTATION
 
+// Helper: validate that a player is a participant in a match.
+// Returns the match row if valid, Err string otherwise.
+fn validate_player_in_match(ctx: &ReducerContext, match_id: u64, player_id: u64) -> Result<MatchRow, String> {
+    let m = ctx.db.game_matches().id().find(match_id).ok_or("Match not found")?;
+    if m.player1_id != player_id && m.player2_id != player_id {
+        return Err("You are not a participant in this match".to_string());
+    }
+    Ok(m)
+}
+
 // Place a card on the board
 #[reducer]
 pub fn place_card(ctx: &ReducerContext, match_id: u64, card_id: u64, player_id: u64, row: u32, col: u32) -> Result<(), String> {
@@ -174,8 +184,13 @@ pub fn place_card(ctx: &ReducerContext, match_id: u64, card_id: u64, player_id: 
         return Err("Invalid board position".to_string());
     }
 
-    let match_row = ctx.db.game_matches().id().find(match_id)
-        .ok_or("Match not found")?;
+    // Validate caller identity
+    let caller_record = ctx.db.player_identities().identity().find(ctx.sender()).ok_or("Caller identity not found")?;
+    if caller_record.player_id != player_id {
+        return Err("Player ID does not match your identity".to_string());
+    }
+
+    let match_row = validate_player_in_match(ctx, match_id, player_id)?;
 
     // Check if it's the player's turn
     if match_row.current_turn != player_id {
@@ -244,17 +259,27 @@ pub fn place_card(ctx: &ReducerContext, match_id: u64, card_id: u64, player_id: 
 
 // Attack another card
 #[reducer]
-pub fn attack_card(ctx: &ReducerContext, match_id: u64, attacker_row: u32, attacker_col: u32, defender_row: u32, defender_col: u32) -> Result<(), String> {
+pub fn attack_card(ctx: &ReducerContext, match_id: u64, player_id: u64, attacker_row: u32, attacker_col: u32, defender_row: u32, defender_col: u32) -> Result<(), String> {
     // Validate positions
     if attacker_row >= 6 || attacker_col >= 3 || defender_row >= 6 || defender_col >= 3 {
         return Err("Invalid board position".to_string());
     }
 
-    let match_row = ctx.db.game_matches().id().find(match_id)
-        .ok_or("Match not found")?;
+    // Validate caller identity
+    let caller_record = ctx.db.player_identities().identity().find(ctx.sender()).ok_or("Caller identity not found")?;
+    if caller_record.player_id != player_id {
+        return Err("Player ID does not match your identity".to_string());
+    }
+
+    let match_row = validate_player_in_match(ctx, match_id, player_id)?;
 
     if match_row.status == "Completed" {
         return Err("Match is already over".to_string());
+    }
+
+    // Check it's the attacker's turn
+    if match_row.current_turn != player_id {
+        return Err("Not your turn".to_string());
     }
 
     // Parse board state
@@ -264,6 +289,11 @@ pub fn attack_card(ctx: &ReducerContext, match_id: u64, attacker_row: u32, attac
     // Get attacker and defender tiles
     let attacker_tile = board.tiles[attacker_row as usize][attacker_col as usize].ok_or("No attacker card at position")?;
     let defender_tile = board.tiles[defender_row as usize][defender_col as usize].ok_or("No defender card at position")?;
+
+    // Verify attacker belongs to the calling player
+    if attacker_tile.owner_player_id != Some(player_id) {
+        return Err("You do not own the attacker card".to_string());
+    }
 
     // Check if attacker is in attack mode
     if !attacker_tile.is_attack_mode {
@@ -325,18 +355,28 @@ pub fn attack_card(ctx: &ReducerContext, match_id: u64, attacker_row: u32, attac
 
 // Flip a card face up/down
 #[reducer]
-pub fn flip_card(ctx: &ReducerContext, match_id: u64, row: u32, col: u32) -> Result<(), String> {
+pub fn flip_card(ctx: &ReducerContext, match_id: u64, player_id: u64, row: u32, col: u32) -> Result<(), String> {
     if row >= 6 || col >= 3 {
         return Err("Invalid board position".to_string());
     }
 
-    let match_row = ctx.db.game_matches().id().find(match_id)
-        .ok_or("Match not found")?;
+    // Validate caller identity
+    let caller_record = ctx.db.player_identities().identity().find(ctx.sender()).ok_or("Caller identity not found")?;
+    if caller_record.player_id != player_id {
+        return Err("Player ID does not match your identity".to_string());
+    }
+
+    let match_row = validate_player_in_match(ctx, match_id, player_id)?;
 
     let mut board: crate::BoardState = serde_json::from_str(&match_row.board_state_json)
         .map_err(|e| e.to_string())?;
 
     let mut tile = board.tiles[row as usize][col as usize].ok_or("No card at position")?;
+
+    // Verify caller owns the tile
+    if tile.owner_player_id != Some(player_id) {
+        return Err("You do not own this card".to_string());
+    }
     
     tile.is_face_up = !tile.is_face_up;
     board.tiles[row as usize][col as usize] = Some(tile);
@@ -360,19 +400,29 @@ pub fn flip_card(ctx: &ReducerContext, match_id: u64, row: u32, col: u32) -> Res
 
 // Switch card between attack/defense mode
 #[reducer]
-pub fn switch_card_mode(ctx: &ReducerContext, match_id: u64, row: u32, col: u32) -> Result<(), String> {
+pub fn switch_card_mode(ctx: &ReducerContext, match_id: u64, player_id: u64, row: u32, col: u32) -> Result<(), String> {
     if row >= 6 || col >= 3 {
         return Err("Invalid board position".to_string());
     }
 
-    let match_row = ctx.db.game_matches().id().find(match_id)
-        .ok_or("Match not found")?;
+    // Validate caller identity
+    let caller_record = ctx.db.player_identities().identity().find(ctx.sender()).ok_or("Caller identity not found")?;
+    if caller_record.player_id != player_id {
+        return Err("Player ID does not match your identity".to_string());
+    }
+
+    let match_row = validate_player_in_match(ctx, match_id, player_id)?;
 
     let mut board: crate::BoardState = serde_json::from_str(&match_row.board_state_json)
         .map_err(|e| e.to_string())?;
 
     let mut tile = board.tiles[row as usize][col as usize].ok_or("No card at position")?;
-    
+
+    // Verify caller owns the tile
+    if tile.owner_player_id != Some(player_id) {
+        return Err("You do not own this card".to_string());
+    }
+
     tile.is_attack_mode = !tile.is_attack_mode;
     board.tiles[row as usize][col as usize] = Some(tile);
 
@@ -395,18 +445,28 @@ pub fn switch_card_mode(ctx: &ReducerContext, match_id: u64, row: u32, col: u32)
 
 // Move a card to a different position
 #[reducer]
-pub fn move_card(ctx: &ReducerContext, match_id: u64, from_row: u32, from_col: u32, to_row: u32, to_col: u32) -> Result<(), String> {
+pub fn move_card(ctx: &ReducerContext, match_id: u64, player_id: u64, from_row: u32, from_col: u32, to_row: u32, to_col: u32) -> Result<(), String> {
     if from_row >= 6 || from_col >= 3 || to_row >= 6 || to_col >= 3 {
         return Err("Invalid board position".to_string());
     }
 
-    let match_row = ctx.db.game_matches().id().find(match_id)
-        .ok_or("Match not found")?;
+    // Validate caller identity
+    let caller_record = ctx.db.player_identities().identity().find(ctx.sender()).ok_or("Caller identity not found")?;
+    if caller_record.player_id != player_id {
+        return Err("Player ID does not match your identity".to_string());
+    }
+
+    let match_row = validate_player_in_match(ctx, match_id, player_id)?;
 
     let mut board: crate::BoardState = serde_json::from_str(&match_row.board_state_json)
         .map_err(|e| e.to_string())?;
 
     let tile = board.tiles[from_row as usize][from_col as usize].ok_or("No card at source position")?;
+
+    // Verify caller owns the tile
+    if tile.owner_player_id != Some(player_id) {
+        return Err("You do not own this card".to_string());
+    }
     
     // Check if destination is empty
     if board.tiles[to_row as usize][to_col as usize].is_some() {
@@ -436,9 +496,14 @@ pub fn move_card(ctx: &ReducerContext, match_id: u64, from_row: u32, from_col: u
 
 // End turn
 #[reducer]
-pub fn end_turn(ctx: &ReducerContext, match_id: u64) -> Result<(), String> {
-    let match_row = ctx.db.game_matches().id().find(match_id)
-        .ok_or("Match not found")?;
+pub fn end_turn(ctx: &ReducerContext, match_id: u64, player_id: u64) -> Result<(), String> {
+    // Validate caller identity
+    let caller_record = ctx.db.player_identities().identity().find(ctx.sender()).ok_or("Caller identity not found")?;
+    if caller_record.player_id != player_id {
+        return Err("Player ID does not match your identity".to_string());
+    }
+
+    let match_row = validate_player_in_match(ctx, match_id, player_id)?;
 
     if match_row.status == "Completed" {
         return Err("Match is already over".to_string());
