@@ -3,6 +3,43 @@ use crate::tables::*;
 use serde_json;
 
 // Player management reducers
+
+// Lifecycle reducer: runs when a client first connects to SpacetimeDB.
+// Looks up the caller's SpacetimeDB identity in player_identities.
+// If not found, creates a new player and records the identity mapping.
+#[reducer(client_connected)]
+pub fn client_connected(ctx: &ReducerContext) -> Result<(), String> {
+    let identity = ctx.identity();
+
+    // Check if this identity is already linked to a player
+    if ctx.db.player_identities().identity().find(identity).is_some() {
+        // Already registered, nothing to do
+        return Ok(());
+    }
+
+    // Create a new player with an auto-generated name
+    let player_id = generate_id();
+    let auto_name = format!("Player_{}", &identity.to_hex()[..8]);
+
+    let player = PlayerRow {
+        id: player_id,
+        name: auto_name.clone(),
+        email: format!("{}@local", identity.to_hex()),
+        created_at: current_timestamp(),
+        rating: 1000,
+    };
+    ctx.db.players().insert(player);
+
+    // Record the identity -> player mapping
+    let identity_row = PlayerIdentityRow {
+        identity,
+        player_id,
+    };
+    ctx.db.player_identities().insert(identity_row);
+
+    Ok(())
+}
+
 #[reducer]
 pub fn create_player(ctx: &ReducerContext, name: String, email: String) -> Result<(), String> {
     let player_id = generate_id();

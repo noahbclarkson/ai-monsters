@@ -99,6 +99,15 @@ pub struct PlayerHandRow {
     pub player_id: u64,
 }
 
+// Maps SpacetimeDB identities (128-bit) to our player_id (u64).
+// Used by client_connected to link a SpacetimeDB client to a player row.
+#[table(name = "player_identities", public, accessor = player_identities)]
+pub struct PlayerIdentityRow {
+    #[primary_key]
+    pub identity: spacetimedb::Identity,
+    pub player_id: u64,
+}
+
 pub fn generate_id() -> u64 {
     use std::time::{SystemTime, UNIX_EPOCH};
     SystemTime::now()
