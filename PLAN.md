@@ -1,6 +1,6 @@
 # AI Monsters - Project Plan
 
-## Current State: 2026-04-01 evening review. Identity management added (db7c8ac). Server and client build clean. Git push working.
+## Current State: 2026-04-01 evening. Client identity wiring complete (196a44a). playerId exposed via useSpacetimeDB(). Server and client build clean. Git push working.
 
 ### Honest Assessment (2026-04-01 evening)
 
@@ -21,7 +21,7 @@
 - Subscription query `SELECT * FROM game_matches, players` is a cross join (inefficient)
 - **client_connected reducer NOT called on connect** -- identity auto-created on server but client never triggers it
 
-**Git:** Push working. Head: db7c8ac.
+**Git:** Push working. Head: 196a44a.
 
 ### What's actually done
 - Rust server compiles with SpacetimeDB tables and reducers
@@ -36,10 +36,11 @@
 
 ### What's broken or missing (priority order)
 
-**1. client_connected not called from client**
-- Server-side identity creation works (client_connected reducer exists)
-- Client's SpacetimeDBProvider never calls client_connected or subscribes to identity
-- Client cannot know its own player_id -- no way to read my_player view from client
+**1. client_connected not called from client** -- RESOLVED (196a44a)
+- Server-side: client_connected lifecycle reducer auto-runs on first connect (no client call needed)
+- Client-side: SpacetimeDBProvider subscribes to my_player + player_identities on connect
+- playerId exposed via useSpacetimeDB().playerId
+- usePlayerIdentity hook available as convenience wrapper
 
 **2. Subscription cross join inefficiency**
 - `SELECT * FROM game_matches, players` is a cross join
@@ -65,11 +66,11 @@
 ### Backlog (ordered by priority)
 1. ~~Add SpacetimeDB SDK to client, generate bindings, create connection provider~~ DONE
 2. ~~Wire CollectionGallery to SpacetimeDB~~ DONE
-3. ~~Fix views or remove them~~ DONE (implemented my_player, my_player_id)
+3. ~~Fix views or remove them~~ DONE (implemented my_player view)
 4. ~~Implement win condition (check_win function + wire to end_turn/attack_card)~~ DONE
 5. ~~Wire game UI to SpacetimeDB (useMatches hook, useGame hook, wire board actions)~~ DONE
 6. ~~Fix win condition to check hand + board cards~~ DONE
-7. Wire client to call client_connected on connect, subscribe to my_player_id to get own player_id
+7. ~~Wire client to call client_connected on connect, subscribe to my_player_id to get own player_id~~ DONE (196a44a)
 8. Fix subscription queries (cross join -> filtered, subscribe to specific match_id)
 9. Add #[reducer(init)] for database initialization
 10. Add player_id ownership validation in match reducers
