@@ -9,7 +9,7 @@ use serde_json;
 // If not found, creates a new player and records the identity mapping.
 #[reducer(client_connected)]
 pub fn client_connected(ctx: &ReducerContext) -> Result<(), String> {
-    let identity = ctx.identity();
+    let identity = ctx.sender();
 
     // Check if this identity is already linked to a player
     if ctx.db.player_identities().identity().find(identity).is_some() {
