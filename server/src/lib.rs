@@ -296,3 +296,18 @@ fn card_type_suffix(ct: &CardType) -> &'static str {
 fn card_type_name(ct: &CardType) -> &'static str {
     match ct { CardType::Unit => "Unit", CardType::Building => "Building", CardType::Spell => "Spell" }
 }
+
+/// Returns the ID of the player who has won, if any.
+/// Win condition: a player wins when their opponent has zero cards on the board.
+pub fn check_win(board: &BoardState, player1_id: PlayerId, player2_id: PlayerId) -> Option<PlayerId> {
+    let p1_has_cards = board.tiles.iter().flatten().any(|t| t.as_ref().is_some_and(|tile| tile.owner_player_id == Some(player1_id)));
+    let p2_has_cards = board.tiles.iter().flatten().any(|t| t.as_ref().is_some_and(|tile| tile.owner_player_id == Some(player2_id)));
+
+    if !p1_has_cards && p2_has_cards {
+        return Some(player2_id);
+    }
+    if !p2_has_cards && p1_has_cards {
+        return Some(player1_id);
+    }
+    None
+}

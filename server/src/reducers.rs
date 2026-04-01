@@ -159,6 +159,10 @@ pub fn attack_card(ctx: &ReducerContext, match_id: u64, attacker_row: u32, attac
     let match_row = ctx.db.game_matches().id().find(match_id)
         .ok_or("Match not found")?;
 
+    if match_row.status == "Completed" {
+        return Err("Match is already over".to_string());
+    }
+
     // Parse board state
     let mut board: crate::BoardState = serde_json::from_str(&match_row.board_state_json)
         .map_err(|e| e.to_string())?;
@@ -196,6 +200,9 @@ pub fn attack_card(ctx: &ReducerContext, match_id: u64, attacker_row: u32, attac
         board.tiles[attacker_row as usize][attacker_col as usize] = None;
     }
 
+    // Check for a winner
+    let winner = crate::check_win(&board, match_row.player1_id, match_row.player2_id);
+
     // Update match with new board state
     let board_json = serde_json::to_string(&board).map_err(|e| e.to_string())?;
 
@@ -205,8 +212,8 @@ pub fn attack_card(ctx: &ReducerContext, match_id: u64, attacker_row: u32, attac
         player2_id: match_row.player2_id,
         board_state_json: board_json,
         current_turn: match_row.current_turn,
-        status: match_row.status,
-        winner_id: match_row.winner_id,
+        status: if winner.is_some() { "Completed".to_string() } else { match_row.status.clone() },
+        winner_id: winner.unwrap_or(match_row.winner_id),
         created_at: match_row.created_at,
         updated_at: current_timestamp(),
     });
@@ -331,6 +338,10 @@ pub fn end_turn(ctx: &ReducerContext, match_id: u64) -> Result<(), String> {
     let match_row = ctx.db.game_matches().id().find(match_id)
         .ok_or("Match not found")?;
 
+    if match_row.status == "Completed" {
+        return Err("Match is already over".to_string());
+    }
+
     let next_turn = if match_row.current_turn == match_row.player1_id {
         match_row.player2_id
     } else {
@@ -346,6 +357,9 @@ pub fn end_turn(ctx: &ReducerContext, match_id: u64) -> Result<(), String> {
         crate::MatchPhase::Combat => crate::MatchPhase::Placement,
     };
 
+    // Check for winner: if the player whose turn it just became has no cards, opponent wins
+    let winner = crate::check_win(&board, match_row.player1_id, match_row.player2_id);
+
     let board_json = serde_json::to_string(&board).map_err(|e| e.to_string())?;
 
     ctx.db.game_matches().id().update(MatchRow {
@@ -354,8 +368,8 @@ pub fn end_turn(ctx: &ReducerContext, match_id: u64) -> Result<(), String> {
         player2_id: match_row.player2_id,
         board_state_json: board_json,
         current_turn: next_turn,
-        status: match_row.status,
-        winner_id: match_row.winner_id,
+        status: if winner.is_some() { "Completed".to_string() } else { match_row.status.clone() },
+        winner_id: winner.unwrap_or(match_row.winner_id),
         created_at: match_row.created_at,
         updated_at: current_timestamp(),
     });
