@@ -2,53 +2,26 @@
 
 import { useState } from 'react';
 import { GameBoard } from './GameBoard';
-
-interface Player {
-  id: number;
-  name: string;
-  rating: number;
-}
-
-interface Match {
-  id: number;
-  player1_id: number;
-  player2_id: number;
-  status: 'Waiting' | 'Active' | 'Completed' | 'Abandoned';
-  created_at: number;
-}
+import { useMatches } from '@/lib/useMatches';
 
 export function GameLobby() {
   const [activeTab, setActiveTab] = useState<'lobby' | 'create' | 'play'>('lobby');
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [selectedMatch, setSelectedMatch] = useState<number | null>(null);
+  const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null);
   const [playerName, setPlayerName] = useState('');
+  const { matches, players, loading, error, createMatch, getPlayerById, getWaitingMatches, getActiveMatches } = useMatches();
 
-  // Mock data - would come from SpacetimeDB
-  const mockPlayers: Player[] = [
-    { id: 1, name: 'Player 1', rating: 1200 },
-    { id: 2, name: 'AI Bot', rating: 1000 },
-    { id: 3, name: 'Player 2', rating: 1100 },
-  ];
-
-  const mockMatches: Match[] = [
-    { id: 1, player1_id: 1, player2_id: 2, status: 'Active', created_at: Date.now() },
-    { id: 2, player1_id: 1, player2_id: 3, status: 'Waiting', created_at: Date.now() - 60000 },
-  ];
-
-  const handleCreateMatch = (opponentId: number) => {
-    // Placeholder - would create match via SpacetimeDB
-    const newMatch: Match = {
-      id: Date.now(),
-      player1_id: 1, // Current player
-      player2_id: opponentId,
-      status: 'Waiting',
-      created_at: Date.now(),
-    };
-    setMatches([...matches, newMatch]);
+  const handleCreateMatch = async (opponentId: number) => {
+    try {
+      // Use player 1 as default creator if no players exist yet
+      const player1Id = players.length > 0 ? Number(players[0].id) : 1;
+      await createMatch(BigInt(player1Id), BigInt(opponentId));
+    } catch (e) {
+      console.error('Error creating match:', e);
+    }
   };
 
   const handleJoinMatch = (matchId: number) => {
-    setSelectedMatch(matchId);
+    setSelectedMatchId(matchId);
     setActiveTab('play');
   };
 
@@ -57,34 +30,40 @@ export function GameLobby() {
       {/* Quick Play */}
       <div className="bg-gray-800 rounded-lg p-6">
         <h2 className="text-2xl font-bold text-white mb-4">Quick Play</h2>
-        <button 
-          onClick={() => handleCreateMatch(2)} // Play against AI
+        <button
+          onClick={() => {
+            // Create match vs AI bot (player 2 if exists, otherwise just create a match)
+            const botPlayer = players.find(p => p.name.toLowerCase().includes('bot') || p.name === 'AI Bot');
+            handleCreateMatch(botPlayer ? Number(botPlayer.id) : 2);
+          }}
           className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-semibold text-lg"
         >
-          🤖 Play vs AI Bot
+          Play vs AI Bot
         </button>
       </div>
 
       {/* Active Matches */}
       <div className="bg-gray-800 rounded-lg p-6">
         <h2 className="text-2xl font-bold text-white mb-4">Active Matches</h2>
-        {matches.filter(m => m.status === 'Active').length === 0 ? (
+        {loading ? (
+          <p className="text-gray-400">Loading matches...</p>
+        ) : getActiveMatches().length === 0 ? (
           <p className="text-gray-400">No active matches. Start a new game!</p>
         ) : (
           <div className="space-y-3">
-            {matches.filter(m => m.status === 'Active').map(match => {
-              const player1 = mockPlayers.find(p => p.id === match.player1_id);
-              const player2 = mockPlayers.find(p => p.id === match.player2_id);
+            {getActiveMatches().map(match => {
+              const player1 = getPlayerById(match.player1Id);
+              const player2 = getPlayerById(match.player2Id);
               return (
-                <div key={match.id} className="bg-gray-700 rounded-lg p-4 flex justify-between items-center">
+                <div key={String(match.id)} className="bg-gray-700 rounded-lg p-4 flex justify-between items-center">
                   <div>
                     <p className="text-white font-semibold">
-                      {player1?.name} vs {player2?.name}
+                      {player1?.name ?? `Player ${match.player1Id}`} vs {player2?.name ?? `Player ${match.player2Id}`}
                     </p>
-                    <p className="text-gray-400 text-sm">Match #{match.id}</p>
+                    <p className="text-gray-400 text-sm">Match #{match.id.toString()}</p>
                   </div>
-                  <button 
-                    onClick={() => handleJoinMatch(match.id)}
+                  <button
+                    onClick={() => handleJoinMatch(Number(match.id))}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
                   >
                     Continue
@@ -99,22 +78,26 @@ export function GameLobby() {
       {/* Available Players */}
       <div className="bg-gray-800 rounded-lg p-6">
         <h2 className="text-2xl font-bold text-white mb-4">Challenge Players</h2>
-        <div className="space-y-3">
-          {mockPlayers.filter(p => p.id !== 1).map(player => (
-            <div key={player.id} className="bg-gray-700 rounded-lg p-4 flex justify-between items-center">
-              <div>
-                <p className="text-white font-semibold">{player.name}</p>
-                <p className="text-gray-400 text-sm">Rating: {player.rating}</p>
+        {players.length === 0 ? (
+          <p className="text-gray-400">No other players available.</p>
+        ) : (
+          <div className="space-y-3">
+            {players.slice(0, 5).map(player => (
+              <div key={String(player.id)} className="bg-gray-700 rounded-lg p-4 flex justify-between items-center">
+                <div>
+                  <p className="text-white font-semibold">{player.name}</p>
+                  <p className="text-gray-400 text-sm">Rating: {player.rating}</p>
+                </div>
+                <button
+                  onClick={() => handleCreateMatch(Number(player.id))}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg"
+                >
+                  Challenge
+                </button>
               </div>
-              <button 
-                onClick={() => handleCreateMatch(player.id)}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg"
-              >
-                Challenge
-              </button>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -221,9 +204,9 @@ export function GameLobby() {
         {/* Content */}
         {activeTab === 'lobby' && renderLobby()}
         {activeTab === 'create' && renderCreateGame()}
-        {activeTab === 'play' && selectedMatch && (
+        {activeTab === 'play' && selectedMatchId && (
           <div>
-            <GameBoard gameId={selectedMatch} />
+            <GameBoard gameId={selectedMatchId} />
           </div>
         )}
       </div>
