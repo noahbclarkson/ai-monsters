@@ -34,6 +34,7 @@ import {
 } from "spacetimedb";
 
 // Import all reducer arg schemas
+import AddCardToHandReducer from "./add_card_to_hand_reducer";
 import AttackCardReducer from "./attack_card_reducer";
 import CreateDeckReducer from "./create_deck_reducer";
 import CreateMatchReducer from "./create_match_reducer";
@@ -42,6 +43,7 @@ import EndTurnReducer from "./end_turn_reducer";
 import FlipCardReducer from "./flip_card_reducer";
 import GenerateCardReducer from "./generate_card_reducer";
 import GenerateDailyCardsReducer from "./generate_daily_cards_reducer";
+import InitMatchHandsReducer from "./init_match_hands_reducer";
 import MoveCardReducer from "./move_card_reducer";
 import PlaceCardReducer from "./place_card_reducer";
 import SwitchCardModeReducer from "./switch_card_mode_reducer";
@@ -53,6 +55,9 @@ import CardPacksRow from "./card_packs_table";
 import CardsRow from "./cards_table";
 import DecksRow from "./decks_table";
 import GameMatchesRow from "./game_matches_table";
+import MyPlayerRow from "./my_player_table";
+import PlayerHandsRow from "./player_hands_table";
+import PlayerIdentitiesRow from "./player_identities_table";
 import PlayersRow from "./players_table";
 
 /** Type-only namespace exports for generated type groups. */
@@ -154,6 +159,37 @@ const tablesSchema = __schema({
       { name: 'game_matches_id_key', constraint: 'unique', columns: ['id'] },
     ],
   }, GameMatchesRow),
+  player_hands: __table({
+    name: 'player_hands',
+    indexes: [
+      { accessor: 'card_id', name: 'player_hands_card_id_idx_btree', algorithm: 'btree', columns: [
+        'cardId',
+      ] },
+      { accessor: 'id', name: 'player_hands_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+      { accessor: 'match_id', name: 'player_hands_match_id_idx_btree', algorithm: 'btree', columns: [
+        'matchId',
+      ] },
+      { accessor: 'player_id', name: 'player_hands_player_id_idx_btree', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+    ],
+    constraints: [
+      { name: 'player_hands_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, PlayerHandsRow),
+  player_identities: __table({
+    name: 'player_identities',
+    indexes: [
+      { accessor: 'identity', name: 'player_identities_identity_idx_btree', algorithm: 'btree', columns: [
+        'identity',
+      ] },
+    ],
+    constraints: [
+      { name: 'player_identities_identity_key', constraint: 'unique', columns: ['identity'] },
+    ],
+  }, PlayerIdentitiesRow),
   players: __table({
     name: 'players',
     indexes: [
@@ -178,10 +214,18 @@ const tablesSchema = __schema({
       { name: 'players_name_key', constraint: 'unique', columns: ['name'] },
     ],
   }, PlayersRow),
+  my_player: __table({
+    name: 'my_player',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyPlayerRow),
 });
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
+  __reducerSchema("add_card_to_hand", AddCardToHandReducer),
   __reducerSchema("attack_card", AttackCardReducer),
   __reducerSchema("create_deck", CreateDeckReducer),
   __reducerSchema("create_match", CreateMatchReducer),
@@ -190,6 +234,7 @@ const reducersSchema = __reducers(
   __reducerSchema("flip_card", FlipCardReducer),
   __reducerSchema("generate_card", GenerateCardReducer),
   __reducerSchema("generate_daily_cards", GenerateDailyCardsReducer),
+  __reducerSchema("init_match_hands", InitMatchHandsReducer),
   __reducerSchema("move_card", MoveCardReducer),
   __reducerSchema("place_card", PlaceCardReducer),
   __reducerSchema("switch_card_mode", SwitchCardModeReducer),

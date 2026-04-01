@@ -6,6 +6,7 @@
 import { type Infer as __Infer } from "spacetimedb";
 
 // Import all reducer arg schemas
+import AddCardToHandReducer from "../add_card_to_hand_reducer";
 import AttackCardReducer from "../attack_card_reducer";
 import CreateDeckReducer from "../create_deck_reducer";
 import CreateMatchReducer from "../create_match_reducer";
@@ -14,10 +15,12 @@ import EndTurnReducer from "../end_turn_reducer";
 import FlipCardReducer from "../flip_card_reducer";
 import GenerateCardReducer from "../generate_card_reducer";
 import GenerateDailyCardsReducer from "../generate_daily_cards_reducer";
+import InitMatchHandsReducer from "../init_match_hands_reducer";
 import MoveCardReducer from "../move_card_reducer";
 import PlaceCardReducer from "../place_card_reducer";
 import SwitchCardModeReducer from "../switch_card_mode_reducer";
 
+export type AddCardToHandParams = __Infer<typeof AddCardToHandReducer>;
 export type AttackCardParams = __Infer<typeof AttackCardReducer>;
 export type CreateDeckParams = __Infer<typeof CreateDeckReducer>;
 export type CreateMatchParams = __Infer<typeof CreateMatchReducer>;
@@ -26,6 +29,7 @@ export type EndTurnParams = __Infer<typeof EndTurnReducer>;
 export type FlipCardParams = __Infer<typeof FlipCardReducer>;
 export type GenerateCardParams = __Infer<typeof GenerateCardReducer>;
 export type GenerateDailyCardsParams = __Infer<typeof GenerateDailyCardsReducer>;
+export type InitMatchHandsParams = __Infer<typeof InitMatchHandsReducer>;
 export type MoveCardParams = __Infer<typeof MoveCardReducer>;
 export type PlaceCardParams = __Infer<typeof PlaceCardReducer>;
 export type SwitchCardModeParams = __Infer<typeof SwitchCardModeReducer>;

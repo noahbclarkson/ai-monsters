@@ -57,6 +57,20 @@ export const MatchRow = __t.object("MatchRow", {
 });
 export type MatchRow = __Infer<typeof MatchRow>;
 
+export const PlayerHandRow = __t.object("PlayerHandRow", {
+  id: __t.u64(),
+  matchId: __t.u64(),
+  cardId: __t.u64(),
+  playerId: __t.u64(),
+});
+export type PlayerHandRow = __Infer<typeof PlayerHandRow>;
+
+export const PlayerIdentityRow = __t.object("PlayerIdentityRow", {
+  identity: __t.identity(),
+  playerId: __t.u64(),
+});
+export type PlayerIdentityRow = __Infer<typeof PlayerIdentityRow>;
+
 export const PlayerRow = __t.object("PlayerRow", {
   id: __t.u64(),
   name: __t.string(),
