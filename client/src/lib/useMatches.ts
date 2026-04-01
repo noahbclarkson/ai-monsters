@@ -76,25 +76,38 @@ export function useMatches() {
   useEffect(() => {
     if (!conn || !connected) return;
 
-    let handle: { unsubscribe(): void } | null = null;
+    let handle1: { unsubscribe(): void } | null = null;
+    let handle2: { unsubscribe(): void } | null = null;
 
     try {
-      handle = conn
+      handle1 = conn
         .subscriptionBuilder()
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .onApplied((_ctx: any) => {
           fetchData();
         })
-        .subscribe("SELECT * FROM game_matches, players") as { unsubscribe(): void };
+        .subscribe("SELECT * FROM game_matches") as { unsubscribe(): void };
+      handle2 = conn
+        .subscriptionBuilder()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .onApplied((_ctx: any) => {
+          fetchData();
+        })
+        .subscribe("SELECT * FROM players") as { unsubscribe(): void };
     } catch (e) {
       setError(`Subscription error: ${e}`);
       setLoading(false);
     }
 
     return () => {
-      if (handle) {
+      if (handle1) {
         try {
-          handle.unsubscribe();
+          handle1.unsubscribe();
+        } catch (_) { /* ignore cleanup errors */ }
+      }
+      if (handle2) {
+        try {
+          handle2.unsubscribe();
         } catch (_) { /* ignore cleanup errors */ }
       }
     };
