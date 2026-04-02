@@ -1,6 +1,6 @@
 # AI Monsters - Project Plan
 
-## Current State: 2026-04-02 early AM. #[reducer(init)] added (343ac56). Board ownership validation complete (fdc6ee5). playerId exposed via useSpacetimeDB(). Server and client build clean. Git push working.
+## Current State: 2026-04-02 07:12 UTC. Dead code cleanup complete (57e97da). Removed ~720 lines from lib.rs, matchmaking.rs, bot_ai.rs, and deleted types.rs. cargo check PASS, clippy PASS, npm build PASS. Git head: 57e97da.
 
 ### Honest Assessment (2026-04-01 evening)
 
@@ -74,7 +74,8 @@
 8. ~~Fix subscription queries (cross join -> filtered, subscribe to specific match_id)~~ DONE (2ef1646)
 9. ~~Add player_id ownership validation in match reducers~~ DONE (fdc6ee5)
 10. ~~Add #[reducer(init)] for database initialization~~ DONE (343ac56)
-11. Test full game loop end-to-end
-12. WASM build test
-13. Replace simulated AI descriptions with real AI calls (client-side)
-14. Integration tests
+11. ~~Remove dead code from lib.rs (GameState impl, unused structs/enums/helpers)~~ DONE (57e97da) - removed ~720 lines
+12. Test full game loop end-to-end
+13. WASM build test
+14. Replace simulated AI descriptions with real AI calls (client-side)
+15. Integration tests
