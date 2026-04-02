@@ -52,29 +52,6 @@ pub type PackId = u64;
 
 // Enums
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub enum Rarity {
-    Common = 1,
-    Rare = 2,
-    Epic = 3,
-    Legendary = 4,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub enum CardType {
-    Unit = 1,
-    Building = 2,
-    Spell = 3,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub enum MatchStatus {
-    Waiting = 1,
-    Active = 2,
-    Completed = 3,
-    Abandoned = 4,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum MatchPhase {
     Placement = 1,
     Action = 2,
@@ -279,18 +256,4 @@ mod tests {
         assert_eq!(MatchPhase::Combat as i32, 3);
     }
 
-    #[test]
-    fn test_rarity_enum() {
-        assert_eq!(Rarity::Common as i32, 1);
-        assert_eq!(Rarity::Rare as i32, 2);
-        assert_eq!(Rarity::Epic as i32, 3);
-        assert_eq!(Rarity::Legendary as i32, 4);
-    }
-
-    #[test]
-    fn test_card_type_enum() {
-        assert_eq!(CardType::Unit as i32, 1);
-        assert_eq!(CardType::Building as i32, 2);
-        assert_eq!(CardType::Spell as i32, 3);
-    }
 }
