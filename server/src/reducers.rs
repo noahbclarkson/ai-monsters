@@ -2,6 +2,12 @@ use spacetimedb::{reducer, ReducerContext, Table};
 use crate::tables::*;
 use serde_json;
 
+// Database initialization reducer -- runs once when the module is first deployed.
+#[reducer(init)]
+pub fn init(_ctx: &ReducerContext) -> Result<(), String> {
+    Ok(())
+}
+
 // Player management reducers
 
 // Lifecycle reducer: runs when a client first connects to SpacetimeDB.

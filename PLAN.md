@@ -50,7 +50,7 @@
 **3. No #[reducer(init)]**
 - No database initialization on module start
 
-**4. Board state ownership not validated**
+**4. Board state ownership not validated** -- RESOLVED (fdc6ee5)
 - place_card checks player's hand but not if player is in the match
 - No validation that player1_id or player2_id in match matches the caller's identity
 
@@ -71,9 +71,9 @@
 5. ~~Wire game UI to SpacetimeDB (useMatches hook, useGame hook, wire board actions)~~ DONE
 6. ~~Fix win condition to check hand + board cards~~ DONE
 7. ~~Wire client to call client_connected on connect, subscribe to my_player_id to get own player_id~~ DONE (196a44a)
-8. Fix subscription queries (cross join -> filtered, subscribe to specific match_id)
-9. Add #[reducer(init)] for database initialization
-10. Add player_id ownership validation in match reducers
+8. ~~Fix subscription queries (cross join -> filtered, subscribe to specific match_id)~~ DONE (2ef1646)
+9. ~~Add player_id ownership validation in match reducers~~ DONE (fdc6ee5)
+10. Add #[reducer(init)] for database initialization
 11. Test full game loop end-to-end
 12. WASM build test
 13. Replace simulated AI descriptions with real AI calls (client-side)
