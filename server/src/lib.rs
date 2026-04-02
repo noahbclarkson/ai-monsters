@@ -114,3 +114,183 @@ pub fn check_win(board: &BoardState, player1_id: PlayerId, player2_id: PlayerId,
     }
     None
 }
+
+/// Helper to create an empty board state for testing.
+#[cfg(test)]
+fn empty_board() -> BoardState {
+    BoardState {
+        tiles: [[None; 3]; 6],
+        turn_number: 1,
+        phase: MatchPhase::Placement,
+    }
+}
+
+/// Helper to create a board with a single card placed for testing.
+#[cfg(test)]
+fn board_with_card(row: usize, col: usize, owner: PlayerId, card_id: CardId) -> BoardState {
+    let mut board = empty_board();
+    board.tiles[row][col] = Some(BoardTile {
+        card_id: Some(card_id),
+        is_face_up: true,
+        is_attack_mode: true,
+        owner_player_id: Some(owner),
+    });
+    board
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_check_win_no_cards_no_winner() {
+        let board = empty_board();
+        let result = check_win(&board, 1, 2, 0, 0);
+        assert_eq!(result, None);
+    }
+
+    #[test]
+    fn test_check_win_p1_board_card_p2_empty_p1_wins() {
+        // P1 has a card on board, P2 has nothing -> P1 wins (opponent eliminated)
+        let board = board_with_card(0, 0, 1, 100);
+        let result = check_win(&board, 1, 2, 0, 0);
+        assert_eq!(result, Some(1));
+    }
+
+    #[test]
+    fn test_check_win_p1_board_and_hand_p2_empty_p1_wins() {
+        // P1 has board cards AND hand cards, P2 has nothing -> P1 wins
+        let board = board_with_card(0, 0, 1, 100);
+        let result = check_win(&board, 1, 2, 3, 0);
+        assert_eq!(result, Some(1));
+    }
+
+    #[test]
+    fn test_check_win_p2_zero_board_and_hand_p1_wins() {
+        // P2 has zero cards (board + hand), P1 has cards -> P1 wins
+        let board = board_with_card(0, 0, 1, 100);
+        let result = check_win(&board, 1, 2, 5, 0);
+        assert_eq!(result, Some(1));
+    }
+
+    #[test]
+    fn test_check_win_p1_zero_board_and_hand_p2_wins() {
+        // P1 has zero cards, P2 has cards -> P2 wins
+        let board = board_with_card(0, 0, 2, 100);
+        let result = check_win(&board, 1, 2, 0, 3);
+        assert_eq!(result, Some(2));
+    }
+
+    #[test]
+    fn test_check_win_both_have_cards_no_winner() {
+        let board = board_with_card(0, 0, 1, 100);
+        let board = {
+            let mut b = board;
+            b.tiles[1][1] = Some(BoardTile {
+                card_id: Some(200),
+                is_face_up: true,
+                is_attack_mode: true,
+                owner_player_id: Some(2),
+            });
+            b
+        };
+        let result = check_win(&board, 1, 2, 2, 3);
+        assert_eq!(result, None);
+    }
+
+    #[test]
+    fn test_check_win_p1_hand_only_p2_empty_p1_wins() {
+        // P1 has cards in hand, P2 has nothing -> P1 wins
+        let board = empty_board();
+        let result = check_win(&board, 1, 2, 3, 0);
+        assert_eq!(result, Some(1));
+    }
+
+    #[test]
+    fn test_check_win_p2_board_only_p1_empty_p2_wins() {
+        // P2 has board card, P1 has nothing -> P2 wins
+        let board = board_with_card(0, 0, 2, 100);
+        let result = check_win(&board, 1, 2, 0, 0);
+        assert_eq!(result, Some(2));
+    }
+
+    #[test]
+    fn test_board_tile_struct() {
+        let tile = BoardTile {
+            card_id: Some(42),
+            is_face_up: true,
+            is_attack_mode: false,
+            owner_player_id: Some(1),
+        };
+        assert_eq!(tile.card_id, Some(42));
+        assert!(tile.is_face_up);
+        assert!(!tile.is_attack_mode);
+        assert_eq!(tile.owner_player_id, Some(1));
+    }
+
+    #[test]
+    fn test_board_state_serializable() {
+        let board = board_with_card(2, 1, 5, 999);
+        let json = serde_json::to_string(&board).unwrap();
+        let decoded: BoardState = serde_json::from_str(&json).unwrap();
+        assert_eq!(board.turn_number, decoded.turn_number);
+        assert_eq!(board.phase, decoded.phase);
+        assert_eq!(board.tiles[2][1], decoded.tiles[2][1]);
+    }
+
+    #[test]
+    fn test_empty_board_serialization() {
+        let board = empty_board();
+        let json = serde_json::to_string(&board).unwrap();
+        let decoded: BoardState = serde_json::from_str(&json).unwrap();
+        assert_eq!(board.turn_number, decoded.turn_number);
+        for row in 0..6 {
+            for col in 0..3 {
+                assert!(decoded.tiles[row][col].is_none());
+            }
+        }
+    }
+
+    #[test]
+    fn test_board_full_of_cards() {
+        let mut board = empty_board();
+        let mut card_id: CardId = 1;
+        for row in 0..6 {
+            for col in 0..3 {
+                let owner = if card_id % 2 == 1 { 1 } else { 2 };
+                board.tiles[row][col] = Some(BoardTile {
+                    card_id: Some(card_id),
+                    is_face_up: true,
+                    is_attack_mode: true,
+                    owner_player_id: Some(owner),
+                });
+                card_id += 1;
+            }
+        }
+        // Full board: 9 cards each player (18 total), no hands
+        let result = check_win(&board, 1, 2, 0, 0);
+        assert_eq!(result, None); // No winner when both have cards
+    }
+
+    #[test]
+    fn test_match_phase_enum() {
+        assert_eq!(MatchPhase::Placement as i32, 1);
+        assert_eq!(MatchPhase::Action as i32, 2);
+        assert_eq!(MatchPhase::Combat as i32, 3);
+    }
+
+    #[test]
+    fn test_rarity_enum() {
+        assert_eq!(Rarity::Common as i32, 1);
+        assert_eq!(Rarity::Rare as i32, 2);
+        assert_eq!(Rarity::Epic as i32, 3);
+        assert_eq!(Rarity::Legendary as i32, 4);
+    }
+
+    #[test]
+    fn test_card_type_enum() {
+        assert_eq!(CardType::Unit as i32, 1);
+        assert_eq!(CardType::Building as i32, 2);
+        assert_eq!(CardType::Spell as i32, 3);
+    }
+}
