@@ -1,6 +1,6 @@
 # AI Monsters - Project Plan
 
-## Current State: 2026-04-01 evening. Client identity wiring complete (196a44a). playerId exposed via useSpacetimeDB(). Server and client build clean. Git push working.
+## Current State: 2026-04-02 early AM. #[reducer(init)] added (343ac56). Board ownership validation complete (fdc6ee5). playerId exposed via useSpacetimeDB(). Server and client build clean. Git push working.
 
 ### Honest Assessment (2026-04-01 evening)
 
@@ -73,7 +73,7 @@
 7. ~~Wire client to call client_connected on connect, subscribe to my_player_id to get own player_id~~ DONE (196a44a)
 8. ~~Fix subscription queries (cross join -> filtered, subscribe to specific match_id)~~ DONE (2ef1646)
 9. ~~Add player_id ownership validation in match reducers~~ DONE (fdc6ee5)
-10. Add #[reducer(init)] for database initialization
+10. ~~Add #[reducer(init)] for database initialization~~ DONE (343ac56)
 11. Test full game loop end-to-end
 12. WASM build test
 13. Replace simulated AI descriptions with real AI calls (client-side)
