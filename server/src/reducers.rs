@@ -24,14 +24,14 @@ pub fn client_connected(ctx: &ReducerContext) -> Result<(), String> {
     }
 
     // Create a new player with an auto-generated name
-    let player_id = generate_id();
+    let player_id = generate_id(ctx);
     let auto_name = format!("Player_{}", &identity.to_hex()[..8]);
 
     let player = PlayerRow {
         id: player_id,
         name: auto_name.clone(),
         email: format!("{}@local", identity.to_hex()),
-        created_at: current_timestamp(),
+        created_at: current_timestamp(ctx),
         rating: 1000,
     };
     ctx.db.players().insert(player);
@@ -48,12 +48,12 @@ pub fn client_connected(ctx: &ReducerContext) -> Result<(), String> {
 
 #[reducer]
 pub fn create_player(ctx: &ReducerContext, name: String, email: String) -> Result<(), String> {
-    let player_id = generate_id();
+    let player_id = generate_id(ctx);
     let player = PlayerRow {
         id: player_id,
         name,
         email,
-        created_at: current_timestamp(),
+        created_at: current_timestamp(ctx),
         rating: 1000,
     };
     ctx.db.players().insert(player);
@@ -63,7 +63,7 @@ pub fn create_player(ctx: &ReducerContext, name: String, email: String) -> Resul
 // Card generation reducer
 #[reducer]
 pub fn generate_card(ctx: &ReducerContext, seed_noun: String, rarity: String, card_type: String, ai_description: String, ai_image_url: String) -> Result<(), String> {
-    let card_id = generate_id();
+    let card_id = generate_id(ctx);
     let rarity_str = if rarity.is_empty() { "Common".to_string() } else { rarity };
     let card_type_str = if card_type.is_empty() { "Unit".to_string() } else { card_type };
 
@@ -97,7 +97,7 @@ pub fn generate_card(ctx: &ReducerContext, seed_noun: String, rarity: String, ca
         rarity: rarity_str,
         card_type: card_type_str,
         seed_noun,
-        created_at: current_timestamp(),
+        created_at: current_timestamp(ctx),
         last_used_count: 0,
     };
 
@@ -127,14 +127,14 @@ pub fn update_card_media(ctx: &ReducerContext, card_id: u64, description: String
 // Create a deck
 #[reducer]
 pub fn create_deck(ctx: &ReducerContext, player_id: u64, name: String) -> Result<(), String> {
-    let deck_id = generate_id();
+    let deck_id = generate_id(ctx);
     let deck = DeckRow {
         id: deck_id,
         player_id,
         name,
         card_ids_json: "[]".to_string(),
-        created_at: current_timestamp(),
-        updated_at: current_timestamp(),
+        created_at: current_timestamp(ctx),
+        updated_at: current_timestamp(ctx),
     };
     ctx.db.decks().insert(deck);
     Ok(())
@@ -143,7 +143,7 @@ pub fn create_deck(ctx: &ReducerContext, player_id: u64, name: String) -> Result
 // Create a match
 #[reducer]
 pub fn create_match(ctx: &ReducerContext, player1_id: u64, player2_id: u64) -> Result<(), String> {
-    let match_id = generate_id();
+    let match_id = generate_id(ctx);
     let empty_board = crate::BoardState {
         tiles: [[None; 3]; 6],
         turn_number: 1,
@@ -159,8 +159,8 @@ pub fn create_match(ctx: &ReducerContext, player1_id: u64, player2_id: u64) -> R
         current_turn: player1_id,
         status: "Active".to_string(),
         winner_id: 0,
-        created_at: current_timestamp(),
-        updated_at: current_timestamp(),
+        created_at: current_timestamp(ctx),
+        updated_at: current_timestamp(ctx),
     };
     ctx.db.game_matches().insert(match_row);
     Ok(())
@@ -172,7 +172,7 @@ pub fn create_match(ctx: &ReducerContext, player1_id: u64, player2_id: u64) -> R
 pub fn init_match_hands(ctx: &ReducerContext, match_id: u64, player1_id: u64, player1_card_ids: Vec<u64>, player2_id: u64, player2_card_ids: Vec<u64>) -> Result<(), String> {
     for card_id in player1_card_ids {
         ctx.db.player_hands().insert(PlayerHandRow {
-            id: generate_id(),
+            id: card_id,
             match_id,
             card_id,
             player_id: player1_id,
@@ -180,7 +180,7 @@ pub fn init_match_hands(ctx: &ReducerContext, match_id: u64, player1_id: u64, pl
     }
     for card_id in player2_card_ids {
         ctx.db.player_hands().insert(PlayerHandRow {
-            id: generate_id(),
+            id: card_id,
             match_id,
             card_id,
             player_id: player2_id,
@@ -193,7 +193,7 @@ pub fn init_match_hands(ctx: &ReducerContext, match_id: u64, player1_id: u64, pl
 #[reducer]
 pub fn add_card_to_hand(ctx: &ReducerContext, match_id: u64, player_id: u64, card_id: u64) -> Result<(), String> {
     ctx.db.player_hands().insert(PlayerHandRow {
-        id: generate_id(),
+        id: generate_id(ctx),
         match_id,
         card_id,
         player_id,
@@ -287,7 +287,7 @@ pub fn place_card(ctx: &ReducerContext, match_id: u64, card_id: u64, player_id: 
         status: if winner.is_some() { "Completed".to_string() } else { match_row.status.clone() },
         winner_id: winner.unwrap_or(match_row.winner_id),
         created_at: match_row.created_at,
-        updated_at: current_timestamp(),
+        updated_at: current_timestamp(ctx),
     });
 
     Ok(())
@@ -383,7 +383,7 @@ pub fn attack_card(ctx: &ReducerContext, match_id: u64, player_id: u64, attacker
         status: if winner.is_some() { "Completed".to_string() } else { match_row.status.clone() },
         winner_id: winner.unwrap_or(match_row.winner_id),
         created_at: match_row.created_at,
-        updated_at: current_timestamp(),
+        updated_at: current_timestamp(ctx),
     });
 
     Ok(())
@@ -428,7 +428,7 @@ pub fn flip_card(ctx: &ReducerContext, match_id: u64, player_id: u64, row: u32, 
         status: match_row.status,
         winner_id: match_row.winner_id,
         created_at: match_row.created_at,
-        updated_at: current_timestamp(),
+        updated_at: current_timestamp(ctx),
     });
 
     Ok(())
@@ -473,7 +473,7 @@ pub fn switch_card_mode(ctx: &ReducerContext, match_id: u64, player_id: u64, row
         status: match_row.status,
         winner_id: match_row.winner_id,
         created_at: match_row.created_at,
-        updated_at: current_timestamp(),
+        updated_at: current_timestamp(ctx),
     });
 
     Ok(())
@@ -524,7 +524,7 @@ pub fn move_card(ctx: &ReducerContext, match_id: u64, player_id: u64, from_row: 
         status: match_row.status,
         winner_id: match_row.winner_id,
         created_at: match_row.created_at,
-        updated_at: current_timestamp(),
+        updated_at: current_timestamp(ctx),
     });
 
     Ok(())
@@ -582,7 +582,7 @@ pub fn end_turn(ctx: &ReducerContext, match_id: u64, player_id: u64) -> Result<(
         status: if winner.is_some() { "Completed".to_string() } else { match_row.status.clone() },
         winner_id: winner.unwrap_or(match_row.winner_id),
         created_at: match_row.created_at,
-        updated_at: current_timestamp(),
+        updated_at: current_timestamp(ctx),
     });
 
     Ok(())
@@ -604,14 +604,12 @@ pub fn generate_daily_cards(ctx: &ReducerContext) -> Result<(), String> {
 }
 
 // Helper functions
-fn generate_id() -> u64 {
-    use std::time::{SystemTime, UNIX_EPOCH};
-    SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as u64
+fn generate_id(ctx: &ReducerContext) -> u64 {
+    ctx.timestamp.to_micros_since_unix_epoch() as u64
 }
 
-fn current_timestamp() -> i64 {
-    use std::time::{SystemTime, UNIX_EPOCH};
-    SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as i64
+fn current_timestamp(ctx: &ReducerContext) -> i64 {
+    ctx.timestamp.to_micros_since_unix_epoch() / 1_000_000
 }
 
 // Helper: generate card stats based on rarity and type
