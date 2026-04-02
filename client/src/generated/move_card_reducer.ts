@@ -12,6 +12,7 @@ import {
 
 export default {
   matchId: __t.u64(),
+  playerId: __t.u64(),
   fromRow: __t.u32(),
   fromCol: __t.u32(),
   toRow: __t.u32(),

@@ -62,7 +62,7 @@ pub fn create_player(ctx: &ReducerContext, name: String, email: String) -> Resul
 
 // Card generation reducer
 #[reducer]
-pub fn generate_card(ctx: &ReducerContext, seed_noun: String, rarity: String, card_type: String) -> Result<(), String> {
+pub fn generate_card(ctx: &ReducerContext, seed_noun: String, rarity: String, card_type: String, ai_description: String, ai_image_url: String) -> Result<(), String> {
     let card_id = generate_id();
     let rarity_str = if rarity.is_empty() { "Common".to_string() } else { rarity };
     let card_type_str = if card_type.is_empty() { "Unit".to_string() } else { card_type };
@@ -75,11 +75,22 @@ pub fn generate_card(ctx: &ReducerContext, seed_noun: String, rarity: String, ca
         _ => "Warrior",
     };
 
+    let description = if ai_description.is_empty() {
+        format!("A {} {}", seed_noun, card_type_str.to_lowercase())
+    } else {
+        ai_description
+    };
+    let image_url = if ai_image_url.is_empty() {
+        format!("/placeholder/{}.png", card_id)
+    } else {
+        ai_image_url
+    };
+
     let card = CardRow {
         id: card_id,
         name: format!("{} {}", capitalize(&seed_noun), type_suffix),
-        description: format!("A {} {}", seed_noun, card_type_str.to_lowercase()),
-        image_url: format!("/placeholder/{}.png", card_id),
+        description,
+        image_url,
         attack,
         defense,
         range,
@@ -91,6 +102,25 @@ pub fn generate_card(ctx: &ReducerContext, seed_noun: String, rarity: String, ca
     };
 
     ctx.db.cards().insert(card);
+    Ok(())
+}
+
+/// Update a card's description and/or image URL.
+/// Used by the AI/Art pipeline to set AI-generated content after card creation.
+/// Pass empty string to leave a field unchanged.
+#[reducer]
+pub fn update_card_media(ctx: &ReducerContext, card_id: u64, description: String, image_url: String) -> Result<(), String> {
+    let mut card = ctx.db.cards().id().find(card_id)
+        .ok_or_else(|| format!("Card {} not found", card_id))?;
+
+    if !description.is_empty() {
+        card.description = description;
+    }
+    if !image_url.is_empty() {
+        card.image_url = image_url;
+    }
+
+    ctx.db.cards().id().update(card);
     Ok(())
 }
 
@@ -568,7 +598,7 @@ pub fn generate_daily_cards(ctx: &ReducerContext) -> Result<(), String> {
     for (i, noun) in seed_nouns.iter().enumerate() {
         let rarity = rarities[i % rarities.len()];
         let ct = card_types[i % card_types.len()];
-        generate_card(ctx, noun.to_string(), rarity.to_string(), ct.to_string())?;
+        generate_card(ctx, noun.to_string(), rarity.to_string(), ct.to_string(), String::new(), String::new())?;
     }
     Ok(())
 }

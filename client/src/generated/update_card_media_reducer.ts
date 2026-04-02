@@ -11,6 +11,7 @@ import {
 } from "spacetimedb";
 
 export default {
-  matchId: __t.u64(),
-  playerId: __t.u64(),
+  cardId: __t.u64(),
+  description: __t.string(),
+  imageUrl: __t.string(),
 };

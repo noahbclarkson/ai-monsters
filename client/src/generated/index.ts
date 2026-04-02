@@ -47,6 +47,7 @@ import InitMatchHandsReducer from "./init_match_hands_reducer";
 import MoveCardReducer from "./move_card_reducer";
 import PlaceCardReducer from "./place_card_reducer";
 import SwitchCardModeReducer from "./switch_card_mode_reducer";
+import UpdateCardMediaReducer from "./update_card_media_reducer";
 
 // Import all procedure arg schemas
 
@@ -238,6 +239,7 @@ const reducersSchema = __reducers(
   __reducerSchema("move_card", MoveCardReducer),
   __reducerSchema("place_card", PlaceCardReducer),
   __reducerSchema("switch_card_mode", SwitchCardModeReducer),
+  __reducerSchema("update_card_media", UpdateCardMediaReducer),
 );
 
 /** The schema information for all procedures in this module. This is defined the same way as the procedures would have been defined in the server. */

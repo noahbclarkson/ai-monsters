@@ -19,6 +19,7 @@ import InitMatchHandsReducer from "../init_match_hands_reducer";
 import MoveCardReducer from "../move_card_reducer";
 import PlaceCardReducer from "../place_card_reducer";
 import SwitchCardModeReducer from "../switch_card_mode_reducer";
+import UpdateCardMediaReducer from "../update_card_media_reducer";
 
 export type AddCardToHandParams = __Infer<typeof AddCardToHandReducer>;
 export type AttackCardParams = __Infer<typeof AttackCardReducer>;
@@ -33,4 +34,5 @@ export type InitMatchHandsParams = __Infer<typeof InitMatchHandsReducer>;
 export type MoveCardParams = __Infer<typeof MoveCardReducer>;
 export type PlaceCardParams = __Infer<typeof PlaceCardReducer>;
 export type SwitchCardModeParams = __Infer<typeof SwitchCardModeReducer>;
+export type UpdateCardMediaParams = __Infer<typeof UpdateCardMediaReducer>;
 

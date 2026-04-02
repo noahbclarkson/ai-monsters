@@ -12,6 +12,7 @@ import {
 
 export default {
   matchId: __t.u64(),
+  playerId: __t.u64(),
   row: __t.u32(),
   col: __t.u32(),
 };

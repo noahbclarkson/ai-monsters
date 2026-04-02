@@ -14,4 +14,6 @@ export default {
   seedNoun: __t.string(),
   rarity: __t.string(),
   cardType: __t.string(),
+  aiDescription: __t.string(),
+  aiImageUrl: __t.string(),
 };
