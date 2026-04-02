@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
 export async function POST(request: NextRequest) {
   try {
     const { prompt, noun, rarity, cardType } = await request.json();
 
-    // Use the current AI model to generate card descriptions
+    if (!OPENAI_API_KEY) {
+      return NextResponse.json(
+        { error: 'OPENAI_API_KEY not configured' },
+        { status: 500 }
+      );
+    }
+
     const systemPrompt = `You are an expert game designer for a fantasy card game. Generate creative, immersive card descriptions that bring creatures, spells, and buildings to life. Each description should be 2-3 sentences, evocative, and reflect the card's rarity and type.
 
 Rules:
@@ -14,22 +22,47 @@ Rules:
 - Use vivid, fantasy-appropriate language
 - Keep it 2-3 sentences (30-60 words)`;
 
-    // Create the AI generation prompt using the current model's capabilities
     const fullPrompt = `${systemPrompt}
 
 Card Name: ${noun}
 Card Type: ${cardType}
 Rarity: ${rarity}
 
-Generate a card description based on the context above: ${prompt}`;
+Generate a card description based on the context above. Only return the description text, nothing else.`;
 
-    // For now, we'll simulate AI generation with sophisticated templates
-    // In production, this would call the actual AI model
-    const simulatedResponse = await generateSimulatedDescription(noun, rarity, cardType);
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `Card Name: ${noun}\nCard Type: ${cardType}\nRarity: ${rarity}\n\nGenerate a 2-3 sentence card description. Only return the description.` }
+        ],
+        max_tokens: 150,
+        temperature: 0.9,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('OpenAI API error:', response.status, errorData);
+      return NextResponse.json(
+        { error: 'AI generation failed', details: `OpenAI API error: ${response.status}` },
+        { status: 500 }
+      );
+    }
+
+    const data = await response.json();
+    const description = data.choices?.[0]?.message?.content?.trim()
+      || fallbackDescription(noun, rarity, cardType);
 
     return NextResponse.json({
       success: true,
-      description: simulatedResponse,
+      description,
       noun,
       rarity,
       cardType
@@ -43,30 +76,16 @@ Generate a card description based on the context above: ${prompt}`;
   }
 }
 
-async function generateSimulatedDescription(noun: string, rarity: string, cardType: string): Promise<string> {
-  // Simulate AI generation with enhanced templates that vary based on parameters
-  const intensity = rarity === 'Legendary' ? 'legendary, world-altering' : 
-                   rarity === 'Epic' ? 'powerful, awe-inspiring' : 
-                   rarity === 'Rare' ? 'notable, formidable' : 'sturdy, reliable';
+function fallbackDescription(noun: string, rarity: string, cardType: string): string {
+  const intensity = rarity === 'Legendary' ? 'legendary, world-altering' :
+    rarity === 'Epic' ? 'powerful, awe-inspiring' :
+    rarity === 'Rare' ? 'notable, formidable' : 'sturdy, reliable';
 
-  const typeSpecifics = {
-    Unit: [
-      `A master ${noun} warrior whose battle prowess is ${rarity.toLowerCase()} among all who know the tales of their conquests.`,
-      `This formidable ${noun} fighter embodies the ${rarity.toLowerCase()} spirit of endless combat and tactical genius.`,
-      `The ${noun} champion stands as a testament to ${rarity.toLowerCase()} strength, inspiring allies and striking fear into enemies.`
-    ],
-    Building: [
-      `An imposing ${noun} citadel whose ${rarity.toLowerCase()} walls have stood the test of time through countless battles.`,
-      `The enchanted ${noun} fortress radiates ${rarity.toLowerCase()} magical energy, protecting all who seek refuge within its walls.`,
-      `This mighty ${noun} stronghold represents the pinnacle of ${rarity.toLowerCase()} defensive architecture and strategic importance.`
-    ],
-    Spell: [
-      `A legendary ${noun} incantation that weaves ${rarity.toLowerCase()} magic to reshape the battlefield in unpredictable ways.`,
-      `The mystical ${noun} ritual channels ${rarity.toLowerCase()} arcane forces, capable of turning the tide of any conflict.`,
-      `An ancient ${noun} spell passed down through generations, holding ${rarity.toLowerCase()} power that can alter the very fabric of reality.`
-    ]
-  };
-
-  const templates = typeSpecifics[cardType as keyof typeof typeSpecifics];
-  return templates[Math.floor(Math.random() * templates.length)];
+  if (cardType === 'Unit') {
+    return `A ${intensity} ${noun} warrior whose reputation precedes them into every battle. Their presence on the field shifts the tide of combat in ways that become legend.`;
+  } else if (cardType === 'Building') {
+    return `An imposing ${noun} citadel whose ${intensity} defenses have repelled countless invasions. Within its walls, armies find refuge and strength.`;
+  } else {
+    return `A legendary ${noun} incantation that weaves ${intensity} magic to reshape the battlefield. Its effects echo long after the spell is cast.`;
+  }
 }

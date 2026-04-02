@@ -3,6 +3,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { EnhancedCard } from './EnhancedCard';
 import { useCards } from '@/lib/useCards';
+import { AICardGenerator } from '@/lib/ai-card-generator';
+import type { Rarity, CardType } from '@/types/card';
 
 interface GalleryCard {
   id: number;
@@ -105,7 +107,40 @@ export function CollectionGallery({ initialCards = [] }: CollectionGalleryProps)
   const handleGenerateNewCard = async () => {
     setIsGenerating(true);
     try {
-      await generateCard();
+      // Generate card parameters using AICardGenerator logic
+      const noun = AICardGenerator.generateRandomNoun();
+      const rarity = AICardGenerator.determineRarity();
+      const cardType = AICardGenerator.getRandomCardType();
+
+      // Call AI endpoints to generate description and image
+      const [descRes, imgRes] = await Promise.all([
+        fetch('/api/generate-description', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: '', noun, rarity, cardType }),
+        }),
+        fetch('/api/generate-card-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ noun, cardType, rarity, cardId: Date.now() }),
+        }),
+      ]);
+
+      let aiDescription = '';
+      let aiImageUrl = '';
+
+      if (descRes.ok) {
+        const descData = await descRes.json();
+        aiDescription = descData.description || '';
+      }
+
+      if (imgRes.ok) {
+        const imgData = await imgRes.json();
+        aiImageUrl = imgData.image_url || '';
+      }
+
+      // Create card in SpacetimeDB with AI content
+      await generateCard(noun, rarity, cardType, aiDescription, aiImageUrl);
       // Card will appear via subscription update
     } catch (error) {
       console.error('Error generating card:', error);

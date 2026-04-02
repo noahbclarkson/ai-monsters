@@ -73,13 +73,15 @@ export function useCards() {
   }, [conn, connected, fetchCards]);
 
   const generateCard = useCallback(
-    async (seedNoun?: string, rarity?: string, cardType?: string) => {
+    async (seedNoun?: string, rarity?: string, cardType?: string, aiDescription?: string, aiImageUrl?: string) => {
       if (!conn) throw new Error("Not connected");
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (conn.reducers as any).generateCard({
         seedNoun: seedNoun ?? "",
         rarity: rarity ?? "",
         cardType: cardType ?? "",
+        aiDescription: aiDescription ?? "",
+        aiImageUrl: aiImageUrl ?? "",
       });
     },
     [conn]
