@@ -1,6 +1,6 @@
 # AI Monsters - Project Plan
 
-## Current State: 2026-04-02 07:12 UTC. Dead code cleanup complete (57e97da). Removed ~720 lines from lib.rs, matchmaking.rs, bot_ai.rs, and deleted types.rs. cargo check PASS, clippy PASS, npm build PASS. Git head: 57e97da.
+## Current State: 2026-04-02 11:16 UTC. Added 15 comprehensive game logic unit tests (lib.rs) covering check_win, BoardState, BoardTile, and enums. 17 tests total (15 new + 2 existing daily_cards). All PASS. WASM build PASS. cargo check PASS, clippy PASS, npm build PASS. Git head: 33fabca.
 
 ### Honest Assessment (2026-04-01 evening)
 
@@ -59,9 +59,11 @@
 - Image URLs are placeholder paths
 
 **6. Testing**
-- 2 unit tests in daily_cards.rs only
-- No integration tests
-- No WASM build test
+- 17 unit tests (15 new game logic tests + 2 existing daily_cards tests): ALL PASS
+- WASM build: PASS
+- Game logic tested: check_win all scenarios, BoardState serialization, BoardTile, enum mappings
+- Still missing: end-to-end integration test (requires SpacetimeDB running)
+- AI/Art pipeline: still uses templates/placeholders
 
 ### Backlog (ordered by priority)
 1. ~~Add SpacetimeDB SDK to client, generate bindings, create connection provider~~ DONE
@@ -76,6 +78,6 @@
 10. ~~Add #[reducer(init)] for database initialization~~ DONE (343ac56)
 11. ~~Remove dead code from lib.rs (GameState impl, unused structs/enums/helpers)~~ DONE (57e97da) - removed ~720 lines
 12. Test full game loop end-to-end
-13. WASM build test
+13. ~~WASM build test~~ DONE (33fabca)
 14. Replace simulated AI descriptions with real AI calls (client-side)
-15. Integration tests
+~~15. Integration tests~~ PARTIAL - 17 unit tests for game logic (33fabca), full e2e still needed
