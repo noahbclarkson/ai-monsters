@@ -21,22 +21,14 @@ impl SimpleRng {
         SimpleRng { seed: 0xdeadbeef12345678 }
     }
     
-    fn next_f32(&mut self) -> f32 {
-        self.seed = self.seed.wrapping_mul(0x5deece66d) + 1;
-        (self.seed >> 16) as f32 / (1u64 << 16) as f32
-    }
-    
     fn next_range(&mut self, max: usize) -> usize {
-        (self.next_f32() * max as f32) as usize
+        self.seed = self.seed.wrapping_mul(0x5deece66d) + 1;
+        ((self.seed >> 16) as f32 / (1u64 << 16) as f32 * max as f32) as usize
     }
 }
 
 thread_local! {
     static RNG: std::cell::RefCell<SimpleRng> = std::cell::RefCell::new(SimpleRng::new());
-}
-
-pub fn random_f32() -> f32 {
-    RNG.with(|rng| rng.borrow_mut().next_f32())
 }
 
 pub fn random_range(max: usize) -> usize {

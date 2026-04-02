@@ -1,6 +1,6 @@
 # AI Monsters - Project Plan
 
-## Current State: 2026-04-02 19:45 UTC. All builds pass. 17 unit tests PASS. Git head: 64177f5.
+## Current State: 2026-04-02 20:39 UTC. All builds pass (including WASM). Git head: 8db2414.
 
 ### Honest Assessment
 
@@ -34,7 +34,7 @@
 - Requires: OPENAI_API_KEY and MINIMAX_API_KEY in client/.env.local
 - Still missing: end-to-end game loop test
 
-**Git:** Push working. Head: b4b47cf.
+**Git:** Push working. Head: 8db2414 (AI pipeline fully wired end-to-end).
 
 ### What's actually done
 - Rust server compiles with SpacetimeDB tables and reducers (cargo check + clippy: PASS)
@@ -61,34 +61,39 @@
 - Need: create_match -> init_match_hands -> place_card -> attack_card -> end_turn -> win detection
 - Would require running SpacetimeDB Docker instance
 
-**2. AI/Art pipeline - partially complete**
-- /api/generate-description now calls OpenAI ChatGPT-4o-mini (64177f5)
-- /api/generate-card-image now calls MiniMax image-01 API (64177f5)
-- Requires OPENAI_API_KEY and MINIMAX_API_KEY in client/.env.local
-- MiniMax falls back to picsum.photos placeholder if no API key
+**2. Dead code in lib.rs (low priority)**
+- SimpleRng struct + RNG thread_local + random_f32() function: only random_range() is used (~20 lines)
+- random_f32() is defined but never called; could be removed
 
-**3. Dead code in lib.rs**
-- SimpleRng struct + RNG thread_local + random_f32() function: only random_range() is used from this block (~20 lines)
-- random_f32() is defined but never called anywhere; could be removed
+**3. AI pipeline needs API keys**
+- /api/generate-description requires OPENAI_API_KEY in client/.env.local
+- /api/generate-card-image requires MINIMAX_API_KEY in client/.env.local
+- MiniMax falls back to picsum.photos if no API key
+
+**4. No rate limiting on AI endpoints**
+- /api/generate-description and /api/generate-card-image have no concurrency limits
+- Burst of card creations could hit API rate limits
 
 ### Backlog (ordered by priority)
 1. End-to-end game loop test (requires SpacetimeDB Docker)
-2. Remove dead random_f32() from lib.rs (~3 lines)
-3. ~~Wire real AI model to /api/generate-description~~ DONE (64177f5)
-4. ~~Wire MiniMax image generation to card creation flow~~ DONE (64177f5)
-5. ~~Client calls update_card_media after AI generation completes~~ DONE (64177f5)
-6. ~~WASM build test~~ DONE (dc98fc9)
-7. ~~Add update_card_media reducer~~ DONE (dc98fc9)
-8. ~~Enhance generate_card with AI params~~ DONE (dc98fc9)
-9. ~~Add SpacetimeDB SDK to client, generate bindings~~ DONE
-10. ~~Wire CollectionGallery to SpacetimeDB~~ DONE
-11. ~~Implement win condition~~ DONE
-12. ~~Wire game UI to SpacetimeDB~~ DONE
-13. ~~Identity management (client_connected + player_identities)~~ DONE
-14. ~~Fix subscription cross join~~ DONE (two separate subscriptions)
-15. ~~Player ownership validation on board reducers~~ DONE
-16. ~~#[reducer(init)] for database initialization~~ DONE
-17. ~~Remove dead GameState code~~ DONE
-18. ~~Unit tests for game logic~~ DONE
-19. ~~Wire client identity (my_player subscription on connect)~~ DONE (196a44a)
-20. ~~Wire AI text + image endpoints into card creation flow~~ DONE (64177f5)
+2. Remove dead SimpleRng + random_f32() from lib.rs (~20 lines)
+3. Add rate limiting to /api/generate-description and /api/generate-card-image
+4. ~~Wire real AI model to /api/generate-description~~ DONE (64177f5)
+5. ~~Wire MiniMax image generation to card creation flow~~ DONE (64177f5)
+6. ~~Client calls update_card_media after AI generation completes~~ DONE (64177f5)
+7. ~~WASM build test~~ DONE (acf504f)
+8. ~~Add update_card_media reducer~~ DONE (dc98fc9)
+9. ~~Enhance generate_card with AI params~~ DONE (dc98fc9)
+10. ~~Add SpacetimeDB SDK to client, generate bindings~~ DONE
+11. ~~Wire CollectionGallery to SpacetimeDB~~ DONE
+12. ~~Implement win condition~~ DONE
+13. ~~Wire game UI to SpacetimeDB~~ DONE
+14. ~~Identity management (client_connected + player_identities)~~ DONE
+15. ~~Fix subscription cross join~~ DONE (two separate subscriptions)
+16. ~~Player ownership validation on board reducers~~ DONE
+17. ~~#[reducer(init)] for database initialization~~ DONE
+18. ~~Remove dead GameState code~~ DONE
+19. ~~Unit tests for game logic~~ DONE (17 tests)
+20. ~~Wire client identity (my_player subscription on connect)~~ DONE (196a44a)
+21. ~~Wire AI text + image endpoints into card creation flow~~ DONE (8db2414)
+22. ~~Update PLAN: AI pipeline wired, backlog updated~~ DONE (8db2414)
