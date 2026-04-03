@@ -5,7 +5,6 @@ pub mod daily_cards;
 pub mod matchmaking;
 pub mod tables;
 pub mod reducers;
-pub mod procedures;
 pub mod views; // kept for future use, currently empty
 
 pub use bot_ai::*;
