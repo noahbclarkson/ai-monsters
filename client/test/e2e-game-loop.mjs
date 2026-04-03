@@ -16,7 +16,7 @@
 
 import DB, { Addressable } from "../src/generated/index.js";
 
-const LOCAL_HOST = "127.0.0.1:3000";
+const LOCAL_HOST = "127.0.0.1:3001";
 const MODULE_NAME = "ai-monsters-test";
 
 // Track connections and their identities

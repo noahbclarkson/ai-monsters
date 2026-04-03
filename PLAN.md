@@ -1,6 +1,6 @@
 # AI Monsters - Project Plan
 
-## Current State: 2026-04-03 00:05 UTC. All builds pass. Git head: abbd2a0.
+## Current State: 2026-04-03 00:52 UTC. All builds pass. Git head: 332daa0.
 
 ### Critical Bug Fixed: WASM Timestamp Panic
 - `current_timestamp()` and `generate_id()` used `SystemTime::now()` which panics in WASM
@@ -42,7 +42,7 @@
 - Requires: OPENAI_API_KEY and MINIMAX_API_KEY in client/.env.local
 - Still missing: end-to-end game loop test
 
-**Git:** Push working. Head: eb7cc4f (WASM timestamp fix + init_match_hands fix).
+**Git:** Push working. Head: 332daa0 (rate limiting done).
 
 ### What's actually done
 - Rust server compiles with SpacetimeDB tables and reducers (cargo check + clippy: PASS)
