@@ -1,6 +1,6 @@
 # AI Monsters - Project Plan
 
-## Current State: 2026-04-03 10:21 UTC. All builds pass. Git head: 65d5c2c.
+## Current State: 2026-04-03 13:00 UTC. All builds pass. Git head: 9d8e549.
 
 ### Build Status
 - cargo check: PASS
@@ -8,7 +8,8 @@
 - cargo test: 15 PASS
 - cargo build --target wasm32-unknown-unknown --release: PASS
 - npm run build: PASS (Next.js 16.2.1, Turbopack)
-- e2e game loop test: PASS (client/test/e2e-game-loop.ts)
+- e2e game loop test: PASS (58c683c, single-player only)
+- Git head: 9d8e549 (up to date with origin/main)
 
 ### Honest Assessment
 
@@ -30,7 +31,7 @@
 - AI image pipeline: MiniMax image-01 via /api/generate-card-image
 - Requires: OPENAI_API_KEY and MINIMAX_API_KEY in client/.env.local
 
-**Git:** Push working. Head: 65d5c2c (up to date with origin/main).
+**Git:** Push working. Head: 9d8e549 (up to date with origin/main).
 
 ### What's actually done
 - Rust server compiles clean (cargo check + clippy: PASS)
@@ -66,17 +67,18 @@
 - Only tests one-player scenario (place, attack, turn switch)
 
 ### Backlog (ordered by priority)
-1. ~~Wire bot_ai.rs to reducers~~ DONE (6cddd47)
-2. ~~Wire matchmaking.rs to reducers~~ DONE (65d5c2c)
-3. Client-side bot integration (detect bot turn, call run_bot_turn)
-4. Add integration test for two-player match
-5. Elo/progression update after match completion (update_rating reducer)
-6. ~~Card range clamp~~ DONE (90ba0ad)
-6. ~~End-to-end game loop test~~ DONE (58c683c)
-7. ~~Rate limiting on AI endpoints~~ DONE (abbd2a0)
-8. ~~WASM timestamp panic fix~~ DONE (eb7cc4f)
-9. ~~AI pipeline wiring~~ DONE (8db2414/dc98fc9)
-10. ~~WASM build verification~~ DONE (dc98fc9)
+1. Add integration test for two-player match
+2. Elo/progression update after match completion (update_rating reducer)
+3. Regenerate SpacetimeDB bindings from live instance (manually maintained since 9d8e549)
+4. ~~Wire bot_ai.rs to reducers~~ DONE (6cddd47)
+5. ~~Wire matchmaking.rs to reducers~~ DONE (65d5c2c)
+6. ~~Client-side bot integration~~ DONE (9d8e549)
+7. ~~Card range clamp~~ DONE (90ba0ad)
+8. ~~End-to-end game loop test~~ DONE (58c683c)
+9. ~~Rate limiting on AI endpoints~~ DONE (abbd2a0)
+10. ~~WASM timestamp panic fix~~ DONE (eb7cc4f)
+11. ~~AI pipeline wiring~~ DONE (8db2414/dc98fc9)
+12. ~~WASM build verification~~ DONE (dc98fc9)
 
 ### Architecture Notes
 - SpacetimeDB local: port 3001 (port 3000 occupied by Skilt)
