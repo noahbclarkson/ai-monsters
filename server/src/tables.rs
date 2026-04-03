@@ -108,6 +108,15 @@ pub struct PlayerIdentityRow {
     pub player_id: u64,
 }
 
+// Bot players for single-player mode
+#[table(name = "bot_players", public, accessor = bot_players)]
+pub struct BotPlayerRow {
+    #[primary_key]
+    pub player_id: u64,
+    pub name: String,
+    pub difficulty: String, // "Easy", "Medium", "Hard"
+}
+
 pub fn generate_id() -> u64 {
     use std::time::{SystemTime, UNIX_EPOCH};
     SystemTime::now()
