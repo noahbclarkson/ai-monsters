@@ -1132,3 +1132,244 @@ fn capitalize(s: &str) -> String {
         Some(f) => f.to_uppercase().collect::<String>() + c.as_str().to_lowercase().as_str(),
     }
 }
+
+// ============================================================
+// Matchmaking
+// ============================================================
+
+/// Add the caller to the matchmaking queue.
+/// preferred_opponent: "Bot", "Human", or "Any"
+/// bot_difficulty: required if preferred_opponent is "Bot" ("Easy", "Medium", "Hard")
+#[reducer]
+pub fn join_matchmaking_queue(
+    ctx: &ReducerContext,
+    preferred_opponent: String,
+    bot_difficulty: Option<String>,
+) -> Result<(), String> {
+    let caller_record = ctx.db.player_identities().identity().find(ctx.sender())
+        .ok_or("Caller identity not found")?;
+    let player_id = caller_record.player_id;
+
+    // Validate opponent preference
+    if !["Bot", "Human", "Any"].contains(&preferred_opponent.as_str()) {
+        return Err("preferred_opponent must be 'Bot', 'Human', or 'Any'".to_string());
+    }
+    if preferred_opponent == "Bot" {
+        if let Some(ref diff) = bot_difficulty {
+            if !["Easy", "Medium", "Hard"].contains(&diff.as_str()) {
+                return Err("bot_difficulty must be 'Easy', 'Medium', or 'Hard'".to_string());
+            }
+        } else {
+            return Err("bot_difficulty required when preferred_opponent is 'Bot'".to_string());
+        }
+    }
+
+    // Get player rating from player row
+    let player_row = ctx.db.players().id().find(player_id)
+        .ok_or("Player not found")?;
+    let rating = player_row.rating;
+
+    // Remove any existing entry for this player (idempotent)
+    ctx.db.matchmaking_entries().player_id().delete(player_id);
+
+    // Add to queue
+    ctx.db.matchmaking_entries().insert(MatchmakingEntryRow {
+        player_id,
+        rating,
+        queued_at: current_timestamp(ctx),
+        preferred_opponent: preferred_opponent.clone(),
+        bot_difficulty: bot_difficulty.clone(),
+    });
+
+    // If bot preference, try to immediately match with a bot
+    if preferred_opponent == "Bot" {
+        let diff = bot_difficulty.unwrap();
+        return start_bot_match(ctx, player_id, rating, &diff);
+    }
+
+    Ok(())
+}
+
+/// Remove the caller from the matchmaking queue.
+#[reducer]
+pub fn leave_matchmaking_queue(ctx: &ReducerContext) -> Result<(), String> {
+    let caller_record = ctx.db.player_identities().identity().find(ctx.sender())
+        .ok_or("Caller identity not found")?;
+    ctx.db.matchmaking_entries().player_id().delete(caller_record.player_id);
+    Ok(())
+}
+
+/// Process the matchmaking queue: find human vs human pairs and create matches.
+/// Call this periodically (e.g., every few seconds) to pair queued players.
+#[reducer]
+pub fn process_matchmaking(ctx: &ReducerContext) -> Result<(), String> {
+    let entries: Vec<MatchmakingEntryRow> = ctx.db.matchmaking_entries().iter().collect();
+    if entries.is_empty() {
+        return Ok(());
+    }
+
+    let mut matched: Vec<u64> = Vec::new();
+
+    // Sort by queued_at to process FIFO
+    let mut sorted = entries.clone();
+    sorted.sort_by_key(|e| e.queued_at);
+
+    for entry in sorted.iter() {
+        if matched.contains(&entry.player_id) {
+            continue;
+        }
+        if entry.preferred_opponent == "Bot" {
+            continue; // bots handled in join_matchmaking_queue
+        }
+
+        // Find a match within ±200 rating
+        let remaining: Vec<MatchmakingEntryRow> = sorted.iter()
+            .filter(|e| {
+                e.player_id != entry.player_id
+                && !matched.contains(&e.player_id)
+                && e.preferred_opponent != "Bot"
+                && (e.preferred_opponent == "Any" || e.preferred_opponent == "Human")
+                && (e.rating - entry.rating).abs() <= 200
+            })
+            .cloned()
+            .collect();
+
+        if let Some(opponent) = remaining.first() {
+            // Create match between entry.player_id and opponent.player_id
+            create_human_match(ctx, entry.player_id, opponent.player_id)?;
+            matched.push(entry.player_id);
+            matched.push(opponent.player_id);
+        }
+    }
+
+    Ok(())
+}
+
+/// Start a bot match for the given human player.
+fn start_bot_match(ctx: &ReducerContext, human_player_id: u64, _human_rating: i32, difficulty: &str) -> Result<(), String> {
+    // Create bot player
+    let bot_player_id = generate_id(ctx);
+    let bot_name = format!("Bot_{}", difficulty);
+    ctx.db.players().insert(PlayerRow {
+        id: bot_player_id,
+        name: bot_name.clone(),
+        email: format!("bot_{}@ai", bot_player_id),
+        created_at: current_timestamp(ctx),
+        rating: match difficulty {
+            "Easy" => 800,
+            "Medium" => 1200,
+            "Hard" => 1600,
+            _ => 1000,
+        },
+    });
+    ctx.db.bot_players().insert(BotPlayerRow {
+        player_id: bot_player_id,
+        name: bot_name,
+        difficulty: difficulty.to_string(),
+    });
+
+    // Remove player from queue
+    ctx.db.matchmaking_entries().player_id().delete(human_player_id);
+
+    // Create match
+    let match_id = generate_id(ctx);
+    let empty_board = crate::BoardState {
+        tiles: [[None; 3]; 6],
+        turn_number: 1,
+        phase: crate::MatchPhase::Placement,
+    };
+    let board_json = serde_json::to_string(&empty_board).map_err(|e| e.to_string())?;
+
+    ctx.db.game_matches().insert(MatchRow {
+        id: match_id,
+        player1_id: human_player_id,
+        player2_id: bot_player_id,
+        board_state_json: board_json,
+        current_turn: human_player_id,
+        status: "Active".to_string(),
+        winner_id: 0,
+        created_at: current_timestamp(ctx),
+        updated_at: current_timestamp(ctx),
+    });
+
+    // Initialize empty hands (players draw cards via draw_card reducer or client)
+    Ok(())
+}
+
+/// Create a match between two human players.
+fn create_human_match(ctx: &ReducerContext, player1_id: u64, player2_id: u64) -> Result<(), String> {
+    // Remove both from queue
+    ctx.db.matchmaking_entries().player_id().delete(player1_id);
+    ctx.db.matchmaking_entries().player_id().delete(player2_id);
+
+    // Create match
+    let match_id = generate_id(ctx);
+    let empty_board = crate::BoardState {
+        tiles: [[None; 3]; 6],
+        turn_number: 1,
+        phase: crate::MatchPhase::Placement,
+    };
+    let board_json = serde_json::to_string(&empty_board).map_err(|e| e.to_string())?;
+
+    ctx.db.game_matches().insert(MatchRow {
+        id: match_id,
+        player1_id,
+        player2_id,
+        board_state_json: board_json,
+        current_turn: player1_id, // player1 goes first
+        status: "Active".to_string(),
+        winner_id: 0,
+        created_at: current_timestamp(ctx),
+        updated_at: current_timestamp(ctx),
+    });
+
+    Ok(())
+}
+
+/// Draw a card from the player's deck into their hand.
+/// Uses ctx.timestamp for the hand entry id (microseconds).
+#[reducer]
+pub fn draw_card(ctx: &ReducerContext, match_id: u64, player_id: u64, deck_id: u64) -> Result<(), String> {
+    // Validate caller identity
+    let caller_record = ctx.db.player_identities().identity().find(ctx.sender())
+        .ok_or("Caller identity not found")?;
+    if caller_record.player_id != player_id {
+        return Err("Player ID does not match your identity".to_string());
+    }
+
+    // Validate player is in match
+    let match_row = validate_player_in_match(ctx, match_id, player_id)?;
+    if match_row.status == "Completed" {
+        return Err("Match is over".to_string());
+    }
+
+    // Get deck and parse card IDs
+    let deck = ctx.db.decks().id().find(deck_id)
+        .ok_or("Deck not found")?;
+    if deck.player_id != player_id {
+        return Err("Deck does not belong to you".to_string());
+    }
+
+    let card_ids: Vec<u64> = serde_json::from_str(&deck.card_ids_json)
+        .map_err(|e| e.to_string())?;
+
+    // Find a card not already in hand
+    let hand_card_ids: Vec<u64> = ctx.db.player_hands().iter()
+        .filter(|r| r.match_id == match_id && r.player_id == player_id)
+        .map(|r| r.card_id)
+        .collect();
+
+    let card_to_draw = card_ids.iter()
+        .find(|cid| !hand_card_ids.contains(cid));
+
+    if let Some(&card_id) = card_to_draw {
+        ctx.db.player_hands().insert(PlayerHandRow {
+            id: generate_id(ctx),
+            match_id,
+            card_id,
+            player_id,
+        });
+    }
+
+    Ok(())
+}

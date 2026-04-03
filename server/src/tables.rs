@@ -117,6 +117,33 @@ pub struct BotPlayerRow {
     pub difficulty: String, // "Easy", "Medium", "Hard"
 }
 
+// Matchmaking queue entries -- persists across reducer calls
+#[derive(Clone)]
+#[table(name = "matchmaking_entries", public, accessor = matchmaking_entries)]
+pub struct MatchmakingEntryRow {
+    #[primary_key]
+    pub player_id: u64,
+    pub rating: i32,
+    pub queued_at: i64,
+    pub preferred_opponent: String, // "Bot", "Human", or "Any"
+    pub bot_difficulty: Option<String>, // Some("Easy"/"Medium"/"Hard") if preferred_opponent == "Bot"
+}
+
+// Player progression and Elo tracking
+#[derive(Clone)]
+#[table(name = "player_progress", public, accessor = player_progress)]
+pub struct PlayerProgressRow {
+    #[primary_key]
+    pub player_id: u64,
+    pub level: i32,
+    pub xp: i32,
+    pub xp_to_next_level: i32,
+    pub total_wins: i32,
+    pub total_losses: i32,
+    pub cards_collected: i32,
+    pub matches_played: i32,
+}
+
 pub fn generate_id() -> u64 {
     use std::time::{SystemTime, UNIX_EPOCH};
     SystemTime::now()
