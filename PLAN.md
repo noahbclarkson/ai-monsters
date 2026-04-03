@@ -1,6 +1,6 @@
 # AI Monsters - Project Plan
 
-## Current State: 2026-04-03 00:52 UTC. All builds pass. Git head: 332daa0.
+## Current State: 2026-04-03 02:01 UTC. All builds pass. Git head: 58c683c.
 
 ### Critical Bug Fixed: WASM Timestamp Panic
 - `current_timestamp()` and `generate_id()` used `SystemTime::now()` which panics in WASM
@@ -26,7 +26,8 @@
 - AI text pipeline: /api/generate-description calls OpenAI ChatGPT-4o-mini (64177f5)
 - AI image pipeline: /api/generate-card-image calls MiniMax image-01 API (64177f5)
 - CollectionGallery wires AI endpoints before calling generate_card reducer (64177f5)
-- Still missing: end-to-end game loop test, user must add API keys to .env.local
+- Still missing: user must add API keys to .env.local
+- E2E game loop test: PASSING (client/test/e2e-game-loop.ts)
 
 **Client (Next.js):**
 - npm run build: PASS (Next.js 16.2.1, Turbopack)
@@ -40,9 +41,15 @@
 - Card creation flow: CollectionGallery -> AI endpoints -> SpacetimeDB generate_card with AI content
 - update_card_media reducer available for post-creation AI updates (dc98fc9)
 - Requires: OPENAI_API_KEY and MINIMAX_API_KEY in client/.env.local
-- Still missing: end-to-end game loop test
+- Still missing: (none - all core features wired)
 
-**Git:** Push working. Head: 332daa0 (rate limiting done).
+**Git:** Push working. Head: 58c683c.
+
+### SpacetimeDB config note
+- Local SpacetimeDB runs on port 3001 (port 3000 occupied by Skilt)
+- `spacetime publish --server local ai-monsters-test` to publish
+- Generated bindings use camelCase accessor names (generateCard, placeCard, etc.)
+- Cards table has NO owner_id column (cards are not owned by players)
 
 ### What's actually done
 - Rust server compiles with SpacetimeDB tables and reducers (cargo check + clippy: PASS)
@@ -67,28 +74,30 @@
 
 ### What's broken or missing (priority order)
 
-**1. End-to-end game loop test (game actions)**
-- Data setup verified via CLI: create_player, generate_card, create_match, init_match_hands, add_card_to_hand all work
-- Game actions (place_card, attack_card, flip_card, switch_card_mode, move_card, end_turn) require SDK-based client connection
-- Identity validation (ctx.sender()) prevents CLI from calling board game reducers
-- e2e-game-loop.mjs script written but requires SpacetimeDB client SDK to execute
+**1. Card range stat is random (sometimes negative)**
+- attack_card uses Manhattan distance + card.range to check range
+- Cards generated with random range values including negatives, making attacks unpredictable
+- Need to clamp range to 1-3 or use sensible defaults
 
-**2. Dead code in lib.rs (low priority)**
-- SimpleRng struct + RNG thread_local + random_f32() function removed (eb7cc4f)
-- random_f32() was defined but never called; removed, next_range() inlined
+**2. Cards table has no owner_id**
+- Cards are not owned by any player -- any player can use any card
+- Need owner_id field on CardRow or a separate ownership table
 
 **3. AI pipeline needs API keys**
 - /api/generate-description requires OPENAI_API_KEY in client/.env.local
 - /api/generate-card-image requires MINIMAX_API_KEY in client/.env.local
 - MiniMax falls back to picsum.photos if no API key
 
-~~4. No rate limiting on AI endpoints~~ DONE (abbd2a0)
-- Added shared rate-limit utility (client/src/lib/rate-limit.ts)
-- 10 req/min for /api/generate-description, 5 req/min for /api/generate-card-image
-- Returns 429 with Retry-After header
+~~4. End-to-end game loop test~~ DONE (58c683c)
+- client/test/e2e-game-loop.ts passes against local SpacetimeDB
+- Tests: connect, card gen, match create, hand init, place, turn switch, attack
+
+~~5. No rate limiting on AI endpoints~~ DONE (abbd2a0)
 
 ### Backlog (ordered by priority)
-1. End-to-end game loop test - game actions (place_card, attack_card, etc.) require SDK-based client
+1. Fix card range stat (clamp to sensible values)
+2. Add owner_id to cards table
+3. ~~End-to-end game loop test~~ DONE (58c683c)
 2. ~~Add rate limiting to /api/generate-description and /api/generate-card-image~~ DONE (abbd2a0)
 3. ~~Wire real AI model to /api/generate-description~~ DONE (64177f5)
 4. ~~Wire MiniMax image generation to card creation flow~~ DONE (64177f5)
