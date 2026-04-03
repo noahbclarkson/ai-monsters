@@ -1,6 +1,6 @@
 # AI Monsters - Project Plan
 
-## Current State: 2026-04-03 09:03 UTC. All builds pass. Git head: f0dd7be.
+## Current State: 2026-04-03 10:21 UTC. All builds pass. Git head: 65d5c2c.
 
 ### Build Status
 - cargo check: PASS
@@ -30,7 +30,7 @@
 - AI image pipeline: MiniMax image-01 via /api/generate-card-image
 - Requires: OPENAI_API_KEY and MINIMAX_API_KEY in client/.env.local
 
-**Git:** Push working. Head: 6cddd47 (up to date with origin/main).
+**Git:** Push working. Head: 65d5c2c (up to date with origin/main).
 
 ### What's actually done
 - Rust server compiles clean (cargo check + clippy: PASS)
@@ -52,25 +52,31 @@
 - run_bot_turn computes and executes bot actions by difficulty
 - game_matches uses current_turn + bot_players table for bot turn detection
 
-**2. Matchmaking not wired** (matchmaking.rs exists but no reducer)
-- No queue system to match players together
-- Players must coordinate offline to start a match
+**2. Matchmaking wired** (65d5c2c)
+- matchmaking_entries table persists queue entries
+- player_progress table for Elo/progression tracking
+- join_matchmaking_queue reducer (prefers Bot/Human/Any; bot immediately starts match)
+- leave_matchmaking_queue reducer
+- process_matchmaking reducer (pairs human vs human within ±200 rating)
+- draw_card reducer to move cards from deck to hand
+- Bot matches: join_matchmaking_queue -> start_bot_match immediately
+- Human matches: process_matchmaking periodically pairs queued players
 
 **3. No integration tests beyond e2e-game-loop.ts**
 - Only tests one-player scenario (place, attack, turn switch)
 
 ### Backlog (ordered by priority)
 1. ~~Wire bot_ai.rs to reducers~~ DONE (6cddd47)
-2. Wire matchmaking.rs to reducers (add player queue + match pairing)
+2. ~~Wire matchmaking.rs to reducers~~ DONE (65d5c2c)
 3. Client-side bot integration (detect bot turn, call run_bot_turn)
 4. Add integration test for two-player match
-5. ~~Card range clamp~~ DONE (90ba0ad)
-5. ~~End-to-end game loop test~~ DONE (58c683c)
-6. ~~Rate limiting on AI endpoints~~ DONE (abbd2a0)
-7. ~~WASM timestamp panic fix~~ DONE (eb7cc4f)
-8. ~~AI pipeline wiring~~ DONE (8db2414/dc98fc9)
-9. ~~WASM build verification~~ DONE (dc98fc9)
-10. ~~All prior items~~ DONE
+5. Elo/progression update after match completion (update_rating reducer)
+6. ~~Card range clamp~~ DONE (90ba0ad)
+6. ~~End-to-end game loop test~~ DONE (58c683c)
+7. ~~Rate limiting on AI endpoints~~ DONE (abbd2a0)
+8. ~~WASM timestamp panic fix~~ DONE (eb7cc4f)
+9. ~~AI pipeline wiring~~ DONE (8db2414/dc98fc9)
+10. ~~WASM build verification~~ DONE (dc98fc9)
 
 ### Architecture Notes
 - SpacetimeDB local: port 3001 (port 3000 occupied by Skilt)
