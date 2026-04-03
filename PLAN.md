@@ -1,6 +1,6 @@
 # AI Monsters - Project Plan
 
-## Current State: 2026-04-03 15:09 UTC. All builds pass. Git head: 0bf2083.
+## Current State: 2026-04-03 17:18 UTC. All builds pass. Git head: 6679060.
 
 ### Build Status
 - cargo check: PASS
@@ -8,7 +8,7 @@
 - cargo test: 15 PASS
 - cargo build --target wasm32-unknown-unknown --release: PASS
 - npm run build: PASS (Next.js 16.2.1, Turbopack)
-- Git head: 0bf2083 (up to date with origin/main)
+- Git head: 6679060 (update_rating binding + client wiring)
 
 ### Honest Assessment
 
@@ -23,6 +23,7 @@
 - Three AI levels: Easy (random), Medium (center-preferring), Hard (positional)
 - MatchCtx helper struct for bot action execution
 - update_rating reducer for Elo + XP/progression on match complete
+- update_rating wired to client (useBotMatch detects Completed match, calls reducer)
 - Cards are globally shared (no per-match deck ownership enforcement)
 
 **Client (Next.js):**
@@ -31,7 +32,7 @@
 - AI image pipeline: MiniMax image-01 via /api/generate-card-image
 - Requires: OPENAI_API_KEY and MINIMAX_API_KEY in client/.env.local
 
-**Git:** Push working. Head: 0bf2083 (up to date with origin/main).
+**Git:** Push working. Head: 6679060.
 
 ### What's actually done
 - Rust server compiles clean (cargo check + clippy: PASS)
@@ -69,7 +70,7 @@
 ### Backlog (ordered by priority)
 1. Add integration test for two-player match
 2. Regenerate SpacetimeDB bindings from live instance (manually maintained since 9d8e549)
-3. Wire update_rating to client (client detects Completed match, calls update_rating)
+3. ~~Wire update_rating to client~~ DONE (6679060)
 4. ~~Elo/progression update after match completion~~ DONE (0bf2083)
 5. ~~Wire bot_ai.rs to reducers~~ DONE (6cddd47)
 6. ~~Wire matchmaking.rs to reducers~~ DONE (65d5c2c)
