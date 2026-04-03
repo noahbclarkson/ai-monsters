@@ -622,13 +622,18 @@ fn generate_card_stats(rarity: &str, card_type: &str) -> (i32, i32, i32) {
         _ => (3, 3, 1),
     };
     let variance = |base: i32, max: i32| -> i32 {
-        base + (crate::random_range(max as usize) as i32)
+        let raw = base + (crate::random_range(max as usize) as i32);
+        raw.clamp(1, 5)
+    };
+    let range = |base: i32, max: i32| -> i32 {
+        let raw = base + (crate::random_range(max as usize) as i32);
+        raw.clamp(1, 3)
     };
     match card_type {
-        "Unit" => (variance(ba, 3), variance(bd, 2), variance(br, 1)),
+        "Unit" => (variance(ba, 3), variance(bd, 2), range(br, 1)),
         "Building" => (0, variance(bd, 5), 1),
-        "Spell" => (variance(ba, 2), variance(bd, 2), variance(br, 3)),
-        _ => (variance(ba, 3), variance(bd, 2), variance(br, 1)),
+        "Spell" => (variance(ba, 2), variance(bd, 2), range(br, 3)),
+        _ => (variance(ba, 3), variance(bd, 2), range(br, 1)),
     }
 }
 
