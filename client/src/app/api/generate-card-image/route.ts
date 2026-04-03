@@ -1,9 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 // MiniMax Image Generation API endpoint
 const MINIMAX_API_URL = 'https://api.minimax.io/v1/image_generation';
 
 export async function POST(request: NextRequest) {
+  // Rate limit: 5 requests per minute per IP (image gen is heavier)
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+  const { allowed, retryAfterMs } = checkRateLimit(ip, { maxRequests: 5, windowMs: 60_000 });
+  if (!allowed) {
+    const response = NextResponse.json(
+      { error: 'Rate limit exceeded', retryAfterMs },
+      { status: 429 }
+    );
+    response.headers.set('Retry-After', String(Math.ceil(retryAfterMs / 1000)));
+    return response;
+  }
+
   try {
     const { noun, cardType, rarity, cardId } = await request.json();
 

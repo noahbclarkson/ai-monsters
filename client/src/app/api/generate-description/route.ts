@@ -1,8 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 export async function POST(request: NextRequest) {
+  // Rate limit: 10 requests per minute per IP
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+  const { allowed, retryAfterMs } = checkRateLimit(ip, { maxRequests: 10, windowMs: 60_000 });
+  if (!allowed) {
+    const response = NextResponse.json(
+      { error: 'Rate limit exceeded', retryAfterMs },
+      { status: 429 }
+    );
+    response.headers.set('Retry-After', String(Math.ceil(retryAfterMs / 1000)));
+    return response;
+  }
+
   try {
     const { prompt, noun, rarity, cardType } = await request.json();
 
