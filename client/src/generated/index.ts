@@ -39,32 +39,52 @@ import AttackCardReducer from "./attack_card_reducer";
 import CreateDeckReducer from "./create_deck_reducer";
 import CreateMatchReducer from "./create_match_reducer";
 import CreatePlayerReducer from "./create_player_reducer";
+import DrawCardReducer from "./draw_card_reducer";
 import EndTurnReducer from "./end_turn_reducer";
 import FlipCardReducer from "./flip_card_reducer";
 import GenerateCardReducer from "./generate_card_reducer";
 import GenerateDailyCardsReducer from "./generate_daily_cards_reducer";
 import InitMatchHandsReducer from "./init_match_hands_reducer";
+import JoinMatchmakingQueueReducer from "./join_matchmaking_queue_reducer";
+import LeaveMatchmakingQueueReducer from "./leave_matchmaking_queue_reducer";
 import MoveCardReducer from "./move_card_reducer";
 import PlaceCardReducer from "./place_card_reducer";
+import ProcessMatchmakingReducer from "./process_matchmaking_reducer";
+import RunBotTurnReducer from "./run_bot_turn_reducer";
+import StartSinglePlayerMatchReducer from "./start_single_player_match_reducer";
 import SwitchCardModeReducer from "./switch_card_mode_reducer";
 import UpdateCardMediaReducer from "./update_card_media_reducer";
 
 // Import all procedure arg schemas
 
 // Import all table schema definitions
+import BotPlayersRow from "./bot_players_table";
 import CardPacksRow from "./card_packs_table";
 import CardsRow from "./cards_table";
 import DecksRow from "./decks_table";
 import GameMatchesRow from "./game_matches_table";
+import MatchmakingEntriesRow from "./matchmaking_entries_table";
 import MyPlayerRow from "./my_player_table";
 import PlayerHandsRow from "./player_hands_table";
 import PlayerIdentitiesRow from "./player_identities_table";
+import PlayerProgressRow from "./player_progress_table";
 import PlayersRow from "./players_table";
 
 /** Type-only namespace exports for generated type groups. */
 
 /** The schema information for all tables in this module. This is defined the same was as the tables would have been defined in the server. */
 const tablesSchema = __schema({
+  bot_players: __table({
+    name: 'bot_players',
+    indexes: [
+      { accessor: 'player_id', name: 'bot_players_player_id_idx_btree', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+    ],
+    constraints: [
+      { name: 'bot_players_player_id_key', constraint: 'unique', columns: ['playerId'] },
+    ],
+  }, BotPlayersRow),
   card_packs: __table({
     name: 'card_packs',
     indexes: [
@@ -160,6 +180,17 @@ const tablesSchema = __schema({
       { name: 'game_matches_id_key', constraint: 'unique', columns: ['id'] },
     ],
   }, GameMatchesRow),
+  matchmaking_entries: __table({
+    name: 'matchmaking_entries',
+    indexes: [
+      { accessor: 'player_id', name: 'matchmaking_entries_player_id_idx_btree', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+    ],
+    constraints: [
+      { name: 'matchmaking_entries_player_id_key', constraint: 'unique', columns: ['playerId'] },
+    ],
+  }, MatchmakingEntriesRow),
   player_hands: __table({
     name: 'player_hands',
     indexes: [
@@ -191,6 +222,17 @@ const tablesSchema = __schema({
       { name: 'player_identities_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
   }, PlayerIdentitiesRow),
+  player_progress: __table({
+    name: 'player_progress',
+    indexes: [
+      { accessor: 'player_id', name: 'player_progress_player_id_idx_btree', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+    ],
+    constraints: [
+      { name: 'player_progress_player_id_key', constraint: 'unique', columns: ['playerId'] },
+    ],
+  }, PlayerProgressRow),
   players: __table({
     name: 'players',
     indexes: [
@@ -231,13 +273,19 @@ const reducersSchema = __reducers(
   __reducerSchema("create_deck", CreateDeckReducer),
   __reducerSchema("create_match", CreateMatchReducer),
   __reducerSchema("create_player", CreatePlayerReducer),
+  __reducerSchema("draw_card", DrawCardReducer),
   __reducerSchema("end_turn", EndTurnReducer),
   __reducerSchema("flip_card", FlipCardReducer),
   __reducerSchema("generate_card", GenerateCardReducer),
   __reducerSchema("generate_daily_cards", GenerateDailyCardsReducer),
   __reducerSchema("init_match_hands", InitMatchHandsReducer),
+  __reducerSchema("join_matchmaking_queue", JoinMatchmakingQueueReducer),
+  __reducerSchema("leave_matchmaking_queue", LeaveMatchmakingQueueReducer),
   __reducerSchema("move_card", MoveCardReducer),
   __reducerSchema("place_card", PlaceCardReducer),
+  __reducerSchema("process_matchmaking", ProcessMatchmakingReducer),
+  __reducerSchema("run_bot_turn", RunBotTurnReducer),
+  __reducerSchema("start_single_player_match", StartSinglePlayerMatchReducer),
   __reducerSchema("switch_card_mode", SwitchCardModeReducer),
   __reducerSchema("update_card_media", UpdateCardMediaReducer),
 );
@@ -295,4 +343,3 @@ export class DbConnection extends __DbConnectionImpl<typeof REMOTE_MODULE> {
     return new SubscriptionBuilder(this);
   };
 }
-

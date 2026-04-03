@@ -3,43 +3,119 @@
 import { useState } from 'react';
 import { GameBoard } from './GameBoard';
 import { useMatches } from '@/lib/useMatches';
+import { useBotMatch } from '@/lib/useBotMatch';
+import { useSpacetimeDB } from '@/lib/spacetimedb';
 
 export function GameLobby() {
   const [activeTab, setActiveTab] = useState<'lobby' | 'create' | 'play'>('lobby');
-  const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null);
-  const [playerName, setPlayerName] = useState('');
-  const { matches, players, loading, error, createMatch, getPlayerById, getWaitingMatches, getActiveMatches } = useMatches();
+  const [selectedMatchId, setSelectedMatchId] = useState<bigint | null>(null);
+  const { matches, players, loading, error, getPlayerById, getActiveMatches } = useMatches();
+  const { conn, connected, playerId } = useSpacetimeDB();
+  const { match: botMatch, startSinglePlayerMatch, joinBotQueue, joinHumanQueue, leaveQueue, isBotTurn, botRunning, isMyTurn, error: botError } = useBotMatch(selectedMatchId);
+  const [selectedDifficulty, setSelectedDifficulty] = useState('Medium');
+  const [starting, setStarting] = useState(false);
 
-  const handleCreateMatch = async (opponentId: number) => {
+  const handlePlayVsBot = async () => {
+    if (!conn || !playerId) return;
+    setStarting(true);
     try {
-      // Use player 1 as default creator if no players exist yet
-      const player1Id = players.length > 0 ? Number(players[0].id) : 1;
-      await createMatch(BigInt(player1Id), BigInt(opponentId));
+      // Collect the player's cards (first 5 from cards table)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const db = conn.db as any;
+      const myCards: bigint[] = [];
+      const cardsTable = db.cards as { iter(): Iterable<{ id: bigint }> } | undefined;
+      if (cardsTable) {
+        for (const card of cardsTable.iter()) {
+          myCards.push(card.id);
+          if (myCards.length >= 5) break;
+        }
+      }
+
+      // If not enough cards, generate some first
+      if (myCards.length < 5) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const reducers = conn.reducers as any;
+        const nouns = ['Dragon', 'Phoenix', 'Golem', 'Spectre', 'Wraith'];
+        for (let i = myCards.length; i < 5; i++) {
+          await reducers.generateCard({
+            seedNoun: nouns[i],
+            rarity: i < 2 ? 'Common' : 'Rare',
+            cardType: 'Unit',
+            aiDescription: '',
+            aiImageUrl: '',
+          });
+        }
+        // Re-collect cards after generation
+        myCards.length = 0;
+        if (cardsTable) {
+          for (const card of cardsTable.iter()) {
+            myCards.push(card.id);
+            if (myCards.length >= 5) break;
+          }
+        }
+      }
+
+      if (myCards.length >= 5) {
+        await startSinglePlayerMatch(selectedDifficulty, myCards.slice(0, 5));
+      }
     } catch (e) {
-      console.error('Error creating match:', e);
+      console.error('Error starting bot match:', e);
+    } finally {
+      setStarting(false);
     }
   };
 
-  const handleJoinMatch = (matchId: number) => {
+  const handleJoinMatch = (matchId: bigint) => {
     setSelectedMatchId(matchId);
     setActiveTab('play');
   };
 
   const renderLobby = () => (
     <div className="space-y-6">
-      {/* Quick Play */}
+      {/* Quick Play vs Bot */}
       <div className="bg-gray-800 rounded-lg p-6">
-        <h2 className="text-2xl font-bold text-white mb-4">Quick Play</h2>
+        <h2 className="text-2xl font-bold text-white mb-4">Quick Play vs AI</h2>
+        <div className="mb-4">
+          <label className="block text-gray-300 mb-2">Difficulty</label>
+          <select
+            value={selectedDifficulty}
+            onChange={(e) => setSelectedDifficulty(e.target.value)}
+            className="bg-gray-700 text-white px-4 py-2 rounded-lg border border-gray-600"
+          >
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+          </select>
+        </div>
         <button
-          onClick={() => {
-            // Create match vs AI bot (player 2 if exists, otherwise just create a match)
-            const botPlayer = players.find(p => p.name.toLowerCase().includes('bot') || p.name === 'AI Bot');
-            handleCreateMatch(botPlayer ? Number(botPlayer.id) : 2);
-          }}
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-semibold text-lg"
+          onClick={handlePlayVsBot}
+          disabled={!connected || starting}
+          className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 px-6 rounded-lg font-semibold text-lg"
         >
-          Play vs AI Bot
+          {starting ? 'Starting...' : 'Play vs AI Bot'}
         </button>
+        {!connected && <p className="text-yellow-400 text-sm mt-2">Connecting to server...</p>}
+      </div>
+
+      {/* Matchmaking */}
+      <div className="bg-gray-800 rounded-lg p-6">
+        <h2 className="text-2xl font-bold text-white mb-4">Multiplayer</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <button
+            onClick={joinHumanQueue}
+            disabled={!connected}
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 px-4 rounded-lg font-semibold"
+          >
+            Find Match
+          </button>
+          <button
+            onClick={leaveQueue}
+            disabled={!connected}
+            className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 px-4 rounded-lg font-semibold"
+          >
+            Leave Queue
+          </button>
+        </div>
       </div>
 
       {/* Active Matches */}
@@ -60,10 +136,13 @@ export function GameLobby() {
                     <p className="text-white font-semibold">
                       {player1?.name ?? `Player ${match.player1Id}`} vs {player2?.name ?? `Player ${match.player2Id}`}
                     </p>
-                    <p className="text-gray-400 text-sm">Match #{match.id.toString()}</p>
+                    <p className="text-gray-400 text-sm">
+                      Match #{match.id.toString()}
+                      {match.currentTurn === playerId ? ' - Your turn' : ' - Opponent turn'}
+                    </p>
                   </div>
                   <button
-                    onClick={() => handleJoinMatch(Number(match.id))}
+                    onClick={() => handleJoinMatch(match.id)}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
                   >
                     Continue
@@ -74,91 +153,6 @@ export function GameLobby() {
           </div>
         )}
       </div>
-
-      {/* Available Players */}
-      <div className="bg-gray-800 rounded-lg p-6">
-        <h2 className="text-2xl font-bold text-white mb-4">Challenge Players</h2>
-        {players.length === 0 ? (
-          <p className="text-gray-400">No other players available.</p>
-        ) : (
-          <div className="space-y-3">
-            {players.slice(0, 5).map(player => (
-              <div key={String(player.id)} className="bg-gray-700 rounded-lg p-4 flex justify-between items-center">
-                <div>
-                  <p className="text-white font-semibold">{player.name}</p>
-                  <p className="text-gray-400 text-sm">Rating: {player.rating}</p>
-                </div>
-                <button
-                  onClick={() => handleCreateMatch(Number(player.id))}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg"
-                >
-                  Challenge
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  const renderCreateGame = () => (
-    <div className="space-y-6">
-      <div className="bg-gray-800 rounded-lg p-6">
-        <h2 className="text-2xl font-bold text-white mb-4">Create New Game</h2>
-        
-        <div className="mb-6">
-          <label className="block text-white font-semibold mb-2">Your Name</label>
-          <input
-            type="text"
-            value={playerName}
-            onChange={(e) => setPlayerName(e.target.value)}
-            placeholder="Enter your name"
-            className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-gray-700 rounded-lg p-4">
-            <h3 className="text-lg font-bold text-white mb-3">Quick Match</h3>
-            <p className="text-gray-300 mb-4">Get matched with an AI opponent for a quick game</p>
-            <button className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg">
-              🤖 Play vs AI
-            </button>
-          </div>
-
-          <div className="bg-gray-700 rounded-lg p-4">
-            <h3 className="text-lg font-bold text-white mb-3">Private Match</h3>
-            <p className="text-gray-300 mb-4">Create a match for you and a friend to join</p>
-            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg">
-              👥 Create Private Room
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-6">
-          <h3 className="text-lg font-bold text-white mb-3">Game Settings</h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-300">Deck Size</span>
-              <select className="bg-gray-700 text-white px-3 py-1 rounded">
-                <option>30 cards (Standard)</option>
-                <option>50 cards (Large)</option>
-                <option>100 cards (Tournament)</option>
-              </select>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-300">Time Limit</span>
-              <select className="bg-gray-700 text-white px-3 py-1 rounded">
-                <option>No limit</option>
-                <option>5 minutes</option>
-                <option>10 minutes</option>
-                <option>20 minutes</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 
@@ -168,11 +162,13 @@ export function GameLobby() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">
-            🎮 AI Monsters Arena
+            AI Monsters Arena
           </h1>
           <p className="text-xl text-gray-300">
             Battle with unique AI-generated cards
           </p>
+          {botError && <p className="text-red-400 text-sm mt-2">{botError}</p>}
+          {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
         </div>
 
         {/* Navigation Tabs */}
@@ -181,32 +177,31 @@ export function GameLobby() {
             <button
               onClick={() => setActiveTab('lobby')}
               className={`px-6 py-2 rounded-lg font-semibold transition-all ${
-                activeTab === 'lobby' 
-                  ? 'bg-blue-600 text-white' 
+                activeTab === 'lobby'
+                  ? 'bg-blue-600 text-white'
                   : 'text-gray-300 hover:text-white'
               }`}
             >
-              🏠 Lobby
-            </button>
-            <button
-              onClick={() => setActiveTab('create')}
-              className={`px-6 py-2 rounded-lg font-semibold transition-all ${
-                activeTab === 'create' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'text-gray-300 hover:text-white'
-              }`}
-            >
-              ➕ Create Game
+              Lobby
             </button>
           </div>
         </div>
 
         {/* Content */}
         {activeTab === 'lobby' && renderLobby()}
-        {activeTab === 'create' && renderCreateGame()}
         {activeTab === 'play' && selectedMatchId && (
           <div>
-            <GameBoard gameId={selectedMatchId} />
+            {isBotTurn && (
+              <div className="text-center text-yellow-300 mb-4 text-lg">
+                {botRunning ? 'Bot is thinking...' : 'Bot turn...'}
+              </div>
+            )}
+            {!isMyTurn && !isBotTurn && botMatch && (
+              <div className="text-center text-gray-400 mb-4">
+                Waiting for opponent...
+              </div>
+            )}
+            <GameBoard gameId={Number(selectedMatchId)} />
           </div>
         )}
       </div>
