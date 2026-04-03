@@ -1373,3 +1373,161 @@ pub fn draw_card(ctx: &ReducerContext, match_id: u64, player_id: u64, deck_id: u
 
     Ok(())
 }
+
+/// Elo rating update after a match completes.
+/// K=32 for new players (under 1600), K=16 for intermediate, K=8 for veterans.
+/// Winner gets ~100 XP, loser gets ~30 XP. Level up every 1000 XP.
+#[reducer]
+pub fn update_rating(
+    ctx: &ReducerContext,
+    match_id: u64,
+    winner_id: u64,
+    loser_id: u64,
+) -> Result<(), String> {
+    // Validate caller identity is one of the match participants
+    let caller_record = ctx.db.player_identities().identity().find(ctx.sender())
+        .ok_or("Caller identity not found")?;
+
+    // Get the match and verify it is completed
+    let mrow = ctx.db.game_matches().id().find(match_id)
+        .ok_or("Match not found")?;
+    if mrow.status != "Completed" {
+        return Err("Match is not completed yet".to_string());
+    }
+    if winner_id != mrow.player1_id && winner_id != mrow.player2_id {
+        return Err("Winner is not a participant in this match".to_string());
+    }
+    if loser_id != mrow.player1_id && loser_id != mrow.player2_id {
+        return Err("Loser is not a participant in this match".to_string());
+    }
+    if winner_id == loser_id {
+        return Err("Winner and loser must be different".to_string());
+    }
+    // Caller must be one of the two players in the match
+    if caller_record.player_id != winner_id && caller_record.player_id != loser_id {
+        return Err("Caller is not a participant in this match".to_string());
+    }
+
+    // Fetch current ratings
+    let winner_player = ctx.db.players().id().find(winner_id)
+        .ok_or("Winner player not found")?;
+    let loser_player = ctx.db.players().id().find(loser_id)
+        .ok_or("Loser player not found")?;
+
+    let winner_rating = winner_player.rating;
+    let loser_rating = loser_player.rating;
+
+    // Elo expected score
+    let expected_winner = 1.0 / (1.0 + 10.0_f64.powf((loser_rating as f64 - winner_rating as f64) / 400.0));
+    let expected_loser = 1.0 - expected_winner;
+
+    // K-factor based on rating
+    fn k_factor(rating: i32) -> f64 {
+        if rating < 1600 { 32.0 }
+        else if rating < 2000 { 24.0 }
+        else { 16.0 }
+    }
+
+    let k_w = k_factor(winner_rating);
+    let k_l = k_factor(loser_rating);
+
+    let new_winner_rating = (winner_rating as f64 + k_w * (1.0 - expected_winner)).round() as i32;
+    let new_loser_rating = (loser_rating as f64 + k_l * (0.0 - expected_loser)).round() as i32;
+
+    // Update player ratings
+    ctx.db.players().id().update(PlayerRow {
+        id: winner_player.id,
+        name: winner_player.name.clone(),
+        email: winner_player.email.clone(),
+        created_at: winner_player.created_at,
+        rating: new_winner_rating,
+    });
+    ctx.db.players().id().update(PlayerRow {
+        id: loser_player.id,
+        name: loser_player.name.clone(),
+        email: loser_player.email.clone(),
+        created_at: loser_player.created_at,
+        rating: new_loser_rating,
+    });
+
+    // XP rewards
+    let xp_win = 100;
+    let xp_loss = 30;
+
+    // Get or init winner progress
+    let w_progress = ctx.db.player_progress().player_id().find(winner_id);
+    if let Some(wp) = w_progress {
+        let new_xp = wp.xp + xp_win;
+        let (new_level, _new_xp_to_next) = level_for_xp(new_xp, wp.level);
+        let level_ups = new_level - wp.level;
+        let xp_to_next = if level_ups > 0 { xp_for_level(new_level + 1) - new_xp } else { wp.xp_to_next_level };
+        ctx.db.player_progress().player_id().update(PlayerProgressRow {
+            player_id: wp.player_id,
+            level: new_level,
+            xp: new_xp,
+            xp_to_next_level: xp_to_next,
+            total_wins: wp.total_wins + 1,
+            total_losses: wp.total_losses,
+            cards_collected: wp.cards_collected,
+            matches_played: wp.matches_played + 1,
+        });
+    } else {
+        let level = 1;
+        ctx.db.player_progress().insert(PlayerProgressRow {
+            player_id: winner_id,
+            level,
+            xp: xp_win,
+            xp_to_next_level: xp_for_level(level + 1) - xp_win,
+            total_wins: 1,
+            total_losses: 0,
+            cards_collected: 0,
+            matches_played: 1,
+        });
+    }
+
+    // Get or init loser progress
+    let l_progress = ctx.db.player_progress().player_id().find(loser_id);
+    if let Some(lp) = l_progress {
+        let new_xp = lp.xp + xp_loss;
+        let (new_level, _) = level_for_xp(new_xp, lp.level);
+        let xp_to_next = xp_for_level(new_level + 1) - new_xp;
+        ctx.db.player_progress().player_id().update(PlayerProgressRow {
+            player_id: lp.player_id,
+            level: new_level,
+            xp: new_xp,
+            xp_to_next_level: xp_to_next,
+            total_wins: lp.total_wins,
+            total_losses: lp.total_losses + 1,
+            cards_collected: lp.cards_collected,
+            matches_played: lp.matches_played + 1,
+        });
+    } else {
+        let level = 1;
+        ctx.db.player_progress().insert(PlayerProgressRow {
+            player_id: loser_id,
+            level,
+            xp: xp_loss,
+            xp_to_next_level: xp_for_level(level + 1) - xp_loss,
+            total_wins: 0,
+            total_losses: 1,
+            cards_collected: 0,
+            matches_played: 1,
+        });
+    }
+
+    Ok(())
+}
+
+/// XP required to reach a given level (1000 per level).
+fn xp_for_level(level: i32) -> i32 {
+    level * 1000
+}
+
+/// Compute level from total XP, starting from current level.
+fn level_for_xp(xp: i32, current_level: i32) -> (i32, i32) {
+    let mut level = current_level;
+    while xp >= xp_for_level(level + 1) {
+        level += 1;
+    }
+    (level, xp_for_level(level + 1) - xp)
+}
