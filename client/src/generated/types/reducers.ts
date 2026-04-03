@@ -26,6 +26,7 @@ import RunBotTurnReducer from "../run_bot_turn_reducer";
 import StartSinglePlayerMatchReducer from "../start_single_player_match_reducer";
 import SwitchCardModeReducer from "../switch_card_mode_reducer";
 import UpdateCardMediaReducer from "../update_card_media_reducer";
+import UpdateRatingReducer from "../update_rating_reducer";
 
 export type AddCardToHandParams = __Infer<typeof AddCardToHandReducer>;
 export type AttackCardParams = __Infer<typeof AttackCardReducer>;
@@ -47,3 +48,4 @@ export type RunBotTurnParams = __Infer<typeof RunBotTurnReducer>;
 export type StartSinglePlayerMatchParams = __Infer<typeof StartSinglePlayerMatchReducer>;
 export type SwitchCardModeParams = __Infer<typeof SwitchCardModeReducer>;
 export type UpdateCardMediaParams = __Infer<typeof UpdateCardMediaReducer>;
+export type UpdateRatingParams = __Infer<typeof UpdateRatingReducer>;

@@ -35,6 +35,7 @@ export function useBotMatch(matchId: bigint | null) {
   const [botRunning, setBotRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const botTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const ratingUpdatedRef = useRef<Set<string>>(new Set());
 
   // Fetch match and detect bot turns
   useEffect(() => {
@@ -116,6 +117,28 @@ export function useBotMatch(matchId: bigint | null) {
       }
     };
   }, [isBotTurn, conn, botRunning, matchId]);
+
+  // Detect match completion and call update_rating
+  useEffect(() => {
+    if (!match || match.status !== "Completed" || !conn || !playerId) return;
+
+    const matchKey = matchId?.toString();
+    if (!matchKey || ratingUpdatedRef.current.has(matchKey)) return;
+
+    // Only the winner should call update_rating to avoid double-calling
+    if (match.winnerId !== playerId) return;
+
+    // Determine loser: if player1 is the winner, player2 is the loser (and vice versa)
+    const loserId = match.player1Id === match.winnerId ? match.player2Id : match.player1Id;
+
+    ratingUpdatedRef.current.add(matchKey);
+
+    // Call update_rating asynchronously (fire and forget for UI)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (conn.reducers as any).updateRating({ matchId, winnerId: match.winnerId, loserId }).catch((e: unknown) => {
+      setError(`Rating update failed: ${e}`);
+    });
+  }, [match, conn, playerId, matchId]);
 
   // Start a single player match against a bot
   const startSinglePlayerMatch = useCallback(

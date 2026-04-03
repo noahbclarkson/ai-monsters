@@ -54,6 +54,7 @@ import RunBotTurnReducer from "./run_bot_turn_reducer";
 import StartSinglePlayerMatchReducer from "./start_single_player_match_reducer";
 import SwitchCardModeReducer from "./switch_card_mode_reducer";
 import UpdateCardMediaReducer from "./update_card_media_reducer";
+import UpdateRatingReducer from "./update_rating_reducer";
 
 // Import all procedure arg schemas
 
@@ -288,6 +289,7 @@ const reducersSchema = __reducers(
   __reducerSchema("start_single_player_match", StartSinglePlayerMatchReducer),
   __reducerSchema("switch_card_mode", SwitchCardModeReducer),
   __reducerSchema("update_card_media", UpdateCardMediaReducer),
+  __reducerSchema("update_rating", UpdateRatingReducer),
 );
 
 /** The schema information for all procedures in this module. This is defined the same way as the procedures would have been defined in the server. */
