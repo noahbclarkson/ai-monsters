@@ -1,6 +1,6 @@
 # AI Monsters - Project Plan
 
-## Current State: 2026-04-02 21:40 UTC. All builds pass (including WASM). Git head: eb7cc4f.
+## Current State: 2026-04-03 00:05 UTC. All builds pass. Git head: abbd2a0.
 
 ### Critical Bug Fixed: WASM Timestamp Panic
 - `current_timestamp()` and `generate_id()` used `SystemTime::now()` which panics in WASM
@@ -82,13 +82,14 @@
 - /api/generate-card-image requires MINIMAX_API_KEY in client/.env.local
 - MiniMax falls back to picsum.photos if no API key
 
-**4. No rate limiting on AI endpoints**
-- /api/generate-description and /api/generate-card-image have no concurrency limits
-- Burst of card creations could hit API rate limits
+~~4. No rate limiting on AI endpoints~~ DONE (abbd2a0)
+- Added shared rate-limit utility (client/src/lib/rate-limit.ts)
+- 10 req/min for /api/generate-description, 5 req/min for /api/generate-card-image
+- Returns 429 with Retry-After header
 
 ### Backlog (ordered by priority)
 1. End-to-end game loop test - game actions (place_card, attack_card, etc.) require SDK-based client
-2. Add rate limiting to /api/generate-description and /api/generate-card-image
+2. ~~Add rate limiting to /api/generate-description and /api/generate-card-image~~ DONE (abbd2a0)
 3. ~~Wire real AI model to /api/generate-description~~ DONE (64177f5)
 4. ~~Wire MiniMax image generation to card creation flow~~ DONE (64177f5)
 5. ~~Client calls update_card_media after AI generation completes~~ DONE (64177f5)
