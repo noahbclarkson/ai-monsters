@@ -1,6 +1,14 @@
 # AI Monsters - Project Plan
 
-## Current State: 2026-04-04 11:40 UTC. All builds pass. Git head: 0004919.
+## Current State: 2026-04-04 14:02 UTC. All builds pass. Git head: 2b44496.
+- cargo check + clippy: PASS
+- npm run build: PASS
+
+### DailyCardGenerator (2b44496) - DONE
+- useDailyCards hook: subscribes to cards table, filters today's cards
+- claimDailyCard() calls generate_daily_cards reducer then enhances each new card via AI APIs
+- DailyCardGenerator.tsx rewired from localStorage to SpacetimeDB persistence
+- Shows AI enhancing state while descriptions/images are generated
 
 ### Build Status
 - cargo check: PASS
@@ -19,7 +27,7 @@
 - Rate limiting on AI endpoints (10 req/min description, 5 req/min image)
 - Bot AI wired to reducers via start_single_player_match and run_bot_turn
 - update_rating reducer for Elo + XP/progression on match complete
-- generate_daily_cards reducer exists (not wired on client side)
+- generate_daily_cards reducer wired to client via useDailyCards hook (2b44496)
 - Cards are globally shared (no per-match deck ownership enforcement)
 
 **Client (Next.js):**
@@ -37,6 +45,7 @@
 - player_hands table tracks cards in hand per match
 - player_identities + client_connected + my_player identity system
 - AI text + image pipelines wired to card creation flow
+- DailyCardGenerator wired to SpacetimeDB + AI pipeline (2b44496)
 - Rate limiting on AI endpoints
 - Bot AI with Easy/Medium/Hard difficulty levels
 - Matchmaking queue (human vs human, rating-based pairing)
@@ -46,13 +55,13 @@
 
 ### What's broken or missing (remaining)
 
-**1. DailyCardGenerator.tsx stubbed**
-- Uses hardcoded template descriptions and placeholder images
-- Does not call generate_daily_cards reducer or AI pipeline
-- Uses localStorage instead of SpacetimeDB persistence
+**1. DailyCardGenerator.tsx stubbed** -- DONE (2b44496)
+- Wires to generate_daily_cards reducer via useDailyCards hook
+- AI description + image generation via /api endpoints
+- update_card_media reducer updates SpacetimeDB with AI content
 
 ### Backlog (ordered by priority)
-1. Wire DailyCardGenerator to generate_daily_cards reducer + AI pipeline (0004919)
+1. ~~Wire DailyCardGenerator to generate_daily_cards reducer + AI pipeline~~ DONE (2b44496)
 2. ~~Add integration test for two-player match~~ DONE (0ce5fc4, verified afd1c8c)
 3. ~~Regenerate SpacetimeDB bindings from live instance~~ DONE (afd1c8c)
 4. ~~Wire update_rating to client~~ DONE (6679060)
