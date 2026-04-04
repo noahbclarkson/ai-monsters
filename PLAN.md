@@ -1,6 +1,6 @@
 # AI Monsters - Project Plan
 
-## Current State: 2026-04-04 01:35 UTC. All builds pass. Git head: afd1c8c.
+## Current State: 2026-04-04 01:37 UTC. All builds pass. Git head: 7716411.
 
 ### Build Status
 - cargo check: PASS
@@ -32,7 +32,7 @@
 - AI image pipeline: MiniMax image-01 via /api/generate-card-image
 - Requires: OPENAI_API_KEY and MINIMAX_API_KEY in client/.env.local
 
-**Git:** Push working. Head: 6679060.
+**Git:** Push working. Head: 7716411.
 
 ### What's actually done
 - Rust server compiles clean (cargo check + clippy: PASS)
@@ -64,8 +64,10 @@
 - Bot matches: join_matchmaking_queue -> start_bot_match immediately
 - Human matches: process_matchmaking periodically pairs queued players
 
-**3. No integration tests beyond e2e-game-loop.ts**
-- Only tests one-player scenario (place, attack, turn switch)
+**3. Dead code cleanup (low priority)**
+- server/src/card_generator.rs: 209 lines, never declared as module (not compiled)
+- server/src/procedures/, reducers/, tables/, views/: empty directories, should be removed
+- server/src/lib.rs: SimpleRng + RNG + random_range used by reducers.rs (not dead)
 
 ### Backlog (ordered by priority)
 1. ~~Add integration test for two-player match~~ DONE (0ce5fc4, verified afd1c8c)
