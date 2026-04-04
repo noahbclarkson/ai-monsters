@@ -11,6 +11,6 @@ import {
 } from "spacetimedb";
 
 export default {
-  preferredOpponent: __t.string().name("preferred_opponent"),
-  botDifficulty: __t.option(__t.string()).name("bot_difficulty"),
+  preferredOpponent: __t.string(),
+  botDifficulty: __t.option(__t.string()),
 };

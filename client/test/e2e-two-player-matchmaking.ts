@@ -160,17 +160,17 @@ async function main() {
       throw new Error(`Hand init failed: P1=${p1Hands.length}, P2=${p2Hands.length}`);
     }
 
-    // Step 7: P1 places card at (0,0)
-    console.log(`\n[P1] Placing card at (0,0)...`);
-    (p1Conn.reducers as any).placeCard({ matchId, cardId: p1Cards[0].id, playerId: p1Id, row: 0, col: 0 });
+    // Step 7: P1 places card at (1,0) -- close to center for attack range
+    console.log(`\n[P1] Placing card at (1,0)...`);
+    (p1Conn.reducers as any).placeCard({ matchId, cardId: p1Cards[0].id, playerId: p1Id, row: 1, col: 0 });
     await sleep(300);
 
     let matchState = [...p1Conn.db.game_matches.iter()].find((m) => m.id === matchId)!;
     let board = JSON.parse(matchState.boardStateJson);
-    if (!board.tiles?.[0]?.[0]?.card_id) {
-      throw new Error("Card placement failed at (0,0)");
+    if (!board.tiles?.[1]?.[0]?.card_id) {
+      throw new Error("Card placement failed at (1,0)");
     }
-    console.log(`[P1] Card placed at (0,0) OK. Current turn: ${matchState.currentTurn}`);
+    console.log(`[P1] Card placed at (1,0) OK. Current turn: ${matchState.currentTurn}`);
 
     // Step 8: P1 ends turn
     console.log(`\n[P1] Ending turn...`);
@@ -180,26 +180,26 @@ async function main() {
     matchState = [...p1Conn.db.game_matches.iter()].find((m) => m.id === matchId)!;
     console.log(`[Turn] Current turn: ${matchState.currentTurn}`);
 
-    // Step 9: P2 places card at (3,0)
-    console.log(`\n[P2] Placing card at (3,0)...`);
-    (p2Conn.reducers as any).placeCard({ matchId, cardId: p2Cards[0].id, playerId: p2Id, row: 3, col: 0 });
+    // Step 9: P2 places card at (2,0) -- adjacent to P1 for attack range
+    console.log(`\n[P2] Placing card at (2,0)...`);
+    (p2Conn.reducers as any).placeCard({ matchId, cardId: p2Cards[0].id, playerId: p2Id, row: 2, col: 0 });
     await sleep(300);
 
     matchState = [...p1Conn.db.game_matches.iter()].find((m) => m.id === matchId)!;
     board = JSON.parse(matchState.boardStateJson);
-    if (!board.tiles?.[3]?.[0]?.card_id) {
-      throw new Error("Card placement failed at (3,0)");
+    if (!board.tiles?.[2]?.[0]?.card_id) {
+      throw new Error("Card placement failed at (2,0)");
     }
-    console.log(`[P2] Card placed at (3,0) OK`);
+    console.log(`[P2] Card placed at (2,0) OK`);
 
     // Step 10: P2 ends turn
     console.log(`\n[P2] Ending turn...`);
     (p2Conn.reducers as any).endTurn({ matchId, playerId: p2Id });
     await sleep(300);
 
-    // Step 11: P1 attacks P2's card at (3,0)
-    console.log(`\n[P1] Attacking P2's card at (3,0)...`);
-    (p1Conn.reducers as any).attackCard({ matchId, playerId: p1Id, attackerRow: 0, attackerCol: 0, defenderRow: 3, defenderCol: 0 });
+    // Step 11: P1 attacks P2's card at (2,0)
+    console.log(`\n[P1] Attacking P2's card at (2,0)...`);
+    (p1Conn.reducers as any).attackCard({ matchId, playerId: p1Id, attackerRow: 1, attackerCol: 0, defenderRow: 2, defenderCol: 0 });
     await sleep(300);
 
     // Step 12: P1 ends turn

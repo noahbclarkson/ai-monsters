@@ -12,5 +12,5 @@ import {
 
 export default {
   difficulty: __t.string(),
-  playerCardIds: __t.array(__t.u64()).name("player_card_ids"),
+  playerCardIds: __t.array(__t.u64()),
 };

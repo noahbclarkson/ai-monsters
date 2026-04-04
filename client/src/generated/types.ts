@@ -10,6 +10,13 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
+export const BotPlayerRow = __t.object("BotPlayerRow", {
+  playerId: __t.u64(),
+  name: __t.string(),
+  difficulty: __t.string(),
+});
+export type BotPlayerRow = __Infer<typeof BotPlayerRow>;
+
 export const CardPackRow = __t.object("CardPackRow", {
   id: __t.u64(),
   cardIdsJson: __t.string(),
@@ -57,6 +64,15 @@ export const MatchRow = __t.object("MatchRow", {
 });
 export type MatchRow = __Infer<typeof MatchRow>;
 
+export const MatchmakingEntryRow = __t.object("MatchmakingEntryRow", {
+  playerId: __t.u64(),
+  rating: __t.i32(),
+  queuedAt: __t.i64(),
+  preferredOpponent: __t.string(),
+  botDifficulty: __t.option(__t.string()),
+});
+export type MatchmakingEntryRow = __Infer<typeof MatchmakingEntryRow>;
+
 export const PlayerHandRow = __t.object("PlayerHandRow", {
   id: __t.u64(),
   matchId: __t.u64(),
@@ -70,6 +86,18 @@ export const PlayerIdentityRow = __t.object("PlayerIdentityRow", {
   playerId: __t.u64(),
 });
 export type PlayerIdentityRow = __Infer<typeof PlayerIdentityRow>;
+
+export const PlayerProgressRow = __t.object("PlayerProgressRow", {
+  playerId: __t.u64(),
+  level: __t.i32(),
+  xp: __t.i32(),
+  xpToNextLevel: __t.i32(),
+  totalWins: __t.i32(),
+  totalLosses: __t.i32(),
+  cardsCollected: __t.i32(),
+  matchesPlayed: __t.i32(),
+});
+export type PlayerProgressRow = __Infer<typeof PlayerProgressRow>;
 
 export const PlayerRow = __t.object("PlayerRow", {
   id: __t.u64(),

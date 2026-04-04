@@ -49,3 +49,4 @@ export type StartSinglePlayerMatchParams = __Infer<typeof StartSinglePlayerMatch
 export type SwitchCardModeParams = __Infer<typeof SwitchCardModeReducer>;
 export type UpdateCardMediaParams = __Infer<typeof UpdateCardMediaReducer>;
 export type UpdateRatingParams = __Infer<typeof UpdateRatingReducer>;
+

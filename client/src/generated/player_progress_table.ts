@@ -12,9 +12,11 @@ import {
 
 export default __t.row({
   playerId: __t.u64().primaryKey().name("player_id"),
-  rating: __t.i32(),
-  wins: __t.i32(),
-  losses: __t.i32(),
-  draws: __t.i32(),
+  level: __t.i32(),
+  xp: __t.i32(),
+  xpToNextLevel: __t.i32().name("xp_to_next_level"),
+  totalWins: __t.i32().name("total_wins"),
+  totalLosses: __t.i32().name("total_losses"),
+  cardsCollected: __t.i32().name("cards_collected"),
   matchesPlayed: __t.i32().name("matches_played"),
 });
