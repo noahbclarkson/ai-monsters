@@ -1,6 +1,6 @@
 # AI Monsters - Project Plan
 
-## Current State: 2026-04-03 19:18 UTC. All builds pass. Git head: 0ce5fc4.
+## Current State: 2026-04-04 01:35 UTC. All builds pass. Git head: afd1c8c.
 
 ### Build Status
 - cargo check: PASS
@@ -8,7 +8,7 @@
 - cargo test: 15 PASS
 - cargo build --target wasm32-unknown-unknown --release: PASS
 - npm run build: PASS (Next.js 16.2.1, Turbopack)
-- Git head: 0ce5fc4 (two-player matchmaking integration test)
+- Git head: afd1c8c (regenerated bindings, fixed two-player test)
 
 ### Honest Assessment
 
@@ -68,8 +68,8 @@
 - Only tests one-player scenario (place, attack, turn switch)
 
 ### Backlog (ordered by priority)
-1. ~~Add integration test for two-player match~~ DONE (0ce5fc4)
-2. Regenerate SpacetimeDB bindings from live instance (manually maintained since 9d8e549)
+1. ~~Add integration test for two-player match~~ DONE (0ce5fc4, verified afd1c8c)
+2. ~~Regenerate SpacetimeDB bindings from live instance~~ DONE (afd1c8c)
 3. ~~Wire update_rating to client~~ DONE (6679060)
 4. ~~Elo/progression update after match completion~~ DONE (0bf2083)
 5. ~~Wire bot_ai.rs to reducers~~ DONE (6cddd47)
