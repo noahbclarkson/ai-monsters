@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useSounds } from './SoundEffects';
+import { useLeaderboard } from '@/lib/useLeaderboard';
 
 interface Player {
   id: string;
@@ -11,7 +12,6 @@ interface Player {
   wins: number;
   losses: number;
   rank: string;
-  avatar?: string;
 }
 
 interface LeaderboardProps {
@@ -21,9 +21,8 @@ interface LeaderboardProps {
 }
 
 const Leaderboard = ({ limit = 10, showAvatar = true, showStats = true }: LeaderboardProps) => {
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'rating' | 'wins' | 'level'>('rating');
+  const { leaderboard, loading, error } = useLeaderboard(50);
   const { sounds } = useSounds();
 
   const getRankTitle = (rating: number): string => {
@@ -48,50 +47,24 @@ const Leaderboard = ({ limit = 10, showAvatar = true, showStats = true }: Leader
     return 'text-amber-600 bg-amber-100';
   };
 
-  const generateMockPlayers = (count: number): Player[] => {
-    const names = [
-      'DragonSlayer99', 'MysticMage', 'ShadowNinja', 'FireWarrior', 'IceQueen',
-      'ThunderBolt', 'DarkKnight', 'LightBringer', 'StormCaller', 'FrostGiant',
-      'PhoenixRise', 'VoidWalker', 'StarGazer', 'MoonChild', 'SunWarrior',
-      'WindRider', 'EarthShaker', 'WaterBender', 'FireMaster', 'IceAngel'
-    ];
-
-    return Array.from({ length: count }, (_, i) => ({
-      id: `player-${i + 1}`,
-      name: names[i % names.length],
-      rating: Math.floor(Math.random() * 2000) + 100,
-      level: Math.floor(Math.random() * 50) + 1,
-      wins: Math.floor(Math.random() * 200) + 10,
-      losses: Math.floor(Math.random() * 150) + 5,
-      rank: getRankTitle(Math.floor(Math.random() * 2000) + 100),
+  const sortedPlayers = useMemo((): Player[] => {
+    const mapped = leaderboard.map(p => ({
+      id: p.playerId.toString(),
+      name: p.name,
+      rating: p.rating,
+      level: p.level,
+      wins: p.wins,
+      losses: p.losses,
+      rank: getRankTitle(p.rating),
     }));
-  };
 
-  useEffect(() => {
-    // Simulate API call to get leaderboard data
-    const fetchLeaderboard = async () => {
-      setLoading(true);
-      sounds.playNotification();
-      
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockPlayers = generateMockPlayers(50);
-      const sortedPlayers = mockPlayers
-        .sort((a, b) => {
-          if (sortBy === 'rating') return b.rating - a.rating;
-          if (sortBy === 'wins') return b.wins - a.wins;
-          if (sortBy === 'level') return b.level - a.level;
-          return 0;
-        })
-        .slice(0, limit);
-
-      setPlayers(sortedPlayers);
-      setLoading(false);
-    };
-
-    fetchLeaderboard();
-  }, [limit, sortBy, sounds]);
+    return [...mapped].sort((a, b) => {
+      if (sortBy === 'rating') return b.rating - a.rating;
+      if (sortBy === 'wins') return b.wins - a.wins;
+      if (sortBy === 'level') return b.level - a.level;
+      return 0;
+    }).slice(0, limit);
+  }, [leaderboard, sortBy, limit]);
 
   const handleSort = (type: 'rating' | 'wins' | 'level') => {
     setSortBy(type);
@@ -101,7 +74,7 @@ const Leaderboard = ({ limit = 10, showAvatar = true, showStats = true }: Leader
   const WinRateBadge = ({ wins, losses }: { wins: number; losses: number }) => {
     const total = wins + losses;
     const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
-    
+
     let colorClass = 'text-green-600 bg-green-100';
     if (winRate < 40) colorClass = 'text-red-600 bg-red-100';
     else if (winRate < 60) colorClass = 'text-yellow-600 bg-yellow-100';
@@ -128,6 +101,15 @@ const Leaderboard = ({ limit = 10, showAvatar = true, showStats = true }: Leader
             </div>
           ))}
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <h2 className="text-2xl font-bold mb-4 text-gray-800">Leaderboard</h2>
+        <p className="text-red-500">Failed to load leaderboard: {error}</p>
       </div>
     );
   }
@@ -171,24 +153,24 @@ const Leaderboard = ({ limit = 10, showAvatar = true, showStats = true }: Leader
       </div>
 
       <div className="space-y-3">
-        {players.map((player, index) => (
+        {sortedPlayers.map((player, index) => (
           <div
             key={player.id}
             className={`flex items-center space-x-4 p-4 rounded-lg transition-all hover:shadow-md ${
-              index === 0 ? 'bg-gradient-to-r from-yellow-50 to-amber-50 border border-amber-200' : 
-              index === 1 ? 'bg-gradient-to-r from-gray-50 to-slate-50 border border-gray-200' : 
-              index === 2 ? 'bg-gradient-to-r from-amber-50 to-orange-50 border border-orange-200' : 
+              index === 0 ? 'bg-gradient-to-r from-yellow-50 to-amber-50 border border-amber-200' :
+              index === 1 ? 'bg-gradient-to-r from-gray-50 to-slate-50 border border-gray-200' :
+              index === 2 ? 'bg-gradient-to-r from-amber-50 to-orange-50 border border-orange-200' :
               'bg-gray-50 hover:bg-gray-100'
             }`}
           >
             {/* Rank Number */}
             <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center">
               {index === 0 ? (
-                <span className="text-2xl">🥇</span>
+                <span className="text-2xl">1</span>
               ) : index === 1 ? (
-                <span className="text-2xl">🥈</span>
+                <span className="text-2xl">2</span>
               ) : index === 2 ? (
-                <span className="text-2xl">🥉</span>
+                <span className="text-2xl">3</span>
               ) : (
                 <span className="text-lg font-bold text-gray-600">{index + 1}</span>
               )}
@@ -211,7 +193,7 @@ const Leaderboard = ({ limit = 10, showAvatar = true, showStats = true }: Leader
                   {player.rank}
                 </span>
               </div>
-              
+
               {showStats && (
                 <div className="flex items-center space-x-4 mt-1">
                   <span className="text-sm text-gray-600">Rating: {player.rating}</span>
@@ -233,7 +215,7 @@ const Leaderboard = ({ limit = 10, showAvatar = true, showStats = true }: Leader
         ))}
       </div>
 
-      {players.length === 0 && (
+      {sortedPlayers.length === 0 && (
         <div className="text-center py-8">
           <p className="text-gray-500">No players found on the leaderboard.</p>
         </div>
