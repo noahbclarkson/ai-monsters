@@ -1,14 +1,14 @@
 # AI Monsters - Project Plan
 
-## Current State: 2026-04-04 01:37 UTC. All builds pass. Git head: 7716411.
+## Current State: 2026-04-04 07:40 UTC. All builds pass. Project feature-complete. Git head: afd1c8c.
 
 ### Build Status
 - cargo check: PASS
+- cargo check: PASS
 - cargo clippy -- -D warnings: PASS
-- cargo test: 15 PASS
 - cargo build --target wasm32-unknown-unknown --release: PASS
 - npm run build: PASS (Next.js 16.2.1, Turbopack)
-- Git head: afd1c8c (regenerated bindings, fixed two-player test)
+- Git head: afd1c8c
 
 ### Honest Assessment
 
@@ -64,10 +64,7 @@
 - Bot matches: join_matchmaking_queue -> start_bot_match immediately
 - Human matches: process_matchmaking periodically pairs queued players
 
-**3. Dead code cleanup (low priority)**
-- server/src/card_generator.rs: 209 lines, never declared as module (not compiled)
-- server/src/procedures/, reducers/, tables/, views/: empty directories, should be removed
-- server/src/lib.rs: SimpleRng + RNG + random_range used by reducers.rs (not dead)
+**3. Dead code cleanup (low priority)** -- DONE (already cleaned up in prior sessions)
 
 ### Backlog (ordered by priority)
 1. ~~Add integration test for two-player match~~ DONE (0ce5fc4, verified afd1c8c)
