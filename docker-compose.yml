@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # SpacetimeDB local server
+  spacetimedb:
+    build:
+      context: .docker
+      dockerfile: Dockerfile.spacetime
+    container_name: aimonsters_spacetime
+    ports:
+      - "3999:3000"
+    volumes:
+      - spacetimedb_data:/spacetime-data
+    restart: unless-stopped
+    networks:
+      - aimonsters
+
+  # Next.js frontend
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: aimonsters_client
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_SPACETIMEDB_URI=ws://spacetimedb:3000
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MINIMAX_API_KEY=${MINIMAX_API_KEY:-}
+    env_file:
+      - ./client/.env.local
+    depends_on:
+      - spacetimedb
+    restart: unless-stopped
+    networks:
+      - aimonsters
+
+volumes:
+  spacetimedb_data:
+
+networks:
+  aimonsters:
+    driver: bridge

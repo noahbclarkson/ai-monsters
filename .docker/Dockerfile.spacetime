@@ -1,0 +1,10 @@
+FROM ubuntu:22.04
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+COPY spacetimedb-standalone /usr/local/bin/
+COPY jwt /jwt
+EXPOSE 3000
+ENTRYPOINT ["spacetimedb-standalone", "start", \
+  "-l", "0.0.0.0:3000", \
+  "--data-dir", "/spacetime-data", \
+  "--jwt-pub-key-path", "/jwt/jwt-pub.pem", \
+  "--jwt-priv-key-path", "/jwt/jwt-priv.pem"]

@@ -38,7 +38,7 @@ export function SpacetimeDBProvider({ children }: { children: React.ReactNode })
     try {
       connection = DbConnection.builder()
         .withUri(SPACETIMEDB_URI)
-        .withDatabaseName("ai-monsters")
+        .withDatabaseName("aimonsters-dev")
         .onConnect((ctx) => {
           console.log("Connected to SpacetimeDB");
           setConnected(true);
