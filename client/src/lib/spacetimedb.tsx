@@ -3,8 +3,8 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import { DbConnection, type ErrorContext } from "../generated";
 
-// Default to local SpacetimeDB instance
-const SPACETIMEDB_URI = process.env.NEXT_PUBLIC_SPACETIMEDB_URI || "ws://localhost:3000";
+// Default to local SpacetimeDB instance (Docker exposed port)
+const SPACETIMEDB_URI = process.env.NEXT_PUBLIC_SPACETIMEDB_URI || "ws://localhost:3999";
 
 type DbConn = DbConnection | null;
 

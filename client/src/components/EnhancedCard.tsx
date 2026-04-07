@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { RarityBadge } from './RarityBadge'
 import { CardGenerator } from '@/lib/card-generator'
+import { Swords, Shield, Target } from 'lucide-react'
 
 interface CardProps {
   name: string
@@ -182,21 +183,21 @@ export function EnhancedCard({
               <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-lg p-3 text-white shadow-md transform hover:scale-105 transition-transform">
                 <div className="text-xs font-semibold uppercase tracking-wide opacity-90">Attack</div>
                 <div className="text-2xl font-bold">{attack}</div>
-                <div className="text-xs opacity-70 mt-1">⚔️</div>
+                <div className="text-xs opacity-70 mt-1 flex justify-center"><Swords size={12} strokeWidth={2} /></div>
               </div>
 
               {/* Defense */}
               <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-3 text-white shadow-md transform hover:scale-105 transition-transform">
                 <div className="text-xs font-semibold uppercase tracking-wide opacity-90">Defense</div>
                 <div className="text-2xl font-bold">{defense}</div>
-                <div className="text-xs opacity-70 mt-1">🛡️</div>
+                <div className="text-xs opacity-70 mt-1 flex justify-center"><Shield size={12} strokeWidth={2} /></div>
               </div>
 
               {/* Range */}
               <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-3 text-white shadow-md transform hover:scale-105 transition-transform">
                 <div className="text-xs font-semibold uppercase tracking-wide opacity-90">Range</div>
                 <div className="text-2xl font-bold">{range}</div>
-                <div className="text-xs opacity-70 mt-1">🎯</div>
+                <div className="text-xs opacity-70 mt-1 flex justify-center"><Target size={12} strokeWidth={2} /></div>
               </div>
             </div>
 

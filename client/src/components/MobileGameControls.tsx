@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { MapPin, Swords, LayoutGrid } from 'lucide-react';
 import { useIsMobile } from './MobileResponsiveWrapper';
 
 interface MobileGameControlsProps {
@@ -36,9 +37,9 @@ const MobileGameControls = ({
 
   const getPhaseText = () => {
     switch (gamePhase) {
-      case 'placement': return '📍 Placement';
+      case 'placement': return 'Placement';
       case 'action': return '⚡ Action';
-      case 'combat': return '⚔️ Combat';
+      case 'combat': return 'Combat';
       default: return '🎮 Game';
     }
   };

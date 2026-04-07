@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { Swords, Building2, Zap, X } from 'lucide-react';
 import { EnhancedCard } from './EnhancedCard';
 import { useCards } from '@/lib/useCards';
 import { AICardGenerator } from '@/lib/ai-card-generator';
@@ -175,10 +176,10 @@ export function CollectionGallery({ initialCards = [] }: CollectionGalleryProps)
     Legendary: 'bg-yellow-500'
   };
 
-  const typeIcons = {
-    Unit: '⚔️',
-    Building: '🏰',
-    Spell: '✨'
+  const typeIcons: Record<string, React.ReactNode> = {
+    Unit: <Swords size={16} strokeWidth={2} />,
+    Building: <Building2 size={16} strokeWidth={2} />,
+    Spell: <Zap size={16} strokeWidth={2} />
   };
 
   return (
@@ -303,21 +304,32 @@ export function CollectionGallery({ initialCards = [] }: CollectionGalleryProps)
         {(isGenerating || loading) ? (
           <div className="flex items-center justify-center h-96">
             <div className="text-center">
-              <div className="text-6xl text-white/50 mb-4">🎴</div>
-              <div className="text-white text-xl">{loading ? 'Loading cards from database...' : 'Generating your unique AI card...'}</div>
+              <div className="flex justify-center mb-4">
+                <svg className="w-16 h-16 text-white/30 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <rect x="3" y="1" width="18" height="22" rx="2" ry="2"/>
+                  <circle cx="12" cy="10" r="3"/>
+                  <path d="M7 20.5c0-1.5 2.2-3 5-3s5 1.5 5 3"/>
+                </svg>
+              </div>
+              <div className="text-white/60 text-lg font-medium">{loading ? 'Loading cards from database...' : 'Generating your unique AI card...'}</div>
             </div>
           </div>
         ) : filteredCards.length === 0 ? (
           <div className="flex items-center justify-center h-96">
             <div className="text-center">
-              <div className="text-6xl text-white/50 mb-4">🔍</div>
-              <div className="text-white text-xl">No cards found matching your criteria</div>
+              <div className="flex justify-center mb-4">
+                <svg className="w-16 h-16 text-white/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <circle cx="11" cy="11" r="8"/>
+                  <path d="m21 21-4.35-4.35"/>
+                </svg>
+              </div>
+              <div className="text-white/60 text-lg font-medium mb-3">No cards found matching your criteria</div>
               <button
                 onClick={() => {
                   setSearchTerm('');
                   setFilters({ rarity: 'All', type: 'All', sortBy: 'created_at', sortOrder: 'desc' });
                 }}
-                className="mt-4 text-purple-400 hover:text-purple-300"
+                className="text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors"
               >
                 Clear filters
               </button>
@@ -380,7 +392,7 @@ export function CollectionGallery({ initialCards = [] }: CollectionGalleryProps)
                   onClick={() => setSelectedCard(null)}
                   className="text-gray-400 hover:text-white text-2xl"
                 >
-                  ✕
+                  <X size={24} strokeWidth={2} />
                 </button>
               </div>
 
