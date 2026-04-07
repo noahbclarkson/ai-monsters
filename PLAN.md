@@ -1,87 +1,134 @@
 # AI Monsters - Project Plan
 
-## Current State: 2026-04-07 06:48 UTC. All builds pass.
-- cargo check + clippy: PASS
-- npm run build: PASS
+## Status: UI OVERHAUL COMPLETE — ITERATIVE IMPROVEMENT PHASE
 
-### DailyCardGenerator (2b44496) - DONE
-- useDailyCards hook: subscribes to cards table, filters today's cards
-- claimDailyCard() calls generate_daily_cards reducer then enhances each new card via AI APIs
-- DailyCardGenerator.tsx rewired from localStorage to SpacetimeDB persistence
-- Shows AI enhancing state while descriptions/images are generated
+The 2026-04-06 overhaul shipped a premium dark UI with glass morphism, rarity glows, and proper component structure. The foundation is solid. Your job now is to find everything that can be better and make it better.
 
-### Build Status
-- cargo check: PASS
-- cargo clippy -- -D warnings: PASS
-- cargo build --target wasm32-unknown-unknown --release: PASS
-- npm run build: PASS (Next.js 16.2.1, Turbopack)
-- 15 unit tests passing
+**Nothing is ever "done." There is always work. Find it.**
 
-### Honest Assessment
+---
 
-**Server (Rust + SpacetimeDB 2.1.0):**
-- All tables and reducers implemented with ownership validation
-- Win condition (check_win) checks board + hand cards
-- WASM-compatible (ctx.timestamp, no SystemTime::now())
-- AI pipeline wired: generate_card accepts ai_description + ai_image_url
-- Rate limiting on AI endpoints (10 req/min description, 5 req/min image)
-- Bot AI wired to reducers via start_single_player_match and run_bot_turn
-- update_rating reducer for Elo + XP/progression on match complete
-- generate_daily_cards reducer wired to client via useDailyCards hook (2b44496)
-- Cards are globally shared (no per-match deck ownership enforcement)
+## Vision
 
-**Client (Next.js):**
-- All hooks wired to SpacetimeDB (useMatches, useGame, useCards, useBotMatch, usePlayerIdentity)
-- AI text pipeline: OpenAI ChatGPT-4o-mini via /api/generate-description
-- AI image pipeline: MiniMax image-01 via /api/generate-card-image
-- Leaderboard wired to SpacetimeDB player_progress table (0004919)
-- Requires: OPENAI_API_KEY and MINIMAX_API_KEY in client/.env.local
+A 2D browser card game with AI-generated unique cards, persistent world state via SpacetimeDB, and smart AI bots. The visual design must be **indistinguishable from a professionally made indie game**. No student-project aesthetics. No AI-slop patterns. No Tailwind defaults. No placeholder everything.
 
-### What's actually done
-- Rust server compiles clean (cargo check + clippy: PASS)
-- WASM build verified (release, wasm32-unknown-unknown)
-- Board game logic with full ownership validation
-- Win condition checks hand + board cards, wired to place/attack/end_turn
-- player_hands table tracks cards in hand per match
-- player_identities + client_connected + my_player identity system
-- AI text + image pipelines wired to card creation flow
-- DailyCardGenerator wired to SpacetimeDB + AI pipeline (2b44496)
-- Rate limiting on AI endpoints
-- Bot AI with Easy/Medium/Hard difficulty levels
-- Matchmaking queue (human vs human, rating-based pairing)
-- Elo/progression system wired to match completion
-- Leaderboard shows real player_progress data from SpacetimeDB
-- e2e two-player matchmaking test passing
+This is a product you can demo to anyone and have them say "this is actually impressive."
 
-### What's broken or missing (remaining)
+---
 
-**1. DailyCardGenerator.tsx stubbed** -- DONE (2b44496)
-- Wires to generate_daily_cards reducer via useDailyCards hook
-- AI description + image generation via /api endpoints
-- update_card_media reducer updates SpacetimeDB with AI content
+## Current State (2026-04-07 Afternoon)
 
-### Backlog (ordered by priority)
-1. ~~Wire DailyCardGenerator to generate_daily_cards reducer + AI pipeline~~ DONE (2b44496)
-2. ~~Add integration test for two-player match~~ DONE (0ce5fc4, verified afd1c8c)
-3. ~~Regenerate SpacetimeDB bindings from live instance~~ DONE (afd1c8c)
-4. ~~Wire update_rating to client~~ DONE (6679060)
-5. ~~Elo/progression update after match completion~~ DONE (0bf2083)
-6. ~~Wire bot_ai.rs to reducers~~ DONE (6cddd47)
-7. ~~Wire matchmaking.rs to reducers~~ DONE (65d5c2c)
-8. ~~Client-side bot integration~~ DONE (9d8e549)
-9. ~~Card range clamp~~ DONE (90ba0ad)
-10. ~~End-to-end game loop test~~ DONE (58c683c)
-11. ~~Rate limiting on AI endpoints~~ DONE (abbd2a0)
-12. ~~WASM timestamp panic fix~~ DONE (eb7cc4f)
-13. ~~AI pipeline wiring~~ DONE (8db2414/dc98fc9)
-14. ~~WASM build verification~~ DONE (dc98fc9)
-15. ~~Leaderboard fake data~~ DONE (0004919)
-16. ~~DraggableGameBoard dead code~~ DONE (0004919)
+### What Works ✅
+- Premium dark UI with rarity glows, glass morphism, proper typography
+- Full board game logic (deck, hand, field, turn phases, win conditions)
+- Bot AI with 3 difficulty levels (easy/medium/hard)
+- Elo rating system, card trading, matchmaking
+- SpacetimeDB integration (Rust WASM module, live queries)
+- WASM build passes, cargo tests green
+- PackOpening component styling matches premium dark UI
+- DailyCardGenerator styling matches premium dark UI
+- GameBoard accurately displays player hands from SpacetimeDB state
+- Fallback image generation works seamlessly when MiniMax fails or is unconfigured
 
-### Architecture Notes
-- SpacetimeDB local: port 3001 (port 3000 occupied by Skilt)
-- Card IDs use ctx.timestamp (microseconds) -- ctx.timestamp constant in loops use card_id
-- generate_card reducer accepts optional ai_description and ai_image_url
-- update_card_media reducer for post-creation AI content updates
-- client/test/e2e-game-loop.ts requires SpacetimeDB Docker running
-- Fixed card missing image bug showing blank cards
+### Image Generation 🟡
+- `generate-card-image` API route IS correctly wired for MiniMax (`api.minimax.io/v1/image_generation`)
+- `MINIMAX_API_KEY` is present in `.env.local` but the API call may fail natively. App falls back to Picsum images using the card name as a seed if MiniMax is unavailable.
+- Generating a card works, and the fallback image URL loads correctly.
+
+### Still Needs Improvement
+- Card hover animations — they are okay, but could be smoother and have better easing.
+- Card flip animation — needs to feel more physical with better timing.
+- Game board polish — card zones could be more clearly defined. Placement could feel more tactile.
+- Loading states — async operations like Pack Opening have basic spinners, but could use skeleton loaders.
+- Empty states — empty collection, empty deck, empty lobby need atmospheric touches.
+- Error states — what happens when API times out?
+- Mobile testing — verify resize to 375x812.
+
+---
+
+## Ongoing Work Priorities
+
+### P1 — Should Improve
+1. **Card hover animations** — do they feel satisfying? Smooth? Do they have the right easing?
+2. **Card flip animation** — does it feel physical? Is the timing right?
+3. **Game board polish** — are card zones clearly defined? Does placement feel tactile?
+4. **Loading states** — every async operation needs a skeleton/spinner
+5. **Empty states** — empty collection, empty deck, empty lobby — are they atmospheric or just blank?
+6. **Error states** — what happens when image fails to load? When API times out?
+7. **Mobile testing** — resize to 375x812, screenshot, fix what breaks
+
+### P2 — Nice to Have
+1. **Ambient sound effects** (optional, later)
+2. **Particle effects** on card actions
+3. **Card collection counter** with animated increment
+4. **Match-end animation** — victory/defeat screen
+5. **Custom scrollbar** matching dark theme
+6. **Cursor styles** — should feel like a game, not a webpage
+
+---
+
+## Agent Instructions
+
+**creature (aimonsters) — ITERATIVE IMPROVEMENT AGENT**
+
+Your job is to continuously find and fix ugly/broken things. You are not waiting for instructions. You are looking at the app and fixing what you see.
+
+**Every cycle, in this order:**
+
+1. **Test what exists** — open the app, play through a game, browse collection, open packs
+   ```
+   cd /home/ubuntu/.openclaw/workspace-aimonsters/ai-monsters/client && npm run dev
+   ```
+   Browser: `browser(action=navigate, url=http://localhost:3000)`
+   Resize: `browser(action=act, kind=resize, width=1440, height=900)`
+
+2. **Find 3 things to improve** — look critically:
+   - Anything that looks like Tailwind defaults?
+   - Anything that looks generic/AI-slop?
+   - Any interactive element that feels janky?
+   - Any state (loading, empty, error) that looks unfinished?
+   - Any animation that's too fast, too slow, or missing?
+
+3. **Fix one thing thoroughly** — pick the highest-impact item from step 2
+   - Rewrite the component properly
+   - Test it works
+   - Commit
+
+4. **Look for missing features** — what would make this feel like a real product?
+   - Social features? Share card to image?
+   - Card rarity badges that glow?
+   - Animated card backgrounds?
+   - Season/collection progression?
+   Don't add features without checking with PLAN.md first.
+
+5. **Check image gen** — if MINIMAX_API_KEY is now set:
+   - Test generating a card image
+   - Verify it loads in collection
+   - If broken, debug why
+
+**Reporting:** Report to #monster-ai Discord (channel=discord, target=channel:1487735786861494272). No emojis. What you tested, what you found, what you fixed. 5-8 lines.
+
+---
+
+## Environment
+
+```
+cd /home/ubuntu/.openclaw/workspace-aimonsters/ai-monsters
+cd client && npm run dev    # Frontend on :3000
+cd server && cargo run      # SpacetimeDB on :3001
+```
+
+Agent workspace: `/home/ubuntu/.openclaw/workspace-aimonsters/`
+
+---
+
+## What NOT to do
+
+- Do NOT add new game mechanics (game logic is complete)
+- Do NOT refactor the backend (SpacetimeDB/Rust is solid)
+- Do NOT ignore ugly things — fix them
+- Do NOT use AI to generate code without reviewing it for "AI slop" patterns
+
+---
+
+_Last updated: 2026-04-07 16:03 UTC_
