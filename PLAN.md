@@ -49,7 +49,7 @@ This is a product you can demo to anyone and have them say "this is actually imp
 ## Ongoing Work Priorities
 
 ### P1 — Should Improve
-1. **Card hover animations** — do they feel satisfying? Smooth? Do they have the right easing?
+1. ~~**Card hover animations** — do they feel satisfying? Smooth? Do they have the right easing?~~ (DONE)
 2. **Card flip animation** — does it feel physical? Is the timing right?
 3. **Game board polish** — are card zones clearly defined? Does placement feel tactile?
 4. **Loading states** — every async operation needs a skeleton/spinner
