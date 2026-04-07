@@ -97,6 +97,11 @@ export function GameCard({
     '--rarity-gradient': rarityConfig.gradient,
   } as React.CSSProperties;
 
+  // Use a reliable placeholder if imageUrl is missing or broken
+  const displayImageUrl = imageUrl && !imageError && !imageUrl.startsWith('/placeholder/') 
+    ? imageUrl 
+    : `https://picsum.photos/seed/${name.replace(/\s+/g, '')}/832/1248`;
+
   return (
     <div
       className={`
@@ -118,10 +123,9 @@ export function GameCard({
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      {/* Card Back (for face-down cards) */}
+      {/* Card Back */}
       {showBack && isFlipped && (
         <div className="absolute inset-0 bg-card-back flex flex-col items-center justify-center">
-          {/* Geometric pattern */}
           <div className="absolute inset-0 opacity-20">
             <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
               <defs>
@@ -132,8 +136,6 @@ export function GameCard({
               <rect width="100%" height="100%" fill="url(#grid)" />
             </svg>
           </div>
-          
-          {/* Center logo */}
           <div className="relative z-10 text-center">
             <div 
               className="w-12 h-12 mx-auto mb-2 rounded-lg flex items-center justify-center"
@@ -143,27 +145,12 @@ export function GameCard({
             </div>
             <p className="text-xs text-white/40 uppercase tracking-widest">AI Monsters</p>
           </div>
-
-          {/* Corner trim */}
-          <div 
-            className="absolute top-0 left-0 w-8 h-8"
-            style={{
-              background: `linear-gradient(135deg, ${rarityConfig.border} 0%, transparent 50%)`,
-            }}
-          />
-          <div 
-            className="absolute bottom-0 right-0 w-8 h-8"
-            style={{
-              background: `linear-gradient(315deg, ${rarityConfig.border} 0%, transparent 50%)`,
-            }}
-          />
         </div>
       )}
 
       {/* Card Front */}
       {!isFlipped && (
         <div className="absolute inset-0 flex flex-col" style={{ background: 'var(--bg-card, #1a1a2e)' }}>
-          {/* Name bar */}
           <div 
             className={`${sc.padding} flex items-center justify-between`}
             style={{ background: rarityConfig.gradient }}
@@ -180,32 +167,18 @@ export function GameCard({
             </div>
           </div>
 
-          {/* Card art */}
           <div className={`relative ${sc.art} overflow-hidden`}>
-            {imageUrl && !imageError ? (
-              <>
-                <img
-                  src={imageUrl}
-                  alt={name}
-                  className="w-full h-full object-cover"
-                  onError={() => setImageError(true)}
-                />
-                {/* Art overlay */}
-                <div 
-                  className="absolute inset-0 opacity-20"
-                  style={{ background: `linear-gradient(180deg, transparent 50%, ${rarityConfig.border} 100%)` }}
-                />
-              </>
-            ) : (
-              <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1e1e3a 0%, #0f0f1a 100%)' }}>
-                <div className="text-center">
-                  <div className="text-4xl opacity-20 mb-1" style={{ color: typeConfig.color }}>{typeConfig.icon}</div>
-                  <p className="text-xs text-white/30 uppercase tracking-wider">{type}</p>
-                </div>
-              </div>
-            )}
+            <img
+              src={displayImageUrl}
+              alt={name}
+              className="w-full h-full object-cover"
+              onError={() => setImageError(true)}
+            />
+            <div 
+              className="absolute inset-0 opacity-20"
+              style={{ background: `linear-gradient(180deg, transparent 50%, ${rarityConfig.border} 100%)` }}
+            />
             
-            {/* Rarity shimmer on hover */}
             {isHovering && (rarity === 'Epic' || rarity === 'Legendary') && (
               <div 
                 className="absolute inset-0 pointer-events-none animate-shimmer"
@@ -217,7 +190,6 @@ export function GameCard({
             )}
           </div>
 
-          {/* Stats bar */}
           <div className={`${sc.padding} flex items-center justify-around gap-1`} style={{ background: 'rgba(0,0,0,0.3)' }}>
             {[
               { key: 'attack', value: attack },
@@ -240,39 +212,17 @@ export function GameCard({
             })}
           </div>
 
-          {/* Description */}
           <div className={`flex-1 ${sc.padding} overflow-hidden`} style={{ background: 'var(--bg-card, #1a1a2e)' }}>
             <p className={`${sc.text} text-white/60 leading-relaxed line-clamp-3`}>
               {description}
             </p>
           </div>
 
-          {/* Rarity badge */}
           <div className={`absolute bottom-2 right-2 ${sc.padding} rounded`} style={{ background: rarityConfig.badge }}>
             <span className="text-xs font-bold uppercase tracking-wider" style={{ color: rarityConfig.border }}>
               {rarity}
             </span>
           </div>
-        </div>
-      )}
-
-      {/* Selection ring */}
-      {isSelected && (
-        <div 
-          className="absolute inset-0 rounded-xl pointer-events-none animate-pulse-ring"
-          style={{ boxShadow: `inset 0 0 0 3px ${rarityConfig.border}` }}
-        />
-      )}
-
-      {/* Attack/Defense mode indicators */}
-      {isAttacking && (
-        <div className="absolute top-2 left-2 px-2 py-1 rounded bg-red-500/80 text-white text-xs font-bold">
-          ATTACK
-        </div>
-      )}
-      {isDefending && (
-        <div className="absolute top-2 left-2 px-2 py-1 rounded bg-blue-500/80 text-white text-xs font-bold">
-          DEFEND
         </div>
       )}
     </div>
