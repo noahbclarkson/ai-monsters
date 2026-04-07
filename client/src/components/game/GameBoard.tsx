@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { GameCard } from './GameCard';
+import { GameBoardLoading } from './GameBoardLoading';
 import { useGame } from '@/lib/useGame';
 import { useSpacetimeDB } from '@/lib/spacetimedb';
 
@@ -194,14 +195,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="spinner spinner-lg mx-auto mb-4" />
-          <p className="text-white/60">Loading game board...</p>
-        </div>
-      </div>
-    );
+    return <GameBoardLoading />;
   }
 
   if (error) {

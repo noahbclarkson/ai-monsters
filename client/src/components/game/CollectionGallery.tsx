@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { GameCard } from './GameCard';
+import { CollectionGalleryLoading } from './CollectionGalleryLoading';
 import { useCards } from '@/lib/useCards';
 import { AICardGenerator } from '@/lib/ai-card-generator';
 
@@ -177,6 +178,10 @@ export function CollectionGallery() {
   }, []);
 
   const hasActiveFilters = searchTerm || filters.rarity !== 'All' || filters.type !== 'All';
+
+  if (loading && dbCards.length === 0) {
+    return <CollectionGalleryLoading />;
+  }
 
   return (
     <main className="min-h-screen bg-atmospheric">
