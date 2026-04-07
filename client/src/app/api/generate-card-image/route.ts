@@ -77,9 +77,12 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
 
-    // MiniMax returns { data: [{ url: "..." }] } or similar structure
+    // MiniMax returns { data: { image_urls: ["http://..."] } }
     let imageUrl = '';
-    if (data.data && Array.isArray(data.data) && data.data[0]) {
+    if (data.data && Array.isArray(data.data.image_urls) && data.data.image_urls[0]) {
+      imageUrl = data.data.image_urls[0];
+    } else if (data.data && Array.isArray(data.data) && data.data[0]) {
+      // Fallback for { data: [{ url: "..." }] } format
       imageUrl = data.data[0].url || data.data[0].image_url || '';
     } else if (data.url) {
       imageUrl = data.url;
@@ -95,9 +98,13 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Return a proxy URL so the image stays accessible even after the MiniMax signed URL expires.
+    // The /api/card-image/[id] route fetches from MiniMax on-demand.
+    const proxyUrl = `/api/card-image?url=${encodeURIComponent(imageUrl)}&cardId=${cardId}`;
+
     return NextResponse.json({
       success: true,
-      image_url: imageUrl,
+      image_url: proxyUrl,
       prompt
     });
   } catch (error) {

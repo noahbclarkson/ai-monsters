@@ -84,3 +84,4 @@
 - generate_card reducer accepts optional ai_description and ai_image_url
 - update_card_media reducer for post-creation AI content updates
 - client/test/e2e-game-loop.ts requires SpacetimeDB Docker running
+- Fixed card missing image bug showing blank cards
