@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { EnhancedCard } from './EnhancedCard';
 import { CardGenerator } from '@/lib/card-generator';
 
@@ -20,6 +20,41 @@ interface CardRevealState {
   isAnimating: boolean;
 }
 
+const QUALITY_CONFIG: Record<string, { label: string; border: string; glow: string; badgeBg: string; badgeText: string; glowClass: string }> = {
+  Standard: {
+    label: 'Standard',
+    border: 'rgba(107,114,128,0.5)',
+    glow: 'rgba(107,114,128,0.2)',
+    badgeBg: 'rgba(107,114,128,0.15)',
+    badgeText: '#6b7280',
+    glowClass: 'glow-standard',
+  },
+  Rare: {
+    label: 'Rare',
+    border: 'rgba(59,130,246,0.7)',
+    glow: 'rgba(59,130,246,0.3)',
+    badgeBg: 'rgba(59,130,246,0.15)',
+    badgeText: '#3b82f6',
+    glowClass: 'glow-rare',
+  },
+  Epic: {
+    label: 'Epic',
+    border: 'rgba(168,85,247,0.8)',
+    glow: 'rgba(168,85,247,0.4)',
+    badgeBg: 'rgba(168,85,247,0.15)',
+    badgeText: '#a855f7',
+    glowClass: 'glow-epic',
+  },
+  Mythic: {
+    label: 'Mythic',
+    border: 'rgba(245,158,11,0.9)',
+    glow: 'rgba(245,158,11,0.5)',
+    badgeBg: 'rgba(245,158,11,0.15)',
+    badgeText: '#f59e0b',
+    glowClass: 'glow-mythic',
+  },
+};
+
 export function PackOpening({ pack, onPackComplete }: PackOpeningProps) {
   const [cards, setCards] = useState<any[]>([]);
   const [revealStates, setRevealStates] = useState<CardRevealState[]>(
@@ -28,11 +63,9 @@ export function PackOpening({ pack, onPackComplete }: PackOpeningProps) {
   const [currentRevealing, setCurrentRevealing] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const [packQuality, setPackQuality] = useState<string>('Standard');
-  const [sparkles, setSparkles] = useState<{id: number, x: number, y: number}[]>([]);
-  const [confetti, setConfetti] = useState<{id: number, x: number, y: number, color: string}[]>([]);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [particles, setParticles] = useState<{ id: number; x: number; y: number; color: string }[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  // Generate or use provided pack
   useEffect(() => {
     if (pack) {
       setCards(pack.cards);
@@ -42,204 +75,278 @@ export function PackOpening({ pack, onPackComplete }: PackOpeningProps) {
     }
   }, [pack]);
 
-  // Generate sparkles for visual effects
-  const generateSparkles = () => {
-    const newSparkles = [];
-    for (let i = 0; i < 20; i++) {
-      newSparkles.push({
-        id: i,
-        x: Math.random() * 100,
-        y: Math.random() * 100
-      });
-    }
-    setSparkles(newSparkles);
-  };
-
-  // Generate confetti for special packs
-  const generateConfetti = (quality: string) => {
-    if (quality === 'Mythic' || quality === 'Legendary') {
-      const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD'];
-      const newConfetti = [];
-      for (let i = 0; i < 30; i++) {
-        newConfetti.push({
-          id: i,
-          x: Math.random() * 100,
-          y: Math.random() * 100,
-          color: colors[Math.floor(Math.random() * colors.length)]
-        });
-      }
-      setConfetti(newConfetti);
-    }
-  };
-
   const determinePackQuality = (packCards: any[]) => {
     const legendaryCount = packCards.filter(card => card.rarity === 'Legendary').length;
     const epicCount = packCards.filter(card => card.rarity === 'Epic').length;
-    
+
+    let quality = 'Standard';
     if (legendaryCount >= 2 || epicCount >= 4) {
-      setPackQuality('Mythic');
-      generateConfetti('Mythic');
+      quality = 'Mythic';
     } else if (legendaryCount >= 1 || epicCount >= 2) {
-      setPackQuality('Epic');
-    } else if (epicCount >= 1) {
-      setPackQuality('Rare');
-    } else {
-      setPackQuality('Standard');
+      quality = 'Epic';
+    } else if (epicCount >= 1 || packCards.filter(card => card.rarity === 'Rare').length >= 3) {
+      quality = 'Rare';
     }
-    
-    generateSparkles();
+
+    setPackQuality(quality);
+
+    // Spawn particles for high-quality packs
+    if (quality === 'Mythic' || quality === 'Epic') {
+      spawnParticles(quality);
+    }
   };
 
-  const generateNewPack = async () => {
-    const newPack = await CardGenerator.generatePack();
-    setCards(newPack.cards);
-    determinePackQuality(newPack.cards);
+  const spawnParticles = (quality: string) => {
+    const colors = quality === 'Mythic'
+      ? ['#f59e0b', '#ef4444', '#a855f7', '#fbbf24', '#f97316']
+      : ['#a855f7', '#8b5cf6', '#c084fc', '#9333ea', '#7c3aed'];
+    const newParticles = [];
+    for (let i = 0; i < 24; i++) {
+      newParticles.push({
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        color: colors[Math.floor(Math.random() * colors.length)],
+      });
+    }
+    setParticles(newParticles);
   };
 
-  const revealNextCard = () => {
+  const generateNewPack = useCallback(async () => {
+    setIsGenerating(true);
+    try {
+      const newPack = await CardGenerator.generatePack();
+      setCards(newPack.cards);
+      determinePackQuality(newPack.cards);
+    } finally {
+      setIsGenerating(false);
+    }
+  }, []);
+
+  const revealNextCard = useCallback(() => {
     if (currentRevealing >= 7) {
       setIsComplete(true);
       if (onPackComplete) onPackComplete();
       return;
     }
 
-    setRevealStates(prev => 
-      prev.map((state, i) => 
-        i === currentRevealing 
+    setRevealStates(prev =>
+      prev.map((state, i) =>
+        i === currentRevealing
           ? { ...state, isAnimating: true }
           : state
       )
     );
 
-    // Simulate card reveal animation
     setTimeout(() => {
-      setRevealStates(prev => 
-        prev.map((state, i) => 
-          i === currentRevealing 
+      setRevealStates(prev =>
+        prev.map((state, i) =>
+          i === currentRevealing
             ? { ...state, isRevealed: true, isAnimating: false }
             : state
         )
       );
       setCurrentRevealing(prev => prev + 1);
+    }, 600);
+  }, [currentRevealing, onPackComplete]);
 
-      // Play sound effect (simulated)
-      if (audioRef.current) {
-        audioRef.current.currentTime = 0;
-        audioRef.current.play().catch(() => {});
-      }
-    }, 1000);
-  };
+  const revealAll = useCallback(() => {
+    // Rapid-fire reveal each card with staggered timing
+    let delay = 0;
+    for (let i = currentRevealing; i < 7; i++) {
+      setTimeout(() => {
+        setRevealStates(prev =>
+          prev.map((state, j) =>
+            j === i
+              ? { ...state, isAnimating: true }
+              : state
+          )
+        );
+        setTimeout(() => {
+          setRevealStates(prev =>
+            prev.map((state, j) =>
+              j === i
+                ? { ...state, isRevealed: true, isAnimating: false }
+                : state
+            )
+          );
+        }, 500);
+      }, delay);
+      delay += 200;
+    }
+    setTimeout(() => {
+      setCurrentRevealing(7);
+      setIsComplete(true);
+      if (onPackComplete) onPackComplete();
+    }, delay + 600);
+  }, [currentRevealing, onPackComplete]);
 
-  const startRevealAll = () => {
-    setRevealStates(prev => prev.map((_, i) => ({ index: i, isRevealed: false, isAnimating: false })));
+  const resetPack = () => {
+    setRevealStates(Array(7).fill(null).map((_, i) => ({ index: i, isRevealed: false, isAnimating: false })));
     setCurrentRevealing(0);
     setIsComplete(false);
-    setConfetti([]);
-    setSparkles([]);
-    generateSparkles();
+    setParticles([]);
   };
 
-  const getPackQualityColor = () => {
-    switch (packQuality) {
-      case 'Mythic': return 'from-yellow-400 via-orange-500 to-red-600';
-      case 'Epic': return 'from-purple-400 via-pink-500 to-purple-600';
-      case 'Rare': return 'from-blue-400 via-cyan-500 to-blue-600';
-      default: return 'from-gray-400 via-gray-500 to-gray-600';
-    }
+  const handleOpenAnother = async () => {
+    resetPack();
+    await generateNewPack();
   };
+
+  const quality = QUALITY_CONFIG[packQuality] || QUALITY_CONFIG.Standard;
+  const revealedCount = revealStates.filter(s => s.isRevealed).length;
+  const legendaryCount = cards.filter(c => c.rarity === 'Legendary').length;
+  const epicCount = cards.filter(c => c.rarity === 'Epic').length;
+  const rareCount = cards.filter(c => c.rarity === 'Rare').length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0 pointer-events-none">
-        {/* Animated stars */}
-        <div className="absolute inset-0 opacity-30">
-          {[...Array(50)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 h-1 bg-white rounded-full animate-pulse"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${2 + Math.random() * 2}s`
-              }}
-            />
-          ))}
-        </div>
+    <main className="min-h-screen bg-atmospheric py-8 px-4">
+      {/* Ambient glows */}
+      <div
+        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full pointer-events-none"
+        style={{
+          background: `radial-gradient(circle, ${quality.glow} 0%, transparent 70%)`,
+          filter: 'blur(60px)',
+        }}
+      />
 
-        {/* Confetti */}
-        {confetti.map(conf => (
-          <div
-            key={conf.id}
-            className="absolute w-2 h-2 rounded animate-bounce"
-            style={{
-              left: `${conf.x}%`,
-              top: `${conf.y}%`,
-              backgroundColor: conf.color,
-              animationDelay: `${Math.random() * 2}s`
-            }}
-          />
-        ))}
+      {/* Particles */}
+      {particles.map(p => (
+        <div
+          key={p.id}
+          className="fixed w-1 h-1 rounded-full pointer-events-none animate-float"
+          style={{
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            backgroundColor: p.color,
+            boxShadow: `0 0 6px ${p.color}`,
+            animationDuration: `${3 + Math.random() * 2}s`,
+            animationDelay: `${Math.random() * 2}s`,
+          }}
+        />
+      ))}
 
-        {/* Sparkles */}
-        {sparkles.map(spark => (
+      <div className="relative z-10 max-w-5xl mx-auto">
+
+        {/* Header */}
+        <div className="text-center mb-8">
           <div
-            key={spark.id}
-            className="absolute text-yellow-300 animate-ping"
+            className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full mb-4"
             style={{
-              left: `${spark.x}%`,
-              top: `${spark.y}%`,
-              fontSize: '1rem',
-              animationDelay: `${Math.random() * 2}s`
+              background: quality.badgeBg,
+              border: `1px solid ${quality.border}`,
+              boxShadow: `0 0 20px ${quality.glow}`,
             }}
           >
-            ✨
+            <div
+              className="w-2 h-2 rounded-full animate-pulse"
+              style={{ backgroundColor: quality.badgeText, boxShadow: `0 0 8px ${quality.badgeText}` }}
+            />
+            <span
+              className="text-sm font-bold uppercase tracking-widest"
+              style={{ color: quality.badgeText, fontFamily: 'Cinzel, serif' }}
+            >
+              {quality.label} Pack
+            </span>
           </div>
-        ))}
-      </div>
-
-      {/* Main container */}
-      <div className="relative z-10 w-full max-w-6xl">
-        {/* Pack header */}
-        <div className="text-center mb-8">
-          <div className={`inline-block bg-gradient-to-r ${getPackQualityColor()} rounded-full px-6 py-3 mb-4 animate-pulse`}>
-            <h1 className="text-2xl font-bold text-white drop-shadow-lg">
-              {packQuality} Pack
-            </h1>
-          </div>
-          <p className="text-white/70 text-lg">
-            Reveal your AI-generated cards!
+          <p className="text-white/50 text-sm">
+            {isComplete
+              ? `${cards.length} cards revealed`
+              : revealedCount === 0
+                ? 'Reveal your AI-generated cards'
+                : `Card ${revealedCount + 1} of ${cards.length}`}
           </p>
         </div>
 
-        {/* Pack display */}
-        <div className="grid grid-cols-7 gap-4 mb-8">
+        {/* Cards grid */}
+        <div className="grid grid-cols-7 gap-3 mb-8">
           {cards.map((card, index) => {
-            const revealState = revealStates[index];
-            const isRevealed = revealState?.isRevealed || false;
-            const isAnimating = revealState?.isAnimating || false;
+            const state = revealStates[index];
+            const isRevealed = state?.isRevealed ?? false;
+            const isAnimating = state?.isAnimating ?? false;
+            const isUpcoming = !isRevealed && !isAnimating && index > currentRevealing;
 
             return (
               <div
-                key={card.id}
-                className={`relative h-96 transition-all duration-500 ${
-                  isAnimating ? 'scale-110 rotate-3' : 'scale-100 rotate-0'
-                }`}
+                key={card.id ?? index}
+                className="relative"
+                style={{ height: '160px' }}
               >
-                {/* Card pack (face down) */}
+                {/* Unrevealed card back */}
                 {!isRevealed && (
-                  <div className="w-full h-full bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg shadow-2xl flex items-center justify-center cursor-pointer hover:scale-105 transition-transform transform rotate-y-0">
-                    <div className="text-center text-white">
-                      <div className="text-4xl mb-2">🎴</div>
-                      <div className="text-sm opacity-80">Card {index + 1}</div>
+                  <div
+                    className={`
+                      w-full h-full rounded-xl flex flex-col items-center justify-center
+                      cursor-pointer transition-all duration-200
+                      hover:scale-105 active:scale-95
+                      ${isAnimating ? 'scale-110' : ''}
+                    `}
+                    style={{
+                      background: 'linear-gradient(135deg, #1a1a30 0%, #12121f 100%)',
+                      border: `1px solid ${quality.border}`,
+                      boxShadow: `0 0 16px ${quality.glow}, 0 4px 16px rgba(0,0,0,0.5)`,
+                    }}
+                    onClick={!isComplete ? revealNextCard : undefined}
+                  >
+                    {/* Geometric card back pattern */}
+                    <div className="absolute inset-0 overflow-hidden rounded-xl opacity-20">
+                      <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <pattern id={`pack-grid-${index}`} width="16" height="16" patternUnits="userSpaceOnUse">
+                            <path d="M 16 0 L 0 0 0 16" fill="none" stroke={quality.badgeText} strokeWidth="0.5" opacity="0.5"/>
+                          </pattern>
+                        </defs>
+                        <rect width="100%" height="100%" fill={`url(#pack-grid-${index})`} />
+                      </svg>
+                    </div>
+
+                    {/* Corner ornament */}
+                    <div
+                      className="absolute top-2 left-2 w-4 h-4"
+                      style={{ borderTop: `2px solid ${quality.border}`, borderLeft: `2px solid ${quality.border}` }}
+                    />
+                    <div
+                      className="absolute bottom-2 right-2 w-4 h-4"
+                      style={{ borderBottom: `2px solid ${quality.border}`, borderRight: `2px solid ${quality.border}` }}
+                    />
+
+                    {/* Card number */}
+                    <div className="relative z-10 text-center">
+                      <div
+                        className="text-2xl font-bold mb-1"
+                        style={{
+                          fontFamily: 'Cinzel, serif',
+                          color: quality.border,
+                          opacity: 0.7,
+                        }}
+                      >
+                        {String(index + 1).padStart(2, '0')}
+                      </div>
+                      <div className="text-xs uppercase tracking-widest" style={{ color: quality.border, opacity: 0.5 }}>
+                        Tap to reveal
+                      </div>
                     </div>
                   </div>
                 )}
 
-                {/* Card revealed */}
+                {/* Revealed card */}
                 {isRevealed && (
-                  <div className="w-full h-full">
+                  <div
+                    className={`
+                      w-full h-full rounded-xl overflow-hidden
+                      transition-all duration-500
+                      ${isAnimating ? 'scale-105 rotate-1' : 'scale-100'}
+                    `}
+                    style={{
+                      boxShadow: card.rarity === 'Legendary'
+                        ? '0 0 24px rgba(245,158,11,0.5), 0 4px 16px rgba(0,0,0,0.5)'
+                        : card.rarity === 'Epic'
+                          ? '0 0 20px rgba(168,85,247,0.4), 0 4px 16px rgba(0,0,0,0.5)'
+                          : card.rarity === 'Rare'
+                            ? '0 0 16px rgba(59,130,246,0.3), 0 4px 16px rgba(0,0,0,0.5)'
+                            : '0 4px 16px rgba(0,0,0,0.5)',
+                    }}
+                  >
                     <EnhancedCard
                       name={card.name}
                       description={card.description}
@@ -254,20 +361,15 @@ export function PackOpening({ pack, onPackComplete }: PackOpeningProps) {
                   </div>
                 )}
 
-                {/* Rarity glow effect */}
-                {isRevealed && card.rarity !== 'Common' && (
-                  <div className="absolute -inset-2 rounded-lg opacity-60 animate-pulse">
-                    <div className={`absolute inset-0 rounded-lg ${
-                      card.rarity === 'Legendary' ? 'bg-yellow-400' :
-                      card.rarity === 'Epic' ? 'bg-purple-400' :
-                      card.rarity === 'Rare' ? 'bg-blue-400' : 'bg-gray-400'
-                    }`}></div>
-                  </div>
-                )}
-
-                {/* Reveal animation overlay */}
+                {/* Animating glow */}
                 {isAnimating && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg opacity-50 animate-pulse"></div>
+                  <div
+                    className="absolute inset-0 rounded-xl animate-pulse pointer-events-none"
+                    style={{
+                      background: `linear-gradient(135deg, ${quality.badgeText}33, transparent)`,
+                      boxShadow: `0 0 30px ${quality.glow}`,
+                    }}
+                  />
                 )}
               </div>
             );
@@ -275,75 +377,113 @@ export function PackOpening({ pack, onPackComplete }: PackOpeningProps) {
         </div>
 
         {/* Controls */}
-        <div className="text-center space-y-4">
+        <div className="glass-card rounded-2xl p-6">
           {!isComplete ? (
-            <>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
                 onClick={revealNextCard}
-                disabled={currentRevealing >= 7}
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg transform hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={currentRevealing >= 7 || isGenerating}
+                className="btn btn-success py-3.5 px-8 text-base flex-1 sm:flex-none"
               >
-                {currentRevealing >= 7 ? 'All Cards Revealed!' : `Reveal Card ${currentRevealing + 1}`}
+                {isGenerating ? (
+                  <>
+                    <div className="spinner spinner-sm" />
+                    Generating...
+                  </>
+                ) : currentRevealing >= 7 ? (
+                  'All Revealed'
+                ) : (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 11 12 14 22 4"/>
+                      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                    </svg>
+                    Reveal Card {currentRevealing + 1}
+                  </>
+                )}
               </button>
 
-              <button
-                onClick={startRevealAll}
-                className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-6 py-3 rounded-full font-semibold shadow-lg transform hover:scale-105 transition-all"
-              >
-                Reveal All Cards
-              </button>
-            </>
+              {revealedCount < 7 && (
+                <button
+                  onClick={revealAll}
+                  disabled={isGenerating || currentRevealing >= 7}
+                  className="btn btn-primary py-3.5 px-8 text-base flex-1 sm:flex-none"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                  </svg>
+                  Reveal All at Once
+                </button>
+              )}
+            </div>
           ) : (
-            <div className="space-y-4">
-              <div className="text-2xl font-bold text-white mb-4">
-                🎉 Pack Complete! 🎉
+            <div className="space-y-6">
+              {/* Completion message */}
+              <div className="text-center">
+                <div
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-2"
+                  style={{ background: quality.badgeBg, border: `1px solid ${quality.border}` }}
+                >
+                  <span style={{ color: quality.badgeText, fontFamily: 'Cinzel, serif', fontWeight: 700 }}>
+                    {packQuality} Pack Complete
+                  </span>
+                </div>
               </div>
-              <button
-                onClick={generateNewPack}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg transform hover:scale-105 transition-all"
-              >
-                Open Another Pack
-              </button>
+
+              {/* Stats */}
+              <div className="grid grid-cols-4 gap-3">
+                {[
+                  { label: 'Total', value: cards.length, color: '#8888a8' },
+                  { label: 'Legendary', value: legendaryCount, color: '#f59e0b' },
+                  { label: 'Epic', value: epicCount, color: '#a855f7' },
+                  { label: 'Rare', value: rareCount, color: '#3b82f6' },
+                ].map(stat => (
+                  <div
+                    key={stat.label}
+                    className="rounded-xl p-3 text-center"
+                    style={{ background: `${stat.color}15`, border: `1px solid ${stat.color}40` }}
+                  >
+                    <div
+                      className="text-2xl font-bold"
+                      style={{ color: stat.color, fontFamily: 'JetBrains Mono, monospace' }}
+                    >
+                      {stat.value}
+                    </div>
+                    <div className="text-xs text-white/40 mt-0.5 uppercase tracking-wider">
+                      {stat.label}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Action */}
+              <div className="flex justify-center">
+                <button
+                  onClick={handleOpenAnother}
+                  disabled={isGenerating}
+                  className="btn btn-primary py-3.5 px-10 text-base"
+                >
+                  {isGenerating ? (
+                    <>
+                      <div className="spinner spinner-sm" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="12" y1="8" x2="12" y2="16"/>
+                        <line x1="8" y1="12" x2="16" y2="12"/>
+                      </svg>
+                      Open Another Pack
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           )}
         </div>
-
-        {/* Pack statistics */}
-        {isComplete && (
-          <div className="mt-8 bg-black/30 rounded-lg p-6 backdrop-blur-sm">
-            <h3 className="text-white font-bold text-lg mb-4 text-center">Pack Results</h3>
-            <div className="grid grid-cols-4 gap-4 text-center">
-              <div className="bg-gray-800/50 rounded p-3">
-                <div className="text-2xl font-bold text-white">7</div>
-                <div className="text-sm text-gray-400">Total Cards</div>
-              </div>
-              <div className="bg-gray-800/50 rounded p-3">
-                <div className="text-2xl font-bold text-white">
-                  {cards.filter(c => c.rarity === 'Legendary').length}
-                </div>
-                <div className="text-sm text-gray-400">Legendary</div>
-              </div>
-              <div className="bg-gray-800/50 rounded p-3">
-                <div className="text-2xl font-bold text-white">
-                  {cards.filter(c => c.rarity === 'Epic').length}
-                </div>
-                <div className="text-sm text-gray-400">Epic</div>
-              </div>
-              <div className="bg-gray-800/50 rounded p-3">
-                <div className="text-2xl font-bold text-white">
-                  {cards.filter(c => c.rarity === 'Rare').length}
-                </div>
-                <div className="text-sm text-gray-400">Rare</div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Audio effects */}
-        <audio ref={audioRef} preload="auto">
-          <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSl+zPLaizsIGWi77OihUQA0PVqzn77xYEwxYqOPwtVYeBSu+zPLaizsIGGm66+ilUgw+PRzm8LrsXBg=" type="audio/wav" />
-        </audio>
       </div>
-    </div>
+    </main>
   );
 }

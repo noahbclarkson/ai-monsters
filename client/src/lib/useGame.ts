@@ -63,6 +63,7 @@ export function useGame(matchId: bigint) {
   const { conn, connected } = useSpacetimeDB();
   const [match, setMatch] = useState<DbMatch | null>(null);
   const [boardState, setBoardState] = useState<BoardState | null>(null);
+  const [handCards, setHandCards] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,6 +81,21 @@ export function useGame(matchId: bigint) {
           break;
         }
       }
+      
+      const playerHandsTable = db.player_hands as { iter(): Iterable<any> } | undefined;
+      if (playerHandsTable) {
+        // We don't have playerId directly accessible here, so we'll grab all hand cards for this match
+        // and we can filter them by player in the component if needed.
+        // Or try to identify if the card belongs to current player.
+        const handIds: any[] = [];
+        for (const row of playerHandsTable.iter()) {
+          if (row.matchId === matchId) {
+            handIds.push({ id: row.cardId, playerId: row.playerId });
+          }
+        }
+        setHandCards(handIds);
+      }
+      
       setLoading(false);
     } catch (e) {
       setError(`Failed to read match: ${e}`);
@@ -99,7 +115,7 @@ export function useGame(matchId: bigint) {
         .onApplied((_ctx: any) => {
           fetchMatch();
         })
-        .subscribe("SELECT * FROM game_matches") as { unsubscribe(): void };
+        .subscribe(["SELECT * FROM game_matches", "SELECT * FROM player_hands", "SELECT * FROM cards"]) as { unsubscribe(): void };
     } catch (e) {
       setError(`Subscription error: ${e}`);
       setLoading(false);
@@ -200,6 +216,7 @@ export function useGame(matchId: bigint) {
   return {
     match,
     boardState,
+    handCards,
     loading,
     error,
     placeCard,

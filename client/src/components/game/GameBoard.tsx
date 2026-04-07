@@ -20,6 +20,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
   const {
     match,
     boardState,
+    handCards,
     loading,
     error,
     placeCard,
@@ -320,12 +321,33 @@ export function GameBoard({ gameId }: GameBoardProps) {
           <span className="text-sm text-white/40">Click a card to select, then click a tile to place</span>
         </div>
         
-        {/* Hand cards would be rendered here */}
         <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
-          {/* Placeholder cards for hand - these would come from player_hand table */}
-          <div className="flex-shrink-0 w-24 h-36 rounded-lg border-2 border-dashed border-white/10 flex items-center justify-center">
-            <span className="text-white/30 text-xs">No cards</span>
-          </div>
+          {handCards && handCards.filter((c: any) => Number(c.playerId) === Number(playerId)).length > 0 ? (
+            handCards.filter((c: any) => Number(c.playerId) === Number(playerId)).map((card: any, index: number) => (
+              <div
+                key={`hand-${card.id}-${index}`}
+                className="flex-shrink-0 w-24 h-36 bg-gradient-to-br from-purple-600/50 to-blue-600/50 rounded-lg p-2 cursor-pointer hover:from-purple-500/80 hover:to-blue-500/80 hover:-translate-y-2 transition-all border border-white/10 hover:border-white/30 hover:shadow-lg hover:shadow-purple-500/20 flex flex-col items-center justify-center"
+                onClick={() => {
+                  // Auto-place on first empty tile
+                  for (let x = 0; x < 3; x++) {
+                    for (let y = 0; y < 3; y++) {
+                      if (!getTile(x, y)?.card_id) {
+                        placeCard(BigInt(card.id), BigInt(playerId!), x, y).catch(console.error);
+                        return;
+                      }
+                    }
+                  }
+                }}
+              >
+                <div className="text-3xl mb-2 drop-shadow-md">🃏</div>
+                <div className="text-xs font-bold text-white/90">Card</div>
+              </div>
+            ))
+          ) : (
+            <div className="flex-shrink-0 w-24 h-36 rounded-lg border-2 border-dashed border-white/10 flex items-center justify-center">
+              <span className="text-white/30 text-xs">No cards</span>
+            </div>
+          )}
         </div>
       </div>
 
