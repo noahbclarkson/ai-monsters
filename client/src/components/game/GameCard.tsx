@@ -106,8 +106,8 @@ export function GameCard({
     <div
       className={`
         relative ${sc.card} rounded-xl overflow-hidden cursor-pointer
-        transition-all duration-200 ease-out
-        ${isSelected ? 'scale-105 z-10' : 'hover:scale-102 hover:-translate-y-1'}
+        transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]
+        ${isSelected ? 'scale-105 z-10 shadow-2xl' : 'hover:scale-[1.04] hover:-translate-y-2 hover:shadow-2xl'}
         ${isAttacking ? 'animate-pulse-ring' : ''}
         ${isDefending ? 'ring-2 ring-blue-400 ring-opacity-50' : ''}
       `}
