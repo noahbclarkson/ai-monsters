@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { RarityBadge } from './RarityBadge'
 import { CardGenerator } from '@/lib/card-generator'
-import { Swords, Shield, Target, Sparkles } from 'lucide-react'
+import { Swords, Shield, Target, Sparkles, TowerControl, Wand2, Circle } from 'lucide-react'
 
 interface CardProps {
   name: string
@@ -37,8 +37,25 @@ export function EnhancedCard({
   const [isHovering, setIsHovering] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const rarityColor = CardGenerator.getRarityColor(rarity)
-  const typeIcon = CardGenerator.getTypeIcon(type)
-  const rarityEmoji = CardGenerator.getRarityEmoji(rarity)
+  const getTypeIconComponent = (t: string) => {
+    switch (t) {
+      case 'Unit': return <Swords size={32} />;
+      case 'Building': return <TowerControl size={32} />;
+      case 'Spell': return <Wand2 size={32} />;
+      default: return <Circle size={32} />;
+    }
+  }
+  
+  const getRarityIconComponent = (r: string) => {
+    const props = { size: 40 };
+    switch (r) {
+      case 'Common': return <Circle {...props} className="text-white/40" />;
+      case 'Rare': return <Circle {...props} className="text-blue-400/40" />;
+      case 'Epic': return <Circle {...props} className="text-purple-400/40" />;
+      case 'Legendary': return <Circle {...props} className="text-yellow-400/40" />;
+      default: return <Circle {...props} className="text-white/40" />;
+    }
+  }
 
   // Handle hover state with animation delay
   useEffect(() => {
@@ -95,8 +112,8 @@ export function EnhancedCard({
             {/* Card back content */}
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-4">
-                <div className="text-white/30 text-4xl">{rarityEmoji}</div>
-                <div className="text-white/30 text-2xl">{typeIcon}</div>
+                <div className="text-white/30">{getRarityIconComponent(rarity)}</div>
+                <div className="text-white/30">{getTypeIconComponent(type)}</div>
               </div>
             </div>
             
@@ -121,7 +138,7 @@ export function EnhancedCard({
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-xl font-bold text-white drop-shadow-md">{name}</h3>
-                <div className="text-2xl drop-shadow-md">{typeIcon}</div>
+                <div className="text-white drop-shadow-md">{getTypeIconComponent(type)}</div>
               </div>
               <div className="flex items-center gap-2">
                 <RarityBadge rarity={rarity} />
