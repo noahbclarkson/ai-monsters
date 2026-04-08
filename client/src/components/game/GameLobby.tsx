@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Bot, Swords, Globe, Search, X, FileText } from 'lucide-react';
 import { useMatches } from '@/lib/useMatches';
 import { useBotMatch } from '@/lib/useBotMatch';
 import { useSpacetimeDB } from '@/lib/spacetimedb';
@@ -149,7 +150,7 @@ export function GameLobby() {
       <div className="glass-card rounded-2xl p-6">
         <div className="flex items-start gap-4 mb-6">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 flex items-center justify-center">
-            <span className="text-2xl">🤖</span>
+            <Bot size={24} className="text-green-400" strokeWidth={1.5} />
           </div>
           <div className="flex-1">
             <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: 'Cinzel, serif' }}>
@@ -206,7 +207,7 @@ export function GameLobby() {
             </>
           ) : (
             <>
-              <span className="text-xl">⚔️</span>
+              <Swords size={18} strokeWidth={1.8} />
               Start Battle
             </>
           )}
@@ -217,7 +218,7 @@ export function GameLobby() {
       <div className="glass-card rounded-2xl p-6">
         <div className="flex items-start gap-4 mb-6">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-500/30 flex items-center justify-center">
-            <span className="text-2xl">🌐</span>
+            <Globe size={24} className="text-blue-400" strokeWidth={1.5} />
           </div>
           <div className="flex-1">
             <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: 'Cinzel, serif' }}>
@@ -233,7 +234,7 @@ export function GameLobby() {
             disabled={!connected || joining}
             className="btn btn-primary py-4"
           >
-            <span className="text-xl">🔍</span>
+            <Search size={16} strokeWidth={2} />
             Find Match
           </button>
           <button
@@ -241,7 +242,7 @@ export function GameLobby() {
             disabled={!connected}
             className="btn btn-ghost py-4"
           >
-            <span className="text-xl">✕</span>
+            <X size={16} strokeWidth={2} />
             Leave Queue
           </button>
         </div>
@@ -251,7 +252,7 @@ export function GameLobby() {
       {activeMatches.length > 0 && (
         <div className="glass-card rounded-2xl p-6">
           <div className="flex items-center gap-3 mb-4">
-            <span className="text-xl">📋</span>
+            <FileText size={18} className="text-purple-400" strokeWidth={1.5} />
             <h2 className="text-lg font-bold text-white" style={{ fontFamily: 'Cinzel, serif' }}>
               Active Matches
             </h2>

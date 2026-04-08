@@ -1,6 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import {
+  Sparkles,
+  Swords,
+  BookOpen,
+  Gift,
+  CalendarDays,
+  Trophy,
+} from 'lucide-react';
 import { GameGenerator } from '@/components/game/GameGenerator';
 import { GameLobby } from '@/components/game/GameLobby';
 import { CollectionGallery } from '@/components/game/CollectionGallery';
@@ -11,16 +19,16 @@ import DailyCardGenerator from '@/components/DailyCardGenerator';
 interface NavigationTab {
   id: string;
   label: string;
-  icon: string;
+  icon: React.ReactNode;
 }
 
 const TABS: NavigationTab[] = [
-  { id: 'generator', label: 'Card Gen', icon: '🎨' },
-  { id: 'lobby', label: 'Battle', icon: '⚔️' },
-  { id: 'collection', label: 'Collection', icon: '📚' },
-  { id: 'packs', label: 'Packs', icon: '🎁' },
-  { id: 'daily', label: 'Daily', icon: '📅' },
-  { id: 'leaderboard', label: 'Ranks', icon: '🏆' },
+  { id: 'generator',   label: 'Card Gen',    icon: <Sparkles     size={16} strokeWidth={1.8} /> },
+  { id: 'lobby',       label: 'Battle',      icon: <Swords       size={16} strokeWidth={1.8} /> },
+  { id: 'collection',  label: 'Collection',  icon: <BookOpen     size={16} strokeWidth={1.8} /> },
+  { id: 'packs',       label: 'Packs',       icon: <Gift         size={16} strokeWidth={1.8} /> },
+  { id: 'daily',       label: 'Daily',      icon: <CalendarDays size={16} strokeWidth={1.8} /> },
+  { id: 'leaderboard', label: 'Ranks',       icon: <Trophy       size={16} strokeWidth={1.8} /> },
 ];
 
 export function MainNavigation() {
@@ -74,7 +82,7 @@ export function MainNavigation() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`nav-tab ${activeTab === tab.id ? 'active' : ''}`}
               >
-                <span className="text-lg">{tab.icon}</span>
+                <span className="text-base">{tab.icon}</span>
                 <span className="hidden sm:inline">{tab.label}</span>
               </button>
             ))}

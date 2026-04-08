@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { Trophy } from 'lucide-react';
 import { useLeaderboard } from '@/lib/useLeaderboard';
 
 interface Player {
@@ -185,7 +186,7 @@ export function Leaderboard() {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
-          <span className="text-3xl">🏆</span>
+          <Trophy size={32} className="text-yellow-400" strokeWidth={1.5} />
           <h1 
             className="text-3xl font-bold text-white"
             style={{ fontFamily: 'Cinzel, serif' }}
@@ -251,7 +252,7 @@ export function Leaderboard() {
         {/* Empty state */}
         {sortedPlayers.length === 0 && (
           <div className="empty-state">
-            <div className="empty-state-icon">🏆</div>
+            <div className="empty-state-icon"><Trophy size={48} className="text-yellow-400/40" strokeWidth={1} /></div>
             <p className="empty-state-title">No players yet</p>
             <p className="empty-state-desc">
               Be the first to play and claim the top spot!

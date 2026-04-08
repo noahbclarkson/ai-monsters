@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { Gift } from 'lucide-react';
 import { useSpacetimeDB } from '@/lib/spacetimedb';
 import { GameCard } from '@/components/game/GameCard';
 
@@ -108,7 +109,7 @@ export function PackOpening({ pack, onPackComplete }: PackOpeningProps) {
             <div className={`relative transition-all duration-1000 ${opening ? 'scale-110 drop-shadow-[0_0_50px_rgba(139,92,246,0.8)]' : 'hover:scale-105'}`}>
               <div className={`w-48 h-64 mx-auto bg-gradient-to-br from-purple-600 to-indigo-800 rounded-xl border-4 border-white/20 shadow-2xl flex items-center justify-center cursor-pointer ${opening ? 'animate-pulse' : ''}`}
                    onClick={!opening ? handleOpenPack : undefined}>
-                <div className="text-6xl filter drop-shadow-lg">🎁</div>
+                <Gift size={56} className="text-white drop-shadow-lg" strokeWidth={1.2} />
               </div>
             </div>
             

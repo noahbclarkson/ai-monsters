@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { Sparkles, Gift, Layers } from 'lucide-react';
 import { GameCard } from './GameCard';
 import { AICardGenerator } from '@/lib/ai-card-generator';
 import { Card } from '@/types/card';
@@ -93,7 +94,7 @@ export function GameGenerator() {
             </>
           ) : (
             <>
-              <span className="text-lg">🎨</span>
+              <Sparkles size={16} strokeWidth={1.8} />
               Generate Single
             </>
           )}
@@ -111,7 +112,7 @@ export function GameGenerator() {
             </>
           ) : (
             <>
-              <span className="text-lg">🎁</span>
+              <Gift size={16} strokeWidth={1.8} />
               Generate Pack (7)
             </>
           )}
@@ -121,7 +122,7 @@ export function GameGenerator() {
       {/* Collection */}
       {generatedCards.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">🎴</div>
+          <div className="empty-state-icon"><Layers size={48} className="text-purple-400/40" strokeWidth={1} /></div>
           <p className="empty-state-title">No cards yet</p>
           <p className="empty-state-desc">
             Click a button above to generate your first AI card

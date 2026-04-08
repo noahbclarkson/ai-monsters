@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Search, BookOpen } from 'lucide-react';
 import { GameCard } from './GameCard';
 import { CollectionGalleryLoading } from './CollectionGalleryLoading';
 import { useCards } from '@/lib/useCards';
@@ -189,7 +190,7 @@ export function CollectionGallery() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-3xl">📚</span>
+            <BookOpen size={28} className="text-purple-400" strokeWidth={1.5} />
             <h1 
               className="text-3xl font-bold text-white"
               style={{ fontFamily: 'Cinzel, serif' }}
@@ -234,7 +235,7 @@ export function CollectionGallery() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="input pl-10"
               />
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30">🔍</span>
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" strokeWidth={2} />
             </div>
 
             {/* Filter toggle */}
