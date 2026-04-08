@@ -139,3 +139,12 @@ _Last updated: 2026-04-07 16:03 UTC_
 ## Iterative Polish Updates (2026-04-07 Late)
 3. Enhanced `EnhancedCardGenerator` to feel like an authentic, game-native feature instead of a web app placeholder.
 4. Synced the navigation polling loop in `src/components/game/GameLobby.tsx` to restore functionality to "Play vs AI Bot."
+
+## Iterative Polish Updates (2026-04-08 Early AM)
+5. **Leaderboard.tsx full rewrite** — Entire component was using white/light theme backgrounds (`bg-white`, `bg-gray-50`, `bg-gray-100`, `bg-gray-200`) which broke immersion on the dark game UI. Rewrote with glass-morphism dark theme matching the rest of the app. Each rank tier now has its own accent color with glow effects. Sort buttons redesigned as dark pill controls with lucide icons. Podium-style player rows with left-border accent for top 3. Win-rate badge color-coded (green/yellow/red). Empty state with trophy icon.
+
+6. **Ongoing issues to fix:**
+   - CollectionGallery header/stats section still uses `bg-black/30` instead of glass-card styling
+   - DailyCardGenerator: "Claim Today's Card" reads existing cards instead of generating a new daily card
+   - MainNavigation active tab indicator could be stronger (only 2px bottom border)
+   - Navigation emoji icons in nav buttons (MainNavigation nav buttons are fine - use lucide SVG icons)

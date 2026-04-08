@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useSounds } from './SoundEffects';
 import { useLeaderboard } from '@/lib/useLeaderboard';
+import { Trophy, Star, BarChart2, ChevronUp, ChevronDown } from 'lucide-react';
 
 interface Player {
   id: string;
@@ -20,6 +21,28 @@ interface LeaderboardProps {
   showStats?: boolean;
 }
 
+const RANK_CONFIG: Record<string, { title: string; text: string; bg: string; border: string; glow: string }> = {
+  Grandmaster: { title: 'Grandmaster', text: '#c084fc', bg: 'rgba(192,132,252,0.15)', border: 'rgba(192,132,252,0.4)', glow: 'rgba(192,132,252,0.25)' },
+  Master:      { title: 'Master',      text: '#f87171', bg: 'rgba(248,113,113,0.15)', border: 'rgba(248,113,113,0.4)', glow: 'rgba(248,113,113,0.25)' },
+  Diamond:     { title: 'Diamond',    text: '#60a5fa', bg: 'rgba(96,165,250,0.15)', border: 'rgba(96,165,250,0.4)', glow: 'rgba(96,165,250,0.25)' },
+  Platinum:    { title: 'Platinum',   text: '#a78bfa', bg: 'rgba(167,139,250,0.15)', border: 'rgba(167,139,250,0.4)', glow: 'rgba(167,139,250,0.25)' },
+  Gold:        { title: 'Gold',       text: '#fbbf24', bg: 'rgba(251,191,36,0.15)', border: 'rgba(251,191,36,0.4)', glow: 'rgba(251,191,36,0.25)' },
+  Silver:      { title: 'Silver',     text: '#94a3b8', bg: 'rgba(148,163,184,0.15)', border: 'rgba(148,163,184,0.4)', glow: 'rgba(148,163,184,0.25)' },
+  Bronze:      { title: 'Bronze',    text: '#d97706', bg: 'rgba(217,119,6,0.15)', border: 'rgba(217,119,6,0.4)', glow: 'rgba(217,119,6,0.25)' },
+  Novice:      { title: 'Novice',     text: '#6b7280', bg: 'rgba(107,114,128,0.15)', border: 'rgba(107,114,128,0.4)', glow: 'rgba(107,114,128,0.25)' },
+};
+
+const RANK_ICONS: Record<string, string> = {
+  Grandmaster: 'GM',
+  Master:     'M',
+  Diamond:    'D',
+  Platinum:   'P',
+  Gold:       'G',
+  Silver:     'S',
+  Bronze:     'B',
+  Novice:     'N',
+};
+
 const Leaderboard = ({ limit = 10, showAvatar = true, showStats = true }: LeaderboardProps) => {
   const [sortBy, setSortBy] = useState<'rating' | 'wins' | 'level'>('rating');
   const { leaderboard, loading, error } = useLeaderboard(50);
@@ -31,20 +54,9 @@ const Leaderboard = ({ limit = 10, showAvatar = true, showStats = true }: Leader
     if (rating >= 1400) return 'Diamond';
     if (rating >= 1200) return 'Platinum';
     if (rating >= 1000) return 'Gold';
-    if (rating >= 800) return 'Silver';
-    if (rating >= 600) return 'Bronze';
+    if (rating >= 800)  return 'Silver';
+    if (rating >= 600)  return 'Bronze';
     return 'Novice';
-  };
-
-  const getRankColor = (rating: number): string => {
-    if (rating >= 1900) return 'text-purple-600 bg-purple-100';
-    if (rating >= 1600) return 'text-red-600 bg-red-100';
-    if (rating >= 1400) return 'text-blue-600 bg-blue-100';
-    if (rating >= 1200) return 'text-indigo-600 bg-indigo-100';
-    if (rating >= 1000) return 'text-yellow-600 bg-yellow-100';
-    if (rating >= 800) return 'text-gray-600 bg-gray-100';
-    if (rating >= 600) return 'text-orange-600 bg-orange-100';
-    return 'text-amber-600 bg-amber-100';
   };
 
   const sortedPlayers = useMemo((): Player[] => {
@@ -75,12 +87,15 @@ const Leaderboard = ({ limit = 10, showAvatar = true, showStats = true }: Leader
     const total = wins + losses;
     const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
 
-    let colorClass = 'text-green-600 bg-green-100';
-    if (winRate < 40) colorClass = 'text-red-600 bg-red-100';
-    else if (winRate < 60) colorClass = 'text-yellow-600 bg-yellow-100';
+    let colorClass = { text: '#4ade80', bg: 'rgba(74,222,128,0.15)' };
+    if (winRate < 40) colorClass = { text: '#f87171', bg: 'rgba(248,113,113,0.15)' };
+    else if (winRate < 60) colorClass = { text: '#fbbf24', bg: 'rgba(251,191,36,0.15)' };
 
     return (
-      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${colorClass}`}>
+      <span
+        className="px-2 py-1 text-xs font-bold rounded uppercase tracking-wider"
+        style={{ color: colorClass.text, background: colorClass.bg }}
+      >
         {winRate}% WR
       </span>
     );
@@ -88,15 +103,22 @@ const Leaderboard = ({ limit = 10, showAvatar = true, showStats = true }: Leader
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-2xl font-bold mb-4 text-gray-800">Leaderboard</h2>
-        <div className="space-y-4">
+      <div className="glass-card rounded-2xl p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <Trophy size={20} strokeWidth={1.5} className="text-yellow-400" />
+          <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Cinzel, serif' }}>
+            Leaderboard
+          </h2>
+        </div>
+        <div className="space-y-3">
           {[...Array(limit)].map((_, i) => (
-            <div key={i} className="flex items-center space-x-4">
-              <div className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
-              <div className="flex-1">
-                <div className="h-4 bg-gray-200 rounded animate-pulse mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded animate-pulse w-32"></div>
+            <div key={i} className="glass-card rounded-xl p-4 animate-pulse">
+              <div className="flex items-center gap-4">
+                <div className="w-8 h-8 bg-white/10 rounded-lg" />
+                <div className="flex-1">
+                  <div className="h-4 bg-white/10 rounded w-32 mb-2" />
+                  <div className="h-3 bg-white/5 rounded w-20" />
+                </div>
               </div>
             </div>
           ))}
@@ -107,119 +129,189 @@ const Leaderboard = ({ limit = 10, showAvatar = true, showStats = true }: Leader
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-2xl font-bold mb-4 text-gray-800">Leaderboard</h2>
-        <p className="text-red-500">Failed to load leaderboard: {error}</p>
+      <div className="glass-card rounded-2xl p-6">
+        <p className="text-red-400 text-sm">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Leaderboard</h2>
-        <div className="flex space-x-2">
-          <button
-            onClick={() => handleSort('rating')}
-            className={`px-3 py-1 text-sm font-medium rounded-lg transition-colors ${
-              sortBy === 'rating'
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            Rating
-          </button>
-          <button
-            onClick={() => handleSort('wins')}
-            className={`px-3 py-1 text-sm font-medium rounded-lg transition-colors ${
-              sortBy === 'wins'
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            Wins
-          </button>
-          <button
-            onClick={() => handleSort('level')}
-            className={`px-3 py-1 text-sm font-medium rounded-lg transition-colors ${
-              sortBy === 'level'
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            Level
-          </button>
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        {sortedPlayers.map((player, index) => (
-          <div
-            key={player.id}
-            className={`flex items-center space-x-4 p-4 rounded-lg transition-all hover:shadow-md ${
-              index === 0 ? 'bg-gradient-to-r from-yellow-50 to-amber-50 border border-amber-200' :
-              index === 1 ? 'bg-gradient-to-r from-gray-50 to-slate-50 border border-gray-200' :
-              index === 2 ? 'bg-gradient-to-r from-amber-50 to-orange-50 border border-orange-200' :
-              'bg-gray-50 hover:bg-gray-100'
-            }`}
-          >
-            {/* Rank Number */}
-            <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center">
-              {index === 0 ? (
-                <span className="text-2xl">1</span>
-              ) : index === 1 ? (
-                <span className="text-2xl">2</span>
-              ) : index === 2 ? (
-                <span className="text-2xl">3</span>
-              ) : (
-                <span className="text-lg font-bold text-gray-600">{index + 1}</span>
-              )}
+    <div className="glass-card rounded-2xl overflow-hidden">
+      {/* Header */}
+      <div className="px-6 py-5 border-b border-white/10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-500/20 to-amber-500/20 border border-yellow-500/30 flex items-center justify-center">
+              <Trophy size={18} strokeWidth={1.5} className="text-yellow-400" />
             </div>
-
-            {/* Avatar */}
-            {showAvatar && (
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
-                  {player.name.charAt(0).toUpperCase()}
-                </div>
-              </div>
-            )}
-
-            {/* Player Info */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center space-x-3">
-                <h3 className="font-semibold text-gray-900 truncate">{player.name}</h3>
-                <span className={`px-2 py-1 text-xs font-bold rounded-full ${getRankColor(player.rating)}`}>
-                  {player.rank}
-                </span>
-              </div>
-
-              {showStats && (
-                <div className="flex items-center space-x-4 mt-1">
-                  <span className="text-sm text-gray-600">Rating: {player.rating}</span>
-                  <span className="text-sm text-gray-600">Level: {player.level}</span>
-                  <WinRateBadge wins={player.wins} losses={player.losses} />
-                </div>
-              )}
-            </div>
-
-            {/* Stats */}
-            {showStats && (
-              <div className="flex-shrink-0 text-right">
-                <div className="text-sm font-medium text-gray-900">
-                  {player.wins}W / {player.losses}L
-                </div>
-              </div>
-            )}
+            <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Cinzel, serif' }}>
+              Leaderboard
+            </h2>
           </div>
-        ))}
+
+          {/* Sort Controls */}
+          <div className="flex items-center gap-1">
+            <span className="text-xs text-white/40 mr-2 hidden md:inline">Sort by:</span>
+            {[
+              { key: 'rating', label: 'Rating', icon: Trophy },
+              { key: 'wins', label: 'Wins', icon: Star },
+              { key: 'level', label: 'Level', icon: BarChart2 },
+            ].map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => handleSort(key as 'rating' | 'wins' | 'level')}
+                className={`
+                  flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold
+                  transition-all duration-200
+                  ${sortBy === key
+                    ? 'bg-white/15 text-white border border-white/20'
+                    : 'text-white/50 hover:text-white hover:bg-white/5 border border-transparent'
+                  }
+                `}
+              >
+                <Icon size={12} strokeWidth={2} />
+                <span className="hidden md:inline">{label}</span>
+                {sortBy === key && (
+                  <ChevronUp size={10} strokeWidth={2} className="text-white/60" />
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Rank Legend */}
+        <div className="flex flex-wrap gap-2 mt-4">
+          {Object.entries(RANK_CONFIG).map(([rank, config]) => (
+            <div
+              key={rank}
+              className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs"
+              style={{ background: config.bg, border: `1px solid ${config.border}` }}
+            >
+              <span className="font-bold" style={{ color: config.text }}>{config.title}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {sortedPlayers.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-gray-500">No players found on the leaderboard.</p>
-        </div>
-      )}
+      {/* Player List */}
+      <div className="divide-y divide-white/5">
+        {sortedPlayers.length === 0 ? (
+          <div className="py-16 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-white/5 flex items-center justify-center">
+              <Trophy size={28} strokeWidth={1.2} className="text-white/20" />
+            </div>
+            <p className="text-white/40 text-sm">No players yet</p>
+            <p className="text-white/20 text-xs mt-1">Be the first to play and claim the top spot!</p>
+          </div>
+        ) : (
+          sortedPlayers.map((player, index) => {
+            const rankCfg = RANK_CONFIG[player.rank] || RANK_CONFIG.Novice;
+            const isTop3 = index < 3;
+            const isPodium = index < 3;
+
+            return (
+              <div
+                key={player.id}
+                className={`
+                  group flex items-center gap-4 px-6 py-4
+                  transition-all duration-200 cursor-default
+                  hover:bg-white/[0.03]
+                  ${isPodium ? 'relative' : ''}
+                `}
+              >
+                {/* Podium accent for top 3 */}
+                {isPodium && (
+                  <div
+                    className="absolute left-0 top-0 bottom-0 w-1 rounded-r"
+                    style={{ background: rankCfg.text }}
+                  />
+                )}
+
+                {/* Rank */}
+                <div
+                  className="w-8 h-10 flex items-center justify-center flex-shrink-0"
+                  style={{ fontFamily: 'Cinzel, serif' }}
+                >
+                  {isTop3 ? (
+                    <span
+                      className="text-lg font-bold"
+                      style={{ color: rankCfg.text }}
+                    >
+                      {index + 1}
+                    </span>
+                  ) : (
+                    <span className="text-sm font-bold text-white/30">
+                      {index + 1}
+                    </span>
+                  )}
+                </div>
+
+                {/* Avatar */}
+                {showAvatar && (
+                  <div className="flex-shrink-0 relative">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm"
+                      style={{
+                        background: `linear-gradient(135deg, ${rankCfg.text}66, ${rankCfg.text}33)`,
+                        fontFamily: 'Cinzel, serif',
+                        boxShadow: `0 0 12px ${rankCfg.glow}`,
+                      }}
+                    >
+                      {player.name.charAt(0).toUpperCase()}
+                    </div>
+                    {/* Rank badge on avatar */}
+                    <div
+                      className="absolute -bottom-1 -right-1 w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-bold text-white"
+                      style={{ background: rankCfg.text }}
+                    >
+                      {RANK_ICONS[player.rank] || 'N'}
+                    </div>
+                  </div>
+                )}
+
+                {/* Player Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3">
+                    <h3 className="font-semibold text-white truncate" style={{ fontFamily: 'Cinzel, serif' }}>
+                      {player.name}
+                    </h3>
+                    <span
+                      className="px-2 py-0.5 text-xs font-bold rounded uppercase tracking-wider flex-shrink-0"
+                      style={{ color: rankCfg.text, background: rankCfg.bg, border: `1px solid ${rankCfg.border}` }}
+                    >
+                      {rankCfg.title}
+                    </span>
+                  </div>
+
+                  {showStats && (
+                    <div className="flex items-center gap-4 mt-1">
+                      <span className="text-xs" style={{ color: rankCfg.text }}>
+                        Rating: {player.rating}
+                      </span>
+                      <span className="text-xs text-white/40">
+                        Level: {player.level}
+                      </span>
+                      <WinRateBadge wins={player.wins} losses={player.losses} />
+                    </div>
+                  )}
+                </div>
+
+                {/* Stats */}
+                {showStats && (
+                  <div className="flex-shrink-0 text-right hidden md:block">
+                    <div className="text-sm font-bold text-white">
+                      {player.wins}W / {player.losses}L
+                    </div>
+                    <div className="text-xs text-white/30 mt-0.5">
+                      {player.wins + player.losses} games
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 };
