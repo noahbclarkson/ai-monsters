@@ -5,11 +5,14 @@ import { Sparkles, Gift, Layers } from 'lucide-react';
 import { GameCard } from './GameCard';
 import { AICardGenerator } from '@/lib/ai-card-generator';
 import { Card } from '@/types/card';
+import { useCards } from '@/lib/useCards';
 
 export function GameGenerator() {
   const [generatedCards, setGeneratedCards] = useState<Card[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [packCount, setPackCount] = useState(0);
+
+  const { generateCard: dbGenerateCard } = useCards();
 
   const generateSingleCard = useCallback(async () => {
     setIsGenerating(true);
@@ -18,13 +21,23 @@ export function GameGenerator() {
         generatedCards.length + 1,
         generatedCards.map(c => c.name)
       );
+      
+      // Save to SpacetimeDB
+      await dbGenerateCard(
+        newCard.name,
+        newCard.rarity,
+        newCard.card_type,
+        newCard.description,
+        newCard.image_url
+      );
+      
       setGeneratedCards(prev => [...prev, newCard]);
     } catch (error) {
       console.error('Error generating card:', error);
     } finally {
       setIsGenerating(false);
     }
-  }, [generatedCards]);
+  }, [generatedCards, dbGenerateCard]);
 
   const generatePack = useCallback(async () => {
     setIsGenerating(true);
@@ -32,6 +45,18 @@ export function GameGenerator() {
       const pack = await AICardGenerator.generatePack(
         generatedCards.map(c => c.name)
       );
+      
+      // Save to SpacetimeDB
+      for (const card of pack.cards) {
+        await dbGenerateCard(
+          card.name,
+          card.rarity,
+          card.card_type,
+          card.description,
+          card.image_url
+        );
+      }
+      
       setGeneratedCards(prev => [...prev, ...pack.cards]);
       setPackCount(prev => prev + 1);
     } catch (error) {
@@ -39,7 +64,7 @@ export function GameGenerator() {
     } finally {
       setIsGenerating(false);
     }
-  }, [generatedCards]);
+  }, [generatedCards, dbGenerateCard]);
 
   const rarityStats = {
     Common: generatedCards.filter(c => c.rarity === 'Common').length,

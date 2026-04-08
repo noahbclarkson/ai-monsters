@@ -48,11 +48,10 @@ export function PackOpening({ pack, onPackComplete }: PackOpeningProps) {
       const db = conn.db as Record<string, { iter(): Iterable<any> }>;
       const cardsTable = db.cards;
       
-      const newCards: CardInfo[] = [];
+      const allCards: CardInfo[] = [];
       if (cardsTable) {
-        let count = 0;
         for (const card of cardsTable.iter()) {
-          newCards.push({
+          allCards.push({
             id: Number(card.id),
             name: card.name,
             description: card.description,
@@ -63,10 +62,12 @@ export function PackOpening({ pack, onPackComplete }: PackOpeningProps) {
             card_type: card.card_type as any,
             image_url: card.image_url,
           });
-          count++;
-          if (count >= 5) break; // 5 cards per pack
         }
       }
+
+      // Shuffle and pick 5
+      const shuffled = allCards.sort(() => 0.5 - Math.random());
+      const newCards = shuffled.slice(0, 5);
 
       setOpenedCards(newCards);
       setTimeout(() => setShowCards(true), 500);

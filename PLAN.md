@@ -156,3 +156,7 @@ _Last updated: 2026-04-07 16:03 UTC_
 9. **Emoji removal complete** — Replaced remaining emojis (sparkles, joker, swords, shield) with lucide-react icons in GameBoard, EnhancedCard, EnhancedCardGenerator, and CollectionGallery.
 ## Iterative Polish Updates (2026-04-08 Late Afternoon)
 10. **MainNavigation tabs active state**: Redesigned `.nav-tab.active` to use a premium, recessed button effect with glowing top/bottom gradients, inner shadow, and box-shadow styling.
+
+## Iterative Polish Updates (2026-04-08 Evening)
+11. **GameLobby battle buttons**: Start Battle, Find Match, and Leave Queue buttons were enabled when `connected=true` but `playerId=null`, causing silent failures on click. Fixed `disabled` prop to include `!playerId`. Added "Waiting for identity..." notice below Start Battle when playerId is not yet assigned.
+12. **CollectionGallery Filters emoji**: Filters toggle button used ⚙️ literal emoji. Replaced with `<Settings size={16} strokeWidth={1.8} />` from lucide-react.
