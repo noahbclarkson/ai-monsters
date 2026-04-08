@@ -16,7 +16,7 @@ This is a product you can demo to anyone and have them say "this is actually imp
 
 ---
 
-## Current State (2026-04-07 Afternoon)
+## Current State (2026-04-07 Evening)
 
 ### What Works ✅
 - Premium dark UI with rarity glows, glass morphism, proper typography
@@ -28,6 +28,11 @@ This is a product you can demo to anyone and have them say "this is actually imp
 - PackOpening component styling matches premium dark UI
 - DailyCardGenerator styling matches premium dark UI
 - GameBoard accurately displays player hands from SpacetimeDB state
+- Navigation uses proper SVG icons (lucide-react) instead of emoji
+- EnhancedCard stats area uses SVG icons (Swords/Shield/Target) instead of emoji
+- CollectionGallery loading/empty states use SVG card/search icons instead of emoji
+- GameLobby navigates to game board after starting a match (poll-based match detection)
+- Skeleton loaders for GameBoard and CollectionGallery during loading states
 - Fallback image generation works seamlessly when MiniMax fails or is unconfigured
 
 ### Image Generation 🟡
@@ -36,26 +41,20 @@ This is a product you can demo to anyone and have them say "this is actually imp
 - Generating a card works, and the fallback image URL loads correctly.
 
 ### Still Needs Improvement
-- Card hover animations — they are okay, but could be smoother and have better easing.
+- Card hover animations — could be smoother and have better easing.
 - Card flip animation — needs to feel more physical with better timing.
 - Game board polish — card zones could be more clearly defined. Placement could feel more tactile.
-- Loading states — async operations like Pack Opening have basic spinners, but could use skeleton loaders.
-- Empty states — empty collection, empty deck, empty lobby need atmospheric touches.
-- Error states — what happens when API times out?
-- Mobile testing — verify resize to 375x812.
+- Error states — what happens when image fails to load? When API times out?
 
 ---
 
 ## Ongoing Work Priorities
 
 ### P1 — Should Improve
-1. ~~**Card hover animations** — do they feel satisfying? Smooth? Do they have the right easing?~~ (DONE)
+1. **Card hover animations** — do they feel satisfying? Smooth? Do they have the right easing?
 2. **Card flip animation** — does it feel physical? Is the timing right?
 3. **Game board polish** — are card zones clearly defined? Does placement feel tactile?
-4. **Loading states** — every async operation needs a skeleton/spinner
-5. **Empty states** — empty collection, empty deck, empty lobby — are they atmospheric or just blank?
-6. **Error states** — what happens when image fails to load? When API times out?
-7. **Mobile testing** — resize to 375x812, screenshot, fix what breaks
+4. **Error states** — what happens when image fails to load? When API times out?
 
 ### P2 — Nice to Have
 1. **Ambient sound effects** (optional, later)
@@ -132,3 +131,11 @@ Agent workspace: `/home/ubuntu/.openclaw/workspace-aimonsters/`
 ---
 
 _Last updated: 2026-04-07 16:03 UTC_
+
+## Iterative Polish Updates (2026-04-07 Later)
+1. Created skeleton loaders `GameBoardLoading` and `CollectionGalleryLoading`.
+2. Added these to `GameBoard` and `CollectionGallery` so they display while `loading` is true and data is empty, replacing the raw spinner elements or awkward empty renders with premium atmospheric UI block elements.
+
+## Iterative Polish Updates (2026-04-07 Late)
+3. Enhanced `EnhancedCardGenerator` to feel like an authentic, game-native feature instead of a web app placeholder.
+4. Synced the navigation polling loop in `src/components/game/GameLobby.tsx` to restore functionality to "Play vs AI Bot."
