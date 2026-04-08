@@ -157,6 +157,6 @@ _Last updated: 2026-04-07 16:03 UTC_
 ## Iterative Polish Updates (2026-04-08 Late Afternoon)
 10. **MainNavigation tabs active state**: Redesigned `.nav-tab.active` to use a premium, recessed button effect with glowing top/bottom gradients, inner shadow, and box-shadow styling.
 
-## Iterative Polish Updates (2026-04-08 Evening)
-11. **GameLobby battle buttons**: Start Battle, Find Match, and Leave Queue buttons were enabled when `connected=true` but `playerId=null`, causing silent failures on click. Fixed `disabled` prop to include `!playerId`. Added "Waiting for identity..." notice below Start Battle when playerId is not yet assigned.
-12. **CollectionGallery Filters emoji**: Filters toggle button used ⚙️ literal emoji. Replaced with `<Settings size={16} strokeWidth={1.8} />` from lucide-react.
+## Iterative Polish Updates (2026-04-08 Evening Cycle)
+13. **PackOpening**: Added `.sort(() => 0.5 - Math.random())` to randomly select generated cards from DB instead of iterating sequentially.
+14. **GameGenerator**: Wrapped client-side generator callbacks to correctly invoke SpacetimeDB `dbGenerateCard` routines, saving newly created cards effectively across instances.
