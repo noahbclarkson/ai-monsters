@@ -154,3 +154,5 @@ _Last updated: 2026-04-07 16:03 UTC_
 ## Iterative Polish Updates (2026-04-08 Morning)
 8. **DailyCardGenerator wired** — It was previously stubbed out to just read an existing card. Rewrote to call the AI pipeline (description + MiniMax) and save the new card to SpacetimeDB.
 9. **Emoji removal complete** — Replaced remaining emojis (sparkles, joker, swords, shield) with lucide-react icons in GameBoard, EnhancedCard, EnhancedCardGenerator, and CollectionGallery.
+## Iterative Polish Updates (2026-04-08 Late Afternoon)
+10. **MainNavigation tabs active state**: Redesigned `.nav-tab.active` to use a premium, recessed button effect with glowing top/bottom gradients, inner shadow, and box-shadow styling.

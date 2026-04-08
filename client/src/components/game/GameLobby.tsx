@@ -197,7 +197,7 @@ export function GameLobby() {
 
         <button
           onClick={handlePlayVsBot}
-          disabled={!connected || starting}
+          disabled={!connected || !playerId || starting}
           className="w-full btn btn-success py-4 text-lg"
         >
           {starting ? (
@@ -212,6 +212,11 @@ export function GameLobby() {
             </>
           )}
         </button>
+        {connected && !playerId && (
+          <p className="text-xs text-white/40 text-center mt-2">
+            Waiting for identity... please wait a moment
+          </p>
+        )}
       </div>
 
       {/* Multiplayer Section */}
@@ -231,7 +236,7 @@ export function GameLobby() {
         <div className="grid grid-cols-2 gap-4">
           <button
             onClick={joinHumanQueue}
-            disabled={!connected || joining}
+            disabled={!connected || !playerId || joining}
             className="btn btn-primary py-4"
           >
             <Search size={16} strokeWidth={2} />
@@ -239,7 +244,7 @@ export function GameLobby() {
           </button>
           <button
             onClick={handleLeaveQueue}
-            disabled={!connected}
+            disabled={!connected || !playerId}
             className="btn btn-ghost py-4"
           >
             <X size={16} strokeWidth={2} />

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, BookOpen, Sparkles } from 'lucide-react';
+import { Search, BookOpen, Sparkles, Settings } from 'lucide-react';
 import { GameCard } from './GameCard';
 import { CollectionGalleryLoading } from './CollectionGalleryLoading';
 import { useCards } from '@/lib/useCards';
@@ -243,7 +243,7 @@ export function CollectionGallery() {
               onClick={() => setShowFilters(!showFilters)}
               className={`btn ${showFilters ? 'btn-primary' : 'btn-ghost'}`}
             >
-              <span>⚙️</span>
+              <Settings size={16} strokeWidth={1.8} />
               Filters
               {hasActiveFilters && (
                 <span className="w-2 h-2 rounded-full bg-purple-500" />
