@@ -31,6 +31,7 @@ This is a product you can demo to anyone and have them say "this is actually imp
 - Navigation uses proper SVG icons (lucide-react) instead of emoji
 - EnhancedCard stats area uses SVG icons (Swords/Shield/Target) instead of emoji
 - CollectionGallery loading/empty states use SVG card/search icons instead of emoji
+- All game components use lucide-react SVG icons (no emoji in game/ component tree)
 - GameLobby navigates to game board after starting a match (poll-based match detection)
 - Skeleton loaders for GameBoard and CollectionGallery during loading states
 - Fallback image generation works seamlessly when MiniMax fails or is unconfigured
@@ -147,4 +148,6 @@ _Last updated: 2026-04-07 16:03 UTC_
    - CollectionGallery header/stats section still uses `bg-black/30` instead of glass-card styling
    - DailyCardGenerator: "Claim Today's Card" reads existing cards instead of generating a new daily card
    - MainNavigation active tab indicator could be stronger (only 2px bottom border)
-   - Navigation emoji icons in nav buttons (MainNavigation nav buttons are fine - use lucide SVG icons)
+
+## Iterative Polish Updates (2026-04-08 Early AM Session 2)
+7. **Emoji replaced with lucide-react SVG icons across all game components** — The `src/components/game/` component tree (imported by `app/page.tsx`) used emoji throughout, not lucide icons. Replaced: MainNavigation (Sparkles/Swords/BookOpen/Gift/CalendarDays/Trophy), CollectionGallery (BookOpen, Search), Leaderboard (Trophy), GameLobby (Bot/Swords/Globe/Search/X/FileText), GameGenerator (Sparkles/Gift/Layers), PackOpening (Gift). Note: `src/components/MainNavigation.tsx` with lucide icons existed but was not imported — the active file was `src/components/game/MainNavigation.tsx` with emoji.
