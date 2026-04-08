@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { RarityBadge } from './RarityBadge'
 import { CardGenerator } from '@/lib/card-generator'
-import { Swords, Shield, Target } from 'lucide-react'
+import { Swords, Shield, Target, Sparkles } from 'lucide-react'
 
 interface CardProps {
   name: string
@@ -162,7 +162,7 @@ export function EnhancedCard({
             {/* Rarity sparkle effect */}
             {rarity !== 'Common' && (
               <div className="absolute top-2 right-2 animate-spin">
-                <div className="text-2xl opacity-70">✨</div>
+                <Sparkles size={18} className="text-yellow-400 opacity-70" strokeWidth={1.5} />
               </div>
             )}
           </div>

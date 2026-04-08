@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { PackOpening } from '@/components/PackOpening';
+import { Sparkles } from 'lucide-react';
 
 export function EnhancedCardGenerator() {
   const [showPack, setShowPack] = useState(false);
@@ -25,7 +26,7 @@ export function EnhancedCardGenerator() {
           >
             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
             <span className="relative flex items-center gap-3 text-lg">
-              <span className="text-2xl">✨</span>
+              <Sparkles size={20} strokeWidth={1.5} />
               Open a Pack
             </span>
           </button>

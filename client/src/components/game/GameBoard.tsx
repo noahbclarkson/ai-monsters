@@ -5,6 +5,7 @@ import { GameCard } from './GameCard';
 import { GameBoardLoading } from './GameBoardLoading';
 import { useGame } from '@/lib/useGame';
 import { useSpacetimeDB } from '@/lib/spacetimedb';
+import { Swords, Shield, HelpCircle } from 'lucide-react';
 
 interface GameBoardProps {
   gameId: number;
@@ -333,7 +334,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
                   }
                 }}
               >
-                <div className="text-3xl mb-2 drop-shadow-md">🃏</div>
+                    <div className="flex items-center justify-center mb-2"><HelpCircle size={28} className="text-white/40" strokeWidth={1.5} /></div>
                 <div className="text-xs font-bold text-white/90">Card</div>
               </div>
             ))

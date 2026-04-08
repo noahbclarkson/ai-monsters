@@ -3,41 +3,97 @@
 import { useSpacetimeDB } from '@/lib/spacetimedb';
 import { GameCard } from '@/components/game/GameCard';
 import { useState } from 'react';
+import { AICardGenerator } from '@/lib/ai-card-generator';
 
 export default function DailyCardGenerator() {
   const { conn, connected, playerId } = useSpacetimeDB();
   const [generating, setGenerating] = useState(false);
   const [dailyCard, setDailyCard] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     if (!conn || !playerId) return;
     setGenerating(true);
-    
+    setError(null);
+
     try {
-      // Simulate API call to generate daily card
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      // Pick noun and card type
+      const noun = AICardGenerator.generateRandomNoun();
+      const rarity = AICardGenerator.determineRarity();
+      const cardType = AICardGenerator.getRandomCardType();
+
+      // Call AI endpoints
+      const [descRes, imgRes] = await Promise.all([
+        fetch('/api/generate-description', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: '', noun, rarity, cardType }),
+        }),
+        fetch('/api/generate-card-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ noun, cardType, rarity, cardId: Date.now() }),
+        }),
+      ]);
+
+      let aiDescription = AICardGenerator.fallbackDescription(noun, rarity as any, cardType);
+      let aiImageUrl = '';
+
+      if (descRes.ok) {
+        const descData = await descRes.json();
+        if (descData.description) aiDescription = descData.description;
+      }
+
+      if (imgRes.ok) {
+        const imgData = await imgRes.json();
+        if (imgData.image_url) aiImageUrl = imgData.image_url;
+      }
+
+      // Save to SpacetimeDB
+      const reducers = conn.reducers as Record<string, (opts: unknown) => Promise<void>>;
+      await (reducers.generateCard as (opts: {
+        seedNoun: string;
+        rarity: string;
+        cardType: string;
+        aiDescription: string;
+        aiImageUrl: string;
+      }) => Promise<void>)({
+        seedNoun: noun,
+        rarity,
+        cardType,
+        aiDescription,
+        aiImageUrl,
+      });
+
+      // Fetch the newly created card (wait for DB update)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       const db = conn.db as Record<string, { iter(): Iterable<any> }>;
       const cardsTable = db.cards;
-      
+      let latestCard: any = null;
+
       if (cardsTable) {
+        let lastCard: any = null;
         for (const card of cardsTable.iter()) {
-          setDailyCard({
+          lastCard = {
             id: Number(card.id),
             name: card.name,
             description: card.description,
             attack: card.attack,
             defense: card.defense,
             range: card.range,
-            rarity: card.rarity as any,
-            card_type: card.card_type as any,
+            rarity: card.rarity,
+            card_type: card.card_type,
             image_url: card.image_url,
-          });
-          break;
+          };
         }
+        latestCard = lastCard;
       }
+
+      setDailyCard(latestCard);
     } catch (err) {
       console.error('Failed to generate daily card:', err);
+      setError('Failed to generate daily card. Please try again.');
     } finally {
       setGenerating(false);
     }
@@ -60,6 +116,12 @@ export default function DailyCardGenerator() {
         <p className="text-white/60">Log in every day for a new AI-generated card!</p>
       </div>
 
+      {error && (
+        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+          <p className="text-red-400 text-sm">{error}</p>
+        </div>
+      )}
+
       {!dailyCard ? (
         <div className="py-8">
           <button
@@ -73,7 +135,7 @@ export default function DailyCardGenerator() {
                 Generating...
               </>
             ) : (
-              'Claim Today\'s Card'
+              "Claim Today's Card"
             )}
           </button>
         </div>
@@ -92,6 +154,7 @@ export default function DailyCardGenerator() {
               size="lg"
             />
           </div>
+          <p className="text-white/40 text-sm mb-4">Card added to your collection!</p>
           <button
             onClick={() => setDailyCard(null)}
             className="btn btn-ghost"

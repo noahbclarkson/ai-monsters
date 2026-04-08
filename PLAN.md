@@ -151,3 +151,6 @@ _Last updated: 2026-04-07 16:03 UTC_
 
 ## Iterative Polish Updates (2026-04-08 Early AM Session 2)
 7. **Emoji replaced with lucide-react SVG icons across all game components** — The `src/components/game/` component tree (imported by `app/page.tsx`) used emoji throughout, not lucide icons. Replaced: MainNavigation (Sparkles/Swords/BookOpen/Gift/CalendarDays/Trophy), CollectionGallery (BookOpen, Search), Leaderboard (Trophy), GameLobby (Bot/Swords/Globe/Search/X/FileText), GameGenerator (Sparkles/Gift/Layers), PackOpening (Gift). Note: `src/components/MainNavigation.tsx` with lucide icons existed but was not imported — the active file was `src/components/game/MainNavigation.tsx` with emoji.
+## Iterative Polish Updates (2026-04-08 Morning)
+8. **DailyCardGenerator wired** — It was previously stubbed out to just read an existing card. Rewrote to call the AI pipeline (description + MiniMax) and save the new card to SpacetimeDB.
+9. **Emoji removal complete** — Replaced remaining emojis (sparkles, joker, swords, shield) with lucide-react icons in GameBoard, EnhancedCard, EnhancedCardGenerator, and CollectionGallery.
