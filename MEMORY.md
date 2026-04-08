@@ -19,3 +19,5 @@
 - Bot AI with Easy/Medium/Hard difficulty
 - Leaderboard shows player_progress from SpacetimeDB
 - Untracked MEMORY.md in ai-monsters/ is project-level memory (separate from workspace root MEMORY.md)
+## Iterative Polish Updates (2026-04-08 Late Afternoon)
+10. **MainNavigation tabs active state**: Redesigned `.nav-tab.active` to use a premium, recessed button effect with glowing top/bottom gradients, inner shadow, and box-shadow styling, moving away from the basic flat layout block.
