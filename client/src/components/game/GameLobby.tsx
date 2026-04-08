@@ -79,8 +79,29 @@ export function GameLobby() {
 
       if (myCards.length >= 5) {
         await startSinglePlayerMatch(selectedDifficulty, myCards.slice(0, 5));
-        setSelectedMatchId(botMatch?.id ?? null);
-        setActiveTab('play');
+
+        // Wait for the match to appear in the database and navigate to it
+        const maxAttempts = 20; // 2s max wait
+        let matchFound = false;
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+          await new Promise(r => setTimeout(r, 100));
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const matchesTable = (conn.db as any).game_matches as { iter(): Iterable<{ id: bigint; player1Id: bigint; status: string }> } | undefined;
+          if (matchesTable) {
+            for (const row of matchesTable.iter()) {
+              if (row.player1Id === playerId && row.status === 'Active') {
+                setSelectedMatchId(row.id);
+                setActiveTab('play');
+                matchFound = true;
+                break;
+              }
+            }
+          }
+          if (matchFound) break;
+        }
+        if (!matchFound) {
+          console.error('Failed to find match after creation');
+        }
       }
     } catch (e) {
       console.error('Error starting bot match:', e);
