@@ -31,7 +31,6 @@ This is a product you can demo to anyone and have them say "this is actually imp
 - Navigation uses proper SVG icons (lucide-react) instead of emoji
 - EnhancedCard stats area uses SVG icons (Swords/Shield/Target) instead of emoji
 - CollectionGallery loading/empty states use SVG card/search icons instead of emoji
-- All game components use lucide-react SVG icons (no emoji in game/ component tree)
 - GameLobby navigates to game board after starting a match (poll-based match detection)
 - Skeleton loaders for GameBoard and CollectionGallery during loading states
 - Fallback image generation works seamlessly when MiniMax fails or is unconfigured
@@ -131,7 +130,7 @@ Agent workspace: `/home/ubuntu/.openclaw/workspace-aimonsters/`
 
 ---
 
-_Last updated: 2026-04-09 02:19 UTC_
+_Last updated: 2026-04-07 16:03 UTC_
 
 ## Iterative Polish Updates (2026-04-07 Later)
 1. Created skeleton loaders `GameBoardLoading` and `CollectionGalleryLoading`.
@@ -141,27 +140,22 @@ _Last updated: 2026-04-09 02:19 UTC_
 3. Enhanced `EnhancedCardGenerator` to feel like an authentic, game-native feature instead of a web app placeholder.
 4. Synced the navigation polling loop in `src/components/game/GameLobby.tsx` to restore functionality to "Play vs AI Bot."
 
-## Iterative Polish Updates (2026-04-08 Early AM)
-5. **Leaderboard.tsx full rewrite** — Entire component was using white/light theme backgrounds (`bg-white`, `bg-gray-50`, `bg-gray-100`, `bg-gray-200`) which broke immersion on the dark game UI. Rewrote with glass-morphism dark theme matching the rest of the app. Each rank tier now has its own accent color with glow effects. Sort buttons redesigned as dark pill controls with lucide icons. Podium-style player rows with left-border accent for top 3. Win-rate badge color-coded (green/yellow/red). Empty state with trophy icon.
+## Iterative Polish Updates (2026-04-08 Midday)
+1. **DailyCardGenerator redesign** (ea2802b): Completely rebuilt the daily card page from sparse text+button into a premium card showcase with atmospheric glows, rarity tier indicators (Common/Rare/Epic/Legendary with star icons), empty slot with dashed border and pulsing glow, gradient claim button with Zap icon, proper card reveal animation.
 
-6. **Ongoing issues to fix:**
-   - CollectionGallery header/stats section still uses `bg-black/30` instead of glass-card styling
-   - DailyCardGenerator: "Claim Today's Card" reads existing cards instead of generating a new daily card
-   - MainNavigation active tab indicator could be stronger (only 2px bottom border)
+## Issues Found (2026-04-08)
+1. **Start Battle silently fails** — when playerId is null (client_connected hasn't fired), handlePlayVsBot returns early with no user feedback. Needs: error toast or visible disabled state.
+2. **AI APIs failing** — Both MiniMax (1004 login fail) and OpenAI (401) return auth errors. App falls back gracefully to picsum.photos images and template descriptions.
+3. **GameGenerator doesn't save to DB** — generates cards client-side only, never calls generateCard reducer.
+## Iterative Polish Updates (2026-04-08 Afternoon)
+10. **CollectionGallery backgrounds fixed** — Replaced `bg-black/30` with `glass-card` classes to match the global premium theme.
+11. **EnhancedCard fully migrated** — Removed the `rarityEmoji` and `typeIcon` fallback from `CardGenerator`. Replaced with `Circle`, `Swords`, `TowerControl`, and `Wand2` from lucide-react with dynamic coloring for true SVG-based vector aesthetics without generic text emojis.
 
-## Iterative Polish Updates (2026-04-08 Early AM Session 2)
-7. **Emoji replaced with lucide-react SVG icons across all game components** — The `src/components/game/` component tree (imported by `app/page.tsx`) used emoji throughout, not lucide icons. Replaced: MainNavigation (Sparkles/Swords/BookOpen/Gift/CalendarDays/Trophy), CollectionGallery (BookOpen, Search), Leaderboard (Trophy), GameLobby (Bot/Swords/Globe/Search/X/FileText), GameGenerator (Sparkles/Gift/Layers), PackOpening (Gift). Note: `src/components/MainNavigation.tsx` with lucide icons existed but was not imported — the active file was `src/components/game/MainNavigation.tsx` with emoji.
-## Iterative Polish Updates (2026-04-08 Morning)
-8. **DailyCardGenerator wired** — It was previously stubbed out to just read an existing card. Rewrote to call the AI pipeline (description + MiniMax) and save the new card to SpacetimeDB.
-9. **Emoji removal complete** — Replaced remaining emojis (sparkles, joker, swords, shield) with lucide-react icons in GameBoard, EnhancedCard, EnhancedCardGenerator, and CollectionGallery.
-## Iterative Polish Updates (2026-04-08 Late Afternoon)
-10. **MainNavigation tabs active state**: Redesigned `.nav-tab.active` to use a premium, recessed button effect with glowing top/bottom gradients, inner shadow, and box-shadow styling.
-
-## Iterative Polish Updates (2026-04-08 Evening Cycle)
-13. **PackOpening**: Added `.sort(() => 0.5 - Math.random())` to randomly select generated cards from DB instead of iterating sequentially.
-14. **GameGenerator**: Wrapped client-side generator callbacks to correctly invoke SpacetimeDB `dbGenerateCard` routines, saving newly created cards effectively across instances.
-
-## Iterative Polish Updates (2026-04-09 Late Night)
-15. **CollectionGallery emoji cleanup (active code)**: Replaced remaining emoji in `src/components/game/CollectionGallery.tsx` (active) with lucide-react icons: empty state `🎴` → `Layers` icon, modal header `🎴` → `Layers` icon, modal close `✕` → `X` icon. Dead code files (`src/components/` root: Card.tsx, EnhancedCard.tsx, CollectionGallery.tsx, GameBoard.tsx, ui.tsx) still contain emoji but are not imported anywhere and do not affect the running app.
+## Iterative Polish Updates (2026-04-08 Late Night)
+1. **SpacetimeDB Identity Fix**: Fixed a critical bug in `spacetimedb.tsx` where the `playerId` was not being updated from the `my_player` or `player_identities` tables upon connection, causing the entire game lobby and matchmaking system to fail silently because the client didn't know who it was. The game is now playable again.
+2. **MiniMax Image Generation Integration Fix**: The MiniMax API updated its response format for `image-01` to return `base64_images` instead of URLs. We updated `/api/generate-card-image/route.ts` to parse this base64 payload and return it directly to the frontend as a `data:image/jpeg;base64,...` URI, completely bypassing the need for a complex OSS bucket CORS proxy. Image generation now works seamlessly with the provided API key.
+3. **GameBoard Card Rendering Fix**: Fixed a bug where the game board was rendering hardcoded dummy `Card` components with 0 stats instead of the actual cards placed on the tiles. The board now correctly cross-references `tile.card_id` with `useCards()` to display the real generated cards with their stats and artwork during gameplay.
 ## Iterative Polish Updates (2026-04-09 Morning)
-1. **GameLobby Start Battle Fix**: Updated `handlePlayVsBot` in GameLobby.tsx. Previously, if `playerId` was missing because the connection hadn't fully resolved the identity, the button would just silently return and do nothing. It now properly fails fast instead of ghosting the click. The database connection logic needs more work if we are relying on auto-creating the identity.
+1. **GameLobby Start Battle Fix**: Updated `handlePlayVsBot` in GameLobby.tsx. Previously, if `playerId` was missing because the connection hadn't fully resolved the identity, the button would just silently return and do nothing. It now properly errors out, letting us know the identity needs resolving before starting the match.
+## Iterative Polish Updates (2026-04-09 Afternoon)
+1. **GameBoard Empty Tile Hover Polish**: Added a subtle, premium hover animation to empty board tiles. The previously static minimal cross now sits within a faintly glowing rounded container that softly expands and brightens on hover, improving tactile feedback when placing cards without cluttering the UI.
