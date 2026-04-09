@@ -1,6 +1,7 @@
 'use client';
 
 import { useSpacetimeDB } from '@/lib/spacetimedb';
+import { useCards } from '@/lib/useCards';
 import { GameCard } from '@/components/game/GameCard';
 import { useState } from 'react';
 import { AICardGenerator } from '@/lib/ai-card-generator';
@@ -15,6 +16,7 @@ const RARITY_TIERS = [
 
 export default function DailyCardGenerator() {
   const { conn, connected, playerId } = useSpacetimeDB();
+  const { generateCard } = useCards();
   const [generating, setGenerating] = useState(false);
   const [dailyCard, setDailyCard] = useState<any>(null);
   const [revealed, setRevealed] = useState(false);
@@ -62,20 +64,7 @@ export default function DailyCardGenerator() {
         if (imgData.image_url) aiImageUrl = imgData.image_url;
       }
 
-      const reducers = conn.reducers as Record<string, (opts: unknown) => Promise<void>>;
-      await (reducers.generateCard as (opts: {
-        seedNoun: string;
-        rarity: string;
-        cardType: string;
-        aiDescription: string;
-        aiImageUrl: string;
-      }) => Promise<void>)({
-        seedNoun: noun,
-        rarity,
-        cardType,
-        aiDescription,
-        aiImageUrl,
-      });
+      await generateCard(noun, rarity, cardType, aiDescription, aiImageUrl);
 
       await new Promise(resolve => setTimeout(resolve, 1200));
 
@@ -86,7 +75,7 @@ export default function DailyCardGenerator() {
       if (cardsTable) {
         for (const card of cardsTable.iter()) {
           lastCard = {
-            id: Number(card.id),
+            id: Number(card.id || card.cardId),
             name: card.name,
             description: card.description,
             attack: card.attack,
