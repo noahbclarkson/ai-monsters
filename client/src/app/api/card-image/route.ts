@@ -49,6 +49,8 @@ export async function GET(request: NextRequest) {
     const response = await fetch(imageUrl, {
       headers: {
         'Accept': 'image/jpeg,image/png,image/webp,*/*',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Referer': 'https://api.minimax.io/',
       },
       signal: AbortSignal.timeout(10_000),
     });

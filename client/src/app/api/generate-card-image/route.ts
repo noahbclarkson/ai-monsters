@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
         model: 'image-01',
         prompt,
         aspect_ratio: '2:3',
-        response_format: 'url',
+        response_format: 'base64',
       }),
     });
 
@@ -77,34 +77,42 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
 
-    // MiniMax returns { data: { image_urls: ["http://..."] } }
-    let imageUrl = '';
-    if (data.data && Array.isArray(data.data.image_urls) && data.data.image_urls[0]) {
-      imageUrl = data.data.image_urls[0];
-    } else if (data.data && Array.isArray(data.data) && data.data[0]) {
-      // Fallback for { data: [{ url: "..." }] } format
-      imageUrl = data.data[0].url || data.data[0].image_url || '';
-    } else if (data.url) {
-      imageUrl = data.url;
+    // Handle base64 response from MiniMax
+    let base64Image = '';
+    if (data.data && Array.isArray(data.data.image_base64) && data.data.image_base64[0]) {
+      base64Image = data.data.image_base64[0];
+    } else if (data.image_base64 && Array.isArray(data.image_base64) && data.image_base64[0]) {
+      base64Image = data.image_base64[0];
+    } else if (data.data && Array.isArray(data.data.image_urls) && data.data.image_urls[0]) {
+      // Fallback if they ignored response_format
+      base64Image = data.data.image_urls[0];
+      if (base64Image.startsWith('http')) {
+        // It's still a URL, use the proxy
+        const proxyUrl = `/api/card-image?url=${encodeURIComponent(base64Image)}&cardId=${cardId}`;
+        return NextResponse.json({
+          success: true,
+          image_url: proxyUrl,
+          prompt
+        });
+      }
     }
 
-    if (!imageUrl) {
-      console.error('MiniMax response missing URL:', JSON.stringify(data));
+    if (!base64Image) {
+      console.error('MiniMax response missing base64:', JSON.stringify(data).substring(0, 200));
       const safeName = noun.toLowerCase().replace(/\s+/g, '-');
       return NextResponse.json({
         success: false,
         image_url: `https://picsum.photos/seed/${safeName}-${cardId}/832/1248`,
-        message: 'MiniMax response missing image URL; using placeholder'
+        message: 'MiniMax response missing image data; using placeholder'
       });
     }
 
-    // Return a proxy URL so the image stays accessible even after the MiniMax signed URL expires.
-    // The /api/card-image/[id] route fetches from MiniMax on-demand.
-    const proxyUrl = `/api/card-image?url=${encodeURIComponent(imageUrl)}&cardId=${cardId}`;
+    // Direct data URI since we requested base64
+    const dataUri = base64Image.startsWith('data:') ? base64Image : `data:image/jpeg;base64,${base64Image}`;
 
     return NextResponse.json({
       success: true,
-      image_url: proxyUrl,
+      image_url: dataUri,
       prompt
     });
   } catch (error) {

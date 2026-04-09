@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { GameCard } from './GameCard';
+import { useCards } from '@/lib/useCards';
 import { GameBoardLoading } from './GameBoardLoading';
 import { useGame } from '@/lib/useGame';
 import { useSpacetimeDB } from '@/lib/spacetimedb';
@@ -19,6 +20,7 @@ interface TileData {
 }
 
 export function GameBoard({ gameId }: GameBoardProps) {
+  const { cards: allCards } = useCards();
   const {
     match,
     boardState,
@@ -176,21 +178,23 @@ export function GameBoard({ gameId }: GameBoardProps) {
       );
     }
 
-    // Card on tile - simplified inline card for board
+    // Card on tile
+    const dbCard = allCards.find(c => c.id === tile.card_id);
     return (
       <GameCard
-        name="Card"
-        description=""
-        attack={0}
-        defense={0}
-        range={0}
-        rarity="Common"
-        type="Unit"
+        name={dbCard?.name || "Card"}
+        description={dbCard?.description || ""}
+        attack={dbCard?.attack || 0}
+        defense={dbCard?.defense || 0}
+        range={dbCard?.range || 0}
+        rarity={dbCard?.rarity || "Common"}
+        type={dbCard?.cardType || "Unit"}
         isFlipped={!tile.is_face_up}
         isSelected={selectedTile?.x === x && selectedTile?.y === y}
         isAttacking={tile.is_attack_mode}
         size="sm"
         showBack={true}
+        imageUrl={dbCard?.imageUrl}
       />
     );
   };
