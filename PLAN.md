@@ -163,3 +163,5 @@ _Last updated: 2026-04-09 02:19 UTC_
 
 ## Iterative Polish Updates (2026-04-09 Late Night)
 15. **CollectionGallery emoji cleanup (active code)**: Replaced remaining emoji in `src/components/game/CollectionGallery.tsx` (active) with lucide-react icons: empty state `🎴` → `Layers` icon, modal header `🎴` → `Layers` icon, modal close `✕` → `X` icon. Dead code files (`src/components/` root: Card.tsx, EnhancedCard.tsx, CollectionGallery.tsx, GameBoard.tsx, ui.tsx) still contain emoji but are not imported anywhere and do not affect the running app.
+## Iterative Polish Updates (2026-04-09 Morning)
+1. **GameLobby Start Battle Fix**: Updated `handlePlayVsBot` in GameLobby.tsx. Previously, if `playerId` was missing because the connection hadn't fully resolved the identity, the button would just silently return and do nothing. It now properly errors out, letting us know the identity needs resolving before starting the match.
