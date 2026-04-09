@@ -148,6 +148,11 @@ h1, h2, h3, h4, h5, h6,
   100% { transform: rotateY(180deg); }
 }
 
+@keyframes tilePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.3); }
+  50% { box-shadow: 0 0 0 4px rgba(139, 92, 246, 0); }
+}
+
 @keyframes floatUp {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-6px); }
@@ -171,6 +176,7 @@ h1, h2, h3, h4, h5, h6,
 .animate-float { animation: floatUp 3s ease-in-out infinite; }
 .animate-spin-slow { animation: spinSlow 8s linear infinite; }
 .animate-glow-pulse { animation: glowPulse 2s ease-in-out infinite; }
+.animate-tile-pulse { animation: tilePulse 2s ease-out infinite; }
 
 /* === Card Rarity Borders & Glows === */
 .card-rarity-common {

@@ -170,10 +170,14 @@ export function GameBoard({ gameId }: GameBoardProps) {
     const tile = getTile(x, y);
     
     if (!tile?.card_id) {
-      // Empty tile
+      // Empty tile — subtle center indicator
       return (
-        <div className="w-full h-full flex items-center justify-center opacity-20">
-          <span className="text-2xl text-white/30">+</span>
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="w-6 h-6 rounded border border-white/[0.07] flex items-center justify-center">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 1v8M1 5h8" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </div>
         </div>
       );
     }
@@ -295,10 +299,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
                         {renderTileContent(x, y)}
                       </div>
                       
-                      {/* Coordinates (debug) */}
-                      <div className="absolute bottom-1 right-1 text-[10px] text-white/20">
-                        {x},{y}
-                      </div>
+
                     </div>
                   );
                 })}
