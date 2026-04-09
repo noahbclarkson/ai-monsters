@@ -102,129 +102,163 @@ export function GameCard({
     ? imageUrl 
     : `https://picsum.photos/seed/${name.replace(/\s+/g, '')}/832/1248`;
 
+  // Outer wrapper provides 3D perspective for the flip animation
+  const outerStyle: React.CSSProperties = {
+    perspective: '1400px',
+    perspectiveOrigin: 'center center',
+  };
+
+  // Inner flip container — this is what actually rotates
+  const flipInnerStyle: React.CSSProperties = {
+    position: 'relative',
+    width: '100%',
+    height: '100%',
+    transformStyle: 'preserve-3d',
+    transition: 'transform 0.6s cubic-bezier(0.4, 0.15, 0.2, 1)',
+    transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+  };
+
+  // Both faces share these properties — absolutely stacked in 3D space
+  const faceBase: React.CSSProperties = {
+    position: 'absolute',
+    inset: 0,
+    backfaceVisibility: 'hidden',
+    WebkitBackfaceVisibility: 'hidden',
+    borderRadius: 'inherit',
+    overflow: 'hidden',
+  };
+
   return (
     <div
       className={`
-        relative ${sc.card} rounded-xl overflow-hidden cursor-pointer
+        ${sc.card} rounded-xl overflow-hidden
         transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]
-        ${isSelected ? 'scale-105 z-10 shadow-2xl' : 'hover:scale-[1.04] hover:-translate-y-2 hover:shadow-2xl'}
+        ${isSelected ? 'scale-105 z-10 shadow-2xl' : 'hover:scale-[1.06] hover:-translate-y-3 hover:shadow-2xl'}
         ${isAttacking ? 'animate-pulse-ring' : ''}
         ${isDefending ? 'ring-2 ring-blue-400 ring-opacity-50' : ''}
       `}
       style={{
+        ...outerStyle,
         boxShadow: `
           0 0 0 1.5px ${rarityConfig.border},
           0 0 20px ${rarityConfig.glow},
           0 8px 32px rgba(0,0,0,0.5)
         `,
         ...cardStyle,
+        cursor: 'pointer',
       }}
       onClick={onClick}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      {/* Card Back */}
-      {showBack && isFlipped && (
-        <div className="absolute inset-0 bg-card-back flex flex-col items-center justify-center">
-          <div className="absolute inset-0 opacity-20">
-            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                  <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.3"/>
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#grid)" />
-            </svg>
-          </div>
-          <div className="relative z-10 text-center">
-            <div 
-              className="w-12 h-12 mx-auto mb-2 rounded-lg flex items-center justify-center"
+      {/* Flip inner container — rotates on Y axis */}
+      <div style={flipInnerStyle}>
+
+        {/* ── Card Front (shown when NOT flipped) ── */}
+        <div style={{ ...faceBase, transform: 'rotateY(0deg)' }}>
+          <div className="absolute inset-0 flex flex-col" style={{ background: 'var(--bg-card, #1a1a2e)' }}>
+            <div
+              className={`${sc.padding} flex items-center justify-between`}
               style={{ background: rarityConfig.gradient }}
             >
-              <span className="text-white font-bold text-lg">AM</span>
+              <h3 className={`${sc.text} font-bold text-white truncate drop-shadow-lg`} style={{ fontFamily: 'Cinzel, serif' }}>
+                {name}
+              </h3>
+              <div
+                className="w-7 h-7 rounded flex items-center justify-center text-white font-bold text-xs ml-2"
+                style={{ background: `${typeConfig.color}33`, color: typeConfig.color }}
+                title={type}
+              >
+                {typeConfig.icon}
+              </div>
             </div>
-            <p className="text-xs text-white/40 uppercase tracking-widest">AI Monsters</p>
-          </div>
-        </div>
-      )}
 
-      {/* Card Front */}
-      {!isFlipped && (
-        <div className="absolute inset-0 flex flex-col" style={{ background: 'var(--bg-card, #1a1a2e)' }}>
-          <div 
-            className={`${sc.padding} flex items-center justify-between`}
-            style={{ background: rarityConfig.gradient }}
-          >
-            <h3 className={`${sc.text} font-bold text-white truncate drop-shadow-lg`} style={{ fontFamily: 'Cinzel, serif' }}>
-              {name}
-            </h3>
-            <div 
-              className="w-7 h-7 rounded flex items-center justify-center text-white font-bold text-xs ml-2"
-              style={{ background: `${typeConfig.color}33`, color: typeConfig.color }}
-              title={type}
-            >
-              {typeConfig.icon}
-            </div>
-          </div>
-
-          <div className={`relative ${sc.art} overflow-hidden`}>
-            <img
-              src={displayImageUrl}
-              alt={name}
-              className="w-full h-full object-cover"
-              onError={() => setImageError(true)}
-            />
-            <div 
-              className="absolute inset-0 opacity-20"
-              style={{ background: `linear-gradient(180deg, transparent 50%, ${rarityConfig.border} 100%)` }}
-            />
-            
-            {isHovering && (rarity === 'Epic' || rarity === 'Legendary') && (
-              <div 
-                className="absolute inset-0 pointer-events-none animate-shimmer"
-                style={{
-                  background: `linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%)`,
-                  backgroundSize: '200% 100%',
-                }}
+            <div className={`relative ${sc.art} overflow-hidden`}>
+              <img
+                src={displayImageUrl}
+                alt={name}
+                className="w-full h-full object-cover"
+                onError={() => setImageError(true)}
               />
-            )}
-          </div>
+              <div
+                className="absolute inset-0 opacity-20"
+                style={{ background: `linear-gradient(180deg, transparent 50%, ${rarityConfig.border} 100%)` }}
+              />
 
-          <div className={`${sc.padding} flex items-center justify-around gap-1`} style={{ background: 'rgba(0,0,0,0.3)' }}>
-            {[
-              { key: 'attack', value: attack },
-              { key: 'defense', value: defense },
-              { key: 'range', value: range },
-            ].map(({ key, value }) => {
-              const stat = STAT_COLORS[key as keyof typeof STAT_COLORS];
-              return (
+              {isHovering && (rarity === 'Epic' || rarity === 'Legendary') && (
                 <div
-                  key={key}
-                  className="flex-1 flex flex-col items-center py-1 rounded"
-                  style={{ background: stat.bg }}
-                >
-                  <span className="text-xs opacity-60" style={{ color: stat.text }}>{stat.label}</span>
-                  <span className={`font-bold ${sc.text}`} style={{ color: stat.text, fontFamily: 'JetBrains Mono, monospace' }}>
-                    {value}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+                  className="absolute inset-0 pointer-events-none animate-shimmer"
+                  style={{
+                    background: `linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%)`,
+                    backgroundSize: '200% 100%',
+                  }}
+                />
+              )}
+            </div>
 
-          <div className={`flex-1 ${sc.padding} overflow-hidden`} style={{ background: 'var(--bg-card, #1a1a2e)' }}>
-            <p className={`${sc.text} text-white/60 leading-relaxed line-clamp-3`}>
-              {description}
-            </p>
-          </div>
+            <div className={`${sc.padding} flex items-center justify-around gap-1`} style={{ background: 'rgba(0,0,0,0.3)' }}>
+              {[
+                { key: 'attack', value: attack },
+                { key: 'defense', value: defense },
+                { key: 'range', value: range },
+              ].map(({ key, value }) => {
+                const stat = STAT_COLORS[key as keyof typeof STAT_COLORS];
+                return (
+                  <div
+                    key={key}
+                    className="flex-1 flex flex-col items-center py-1 rounded"
+                    style={{ background: stat.bg }}
+                  >
+                    <span className="text-xs opacity-60" style={{ color: stat.text }}>{stat.label}</span>
+                    <span className={`font-bold ${sc.text}`} style={{ color: stat.text, fontFamily: 'JetBrains Mono, monospace' }}>
+                      {value}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
 
-          <div className={`absolute bottom-2 right-2 ${sc.padding} rounded`} style={{ background: rarityConfig.badge }}>
-            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: rarityConfig.border }}>
-              {rarity}
-            </span>
+            <div className={`flex-1 ${sc.padding} overflow-hidden`} style={{ background: 'var(--bg-card, #1a1a2e)' }}>
+              <p className={`${sc.text} text-white/60 leading-relaxed line-clamp-3`}>
+                {description}
+              </p>
+            </div>
+
+            <div className={`absolute bottom-2 right-2 ${sc.padding} rounded`} style={{ background: rarityConfig.badge }}>
+              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: rarityConfig.border }}>
+                {rarity}
+              </span>
+            </div>
           </div>
         </div>
-      )}
+
+        {/* ── Card Back (shown when flipped) ── */}
+        {showBack && (
+          <div style={{ ...faceBase, transform: 'rotateY(180deg)' }}>
+            <div className="absolute inset-0 bg-card-back flex flex-col items-center justify-center">
+              <div className="absolute inset-0 opacity-20">
+                <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <pattern id="cardGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+                      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.3"/>
+                    </pattern>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#cardGrid)" />
+                </svg>
+              </div>
+              <div className="relative z-10 text-center">
+                <div
+                  className="w-12 h-12 mx-auto mb-2 rounded-lg flex items-center justify-center"
+                  style={{ background: rarityConfig.gradient }}
+                >
+                  <span className="text-white font-bold text-lg">AM</span>
+                </div>
+                <p className="text-xs text-white/40 uppercase tracking-widest">AI Monsters</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

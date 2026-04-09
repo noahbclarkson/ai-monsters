@@ -131,7 +131,7 @@ Agent workspace: `/home/ubuntu/.openclaw/workspace-aimonsters/`
 
 ---
 
-_Last updated: 2026-04-07 16:03 UTC_
+_Last updated: 2026-04-09 02:19 UTC_
 
 ## Iterative Polish Updates (2026-04-07 Later)
 1. Created skeleton loaders `GameBoardLoading` and `CollectionGalleryLoading`.
@@ -160,3 +160,6 @@ _Last updated: 2026-04-07 16:03 UTC_
 ## Iterative Polish Updates (2026-04-08 Evening Cycle)
 13. **PackOpening**: Added `.sort(() => 0.5 - Math.random())` to randomly select generated cards from DB instead of iterating sequentially.
 14. **GameGenerator**: Wrapped client-side generator callbacks to correctly invoke SpacetimeDB `dbGenerateCard` routines, saving newly created cards effectively across instances.
+
+## Iterative Polish Updates (2026-04-09 Late Night)
+15. **CollectionGallery emoji cleanup (active code)**: Replaced remaining emoji in `src/components/game/CollectionGallery.tsx` (active) with lucide-react icons: empty state `🎴` → `Layers` icon, modal header `🎴` → `Layers` icon, modal close `✕` → `X` icon. Dead code files (`src/components/` root: Card.tsx, EnhancedCard.tsx, CollectionGallery.tsx, GameBoard.tsx, ui.tsx) still contain emoji but are not imported anywhere and do not affect the running app.

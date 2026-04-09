@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, BookOpen, Sparkles, Settings } from 'lucide-react';
+import { Search, BookOpen, Sparkles, Settings, X, Layers } from 'lucide-react';
 import { GameCard } from './GameCard';
 import { CollectionGalleryLoading } from './CollectionGalleryLoading';
 import { useCards } from '@/lib/useCards';
@@ -357,7 +357,7 @@ export function CollectionGallery() {
           </div>
         ) : filteredCards.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-state-icon">🎴</div>
+            <div className="empty-state-icon"><Layers size={48} className="text-white/30" strokeWidth={1} /></div>
             <p className="empty-state-title">
               {hasActiveFilters ? 'No cards match your filters' : 'No cards yet'}
             </p>
@@ -416,14 +416,15 @@ export function CollectionGallery() {
             {/* Modal header */}
             <div className="p-4 border-b border-white/5 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-xl">🎴</span>
+                <Layers size={20} className="text-purple-400" strokeWidth={1.5} />
                 <h3 className="font-semibold text-white">Card Details</h3>
               </div>
               <button
                 onClick={() => setSelectedCard(null)}
                 className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors"
+                aria-label="Close card details"
               >
-                ✕
+                <X size={16} strokeWidth={2} />
               </button>
             </div>
 
