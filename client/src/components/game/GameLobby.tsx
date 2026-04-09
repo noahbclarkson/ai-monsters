@@ -44,12 +44,10 @@ export function GameLobby() {
   const diffConfig = DIFFICULTY_COLORS[selectedDifficulty];
 
   const handlePlayVsBot = async () => {
-    if (!playerId) {
-      console.error("Not connected or missing playerId, proceeding anyway for local dev");
-      // let it proceed, server will auto-create identity
+    if (!conn || !playerId) {
+      console.error("Not connected or missing playerId");
       return;
     }
-    if (!conn || !playerId) return;
     setStarting(true);
     try {
       const db = conn.db as Record<string, { iter(): Iterable<{ id: bigint }> }>;
