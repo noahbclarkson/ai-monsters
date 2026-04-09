@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Swords, Building2, Zap, X } from 'lucide-react';
+import { Swords, Building2, Zap, X, Layers } from 'lucide-react';
 import { EnhancedCard } from './EnhancedCard';
 import { useCards } from '@/lib/useCards';
 import { AICardGenerator } from '@/lib/ai-card-generator';
@@ -413,8 +413,8 @@ export function CollectionGallery({ initialCards = [] }: CollectionGalleryProps)
                         }}
                       />
                     ) : (
-                      <div className="fallback-art flex items-center justify-center text-6xl opacity-50">
-                        🎴
+                      <div className="fallback-art flex items-center justify-center text-white/40">
+                        <Layers size={64} strokeWidth={1} />
                       </div>
                     )}
                   </div>

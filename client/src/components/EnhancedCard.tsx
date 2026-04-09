@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { RarityBadge } from './RarityBadge'
 import { CardGenerator } from '@/lib/card-generator'
-import { Swords, Shield, Target, Sparkles, TowerControl, Wand2, Circle } from 'lucide-react'
+import { Swords, Shield, Target, Sparkles, TowerControl, Wand2, Circle, Layers } from 'lucide-react'
 
 interface CardProps {
   name: string
@@ -81,11 +81,23 @@ export function EnhancedCard({
     ${isHovering ? 'shadow-2xl' : ''}
   `;
 
-  const flipClasses = `
-    w-full h-full rounded-lg overflow-hidden
-    transform transition-transform duration-500 preserve-3d
-    ${isFlipped ? 'rotate-y-180' : ''}
-  `;
+  const flipInnerStyle: React.CSSProperties = {
+    position: 'relative',
+    width: '100%',
+    height: '100%',
+    transformStyle: 'preserve-3d',
+    transition: 'transform 0.6s cubic-bezier(0.4, 0.15, 0.2, 1)',
+    transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+  };
+
+  const faceBase: React.CSSProperties = {
+    position: 'absolute',
+    inset: 0,
+    backfaceVisibility: 'hidden',
+    WebkitBackfaceVisibility: 'hidden',
+    borderRadius: 'inherit',
+    overflow: 'hidden',
+  };
 
   return (
     <div 
@@ -96,10 +108,20 @@ export function EnhancedCard({
       style={{ perspective: '1000px' }}
     >
       {/* Card Container with 3D flip effect */}
-      <div className={flipClasses}>
-        {/* Card Back (when flipped) */}
-        {isFlipped && (
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-blue-600 p-4 flex flex-col justify-between backface-hidden">
+      <div style={flipInnerStyle}>
+        {/* Card Back (always rendered, hidden via rotateY when not flipped) */}
+        <div
+          style={{
+            ...faceBase,
+            transform: 'rotateY(180deg)',
+            background: 'linear-gradient(135deg, #7c3aed 0%, #2563eb 100%)',
+            padding: '1rem',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            ...(isFlipped ? {} : { visibility: 'hidden', pointerEvents: 'none' }),
+          }}
+        >
             {/* Pattern overlay */}
             <div className="absolute inset-0 opacity-10">
               <div className="w-full h-full bg-repeat" 
@@ -126,10 +148,9 @@ export function EnhancedCard({
               </div>
             </div>
           </div>
-        )}
 
-        {/* Card Front (normal view) */}
-        <div className={`bg-white ${isFlipped ? 'hidden' : 'block'}`}>
+        {/* Card Front (always rendered) */}
+        <div style={{ ...faceBase, transform: 'rotateY(0deg)', background: 'white', ...(isFlipped ? { visibility: 'hidden', pointerEvents: 'none' } : {}) }}>
           {/* Card Header with animated gradient */}
           <div className={`relative p-4 ${rarityColor} text-white overflow-hidden`}>
             {/* Animated gradient overlay */}
@@ -170,8 +191,8 @@ export function EnhancedCard({
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent animate-pulse-slow"></div>
                 </>
               ) : (
-                <div className="fallback-art hidden flex items-center justify-center text-6xl opacity-50">
-                  🎴
+                <div className="fallback-art hidden flex items-center justify-center text-white/40">
+                  <Layers size={64} strokeWidth={1} />
                 </div>
               )}
             </div>

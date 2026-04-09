@@ -1,3 +1,4 @@
+import { Layers, Swords, TowerControl, Wand2 } from 'lucide-react';
 import { RarityBadge } from './RarityBadge'
 import { CardGenerator } from '@/lib/card-generator'
 
@@ -14,8 +15,15 @@ interface CardProps {
 
 export function Card({ name, description, attack, defense, range, rarity, type, imageUrl }: CardProps) {
   const rarityColor = CardGenerator.getRarityColor(rarity)
-  const typeIcon = CardGenerator.getTypeIcon(type)
-  const rarityEmoji = CardGenerator.getRarityEmoji(rarity)
+
+  const getTypeIconComponent = (t: string) => {
+    switch (t) {
+      case 'Unit': return <Swords size={20} className="text-white" />;
+      case 'Building': return <TowerControl size={20} className="text-white" />;
+      case 'Spell': return <Wand2 size={20} className="text-white" />;
+      default: return <Layers size={20} className="text-white" />;
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-200">
@@ -23,7 +31,7 @@ export function Card({ name, description, attack, defense, range, rarity, type, 
       <div className={`p-4 ${rarityColor} text-white`}>
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-xl font-bold text-white">{name}</h3>
-          <div className="text-2xl">{typeIcon}</div>
+          <div className="text-2xl">{getTypeIconComponent(type)}</div>
         </div>
         <div className="flex items-center gap-2">
           <RarityBadge rarity={rarity} />
@@ -46,7 +54,9 @@ export function Card({ name, description, attack, defense, range, rarity, type, 
             }}
           />
         ) : (
-          <div className="fallback-art hidden text-6xl opacity-50">🎴</div>
+          <div className="fallback-art hidden flex items-center justify-center text-white/40">
+            <Layers size={64} strokeWidth={1} />
+          </div>
         )}
       </div>
 

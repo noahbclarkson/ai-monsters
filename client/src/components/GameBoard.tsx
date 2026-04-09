@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Layers, Swords, Shield } from 'lucide-react';
 import { Card } from './Card';
 import { useGame } from '@/lib/useGame';
 
@@ -99,8 +100,11 @@ export function GameBoard({ gameId }: GameBoardProps) {
 
     return (
       <div className={`text-center ${tile.is_attack_mode ? 'bg-red-100' : 'bg-blue-100'} p-2 rounded`}>
-        <div className="text-xs font-bold">
-          {tile.is_attack_mode ? '⚔️' : '🛡️'}
+        <div className="flex justify-center">
+          {tile.is_attack_mode
+            ? <Swords size={14} className="text-red-600" />
+            : <Shield size={14} className="text-blue-600" />
+          }
         </div>
         <div className="text-xs mt-1">Card</div>
       </div>
@@ -205,7 +209,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
                   }}
                 >
                   <div className="text-white text-xs text-center">
-                    <div className="text-lg">🃏</div>
+                    <div className="flex justify-center text-white/30"><Layers size={24} strokeWidth={1.5} /></div>
                     <div className="text-xs mt-1">Card</div>
                   </div>
                 </div>
