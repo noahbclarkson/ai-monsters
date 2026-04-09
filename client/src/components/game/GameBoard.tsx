@@ -172,10 +172,10 @@ export function GameBoard({ gameId }: GameBoardProps) {
     if (!tile?.card_id) {
       // Empty tile — subtle center indicator
       return (
-        <div className="w-full h-full flex items-center justify-center">
-          <div className="w-6 h-6 rounded border border-white/[0.07] flex items-center justify-center">
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M5 1v8M1 5h8" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" strokeLinecap="round"/>
+        <div className="w-full h-full flex items-center justify-center group transition-all duration-300">
+          <div className="w-8 h-8 rounded-lg border border-white/[0.05] bg-white/[0.02] flex items-center justify-center transition-all duration-300 group-hover:border-white/[0.15] group-hover:bg-white/[0.05] group-hover:scale-110 shadow-[0_0_15px_rgba(0,0,0,0.1)_inset]">
+            <svg width="12" height="12" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" className="transition-opacity duration-300 opacity-40 group-hover:opacity-100">
+              <path d="M5 1v8M1 5h8" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
           </div>
         </div>
