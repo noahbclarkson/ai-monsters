@@ -44,9 +44,7 @@ export function EnhancedCardGenerator() {
               Back to Generator
             </button>
           </div>
-          <PackOpening 
-            onPackComplete={() => {}} 
-          />
+          <PackOpening />
         </div>
       )}
     </div>

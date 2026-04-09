@@ -6,7 +6,7 @@ import { useCards } from '@/lib/useCards';
 import { GameBoardLoading } from './GameBoardLoading';
 import { useGame } from '@/lib/useGame';
 import { useSpacetimeDB } from '@/lib/spacetimedb';
-import { Swords, Shield, HelpCircle } from 'lucide-react';
+import { Swords, Shield } from 'lucide-react';
 
 interface GameBoardProps {
   gameId: number;
@@ -321,32 +321,51 @@ export function GameBoard({ gameId }: GameBoardProps) {
         </div>
         
         <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
-          {handCards && handCards.filter((c: any) => Number(c.playerId) === Number(playerId)).length > 0 ? (
-            handCards.filter((c: any) => Number(c.playerId) === Number(playerId)).map((card: any, index: number) => (
-              <div
-                key={`hand-${card.id}-${index}`}
-                className="flex-shrink-0 w-24 h-36 bg-gradient-to-br from-purple-600/50 to-blue-600/50 rounded-lg p-2 cursor-pointer hover:from-purple-500/80 hover:to-blue-500/80 hover:-translate-y-2 transition-all border border-white/10 hover:border-white/30 hover:shadow-lg hover:shadow-purple-500/20 flex flex-col items-center justify-center"
-                onClick={() => {
-                  // Auto-place on first empty tile
-                  for (let x = 0; x < 3; x++) {
-                    for (let y = 0; y < 3; y++) {
-                      if (!getTile(x, y)?.card_id) {
-                        placeCard(BigInt(card.id), BigInt(playerId!), x, y).catch(console.error);
-                        return;
+          {(() => {
+            const myHandCards = handCards
+              ? handCards.filter((c: any) => Number(c.playerId) === Number(playerId))
+              : [];
+            if (myHandCards.length === 0) {
+              return (
+                <div className="flex-shrink-0 w-24 h-36 rounded-lg border-2 border-dashed border-white/10 flex items-center justify-center">
+                  <span className="text-white/30 text-xs">No cards</span>
+                </div>
+              );
+            }
+            return myHandCards.map((handEntry: any, index: number) => {
+              const dbCard = allCards.find(c => c.id === handEntry.id);
+              if (!dbCard) return null;
+              return (
+                <div
+                  key={`hand-${handEntry.id}-${index}`}
+                  className="flex-shrink-0"
+                  onClick={() => {
+                    // Auto-place on first empty tile in player zone
+                    for (let x = 0; x < 3; x++) {
+                      for (let y = 0; y < 3; y++) {
+                        if (!getTile(x, y)?.card_id) {
+                          placeCard(BigInt(handEntry.id), BigInt(playerId!), x, y).catch(console.error);
+                          return;
+                        }
                       }
                     }
-                  }
-                }}
-              >
-                    <div className="flex items-center justify-center mb-2"><HelpCircle size={28} className="text-white/40" strokeWidth={1.5} /></div>
-                <div className="text-xs font-bold text-white/90">Card</div>
-              </div>
-            ))
-          ) : (
-            <div className="flex-shrink-0 w-24 h-36 rounded-lg border-2 border-dashed border-white/10 flex items-center justify-center">
-              <span className="text-white/30 text-xs">No cards</span>
-            </div>
-          )}
+                  }}
+                >
+                  <GameCard
+                    name={dbCard.name}
+                    description={dbCard.description}
+                    attack={dbCard.attack}
+                    defense={dbCard.defense}
+                    range={dbCard.range}
+                    rarity={dbCard.rarity}
+                    type={dbCard.cardType}
+                    imageUrl={dbCard.imageUrl}
+                    size="sm"
+                  />
+                </div>
+              );
+            });
+          })()}
         </div>
       </div>
 

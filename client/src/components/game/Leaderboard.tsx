@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { Trophy } from 'lucide-react';
 import { useLeaderboard } from '@/lib/useLeaderboard';
+import { useSpacetimeDB } from '@/lib/spacetimedb';
 
 interface Player {
   id: string;
@@ -131,7 +132,7 @@ function LeaderboardEntry({ player, rank, isCurrentPlayer }: LeaderboardEntryPro
 export function Leaderboard() {
   const { leaderboard, loading, error } = useLeaderboard(50);
   const [sortBy, setSortBy] = useState<'rating' | 'wins' | 'level'>('rating');
-  const { playerId } = require('@/lib/spacetimedb').useSpacetimeDB();
+  const { playerId } = useSpacetimeDB();
 
   const sortedPlayers = useMemo((): Player[] => {
     const mapped = leaderboard.map(p => {
