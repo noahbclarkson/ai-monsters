@@ -13,37 +13,32 @@ export class AICardGenerator {
     'Beast', 'Creature', 'Entity', 'Being', 'Machine', 'Construct'
   ];
 
-  // Generate real MiniMax card art using OpenClaw image generation
-  static async generateCardImage(noun: string, cardType: CardType): Promise<string> {
-    // Construct detailed prompt based on card type and noun
-    let prompt = `${noun} ${cardType.toLowerCase()}, fantasy card art, `;
-    
-    switch (cardType) {
-      case 'Unit':
-        prompt += 'character design, warrior, combat-ready, detailed armor, dynamic pose, ';
-        break;
-      case 'Building':
-        prompt += 'fantasy architecture, structure, fortress, tower, castle, detailed masonry, ';
-        break;
-      case 'Spell':
-        prompt += 'magical effect, mystical energy, arcane symbols, glowing particles, ethereal, ';
-        break;
-    }
-    
-    prompt += '2D game card, portrait aspect ratio, high detail, vibrant colors, fantasy style, digital art';
-    
+  // Generate card art via the /api/generate-card-image endpoint (MiniMax)
+  static async generateCardImage(noun: string, cardType: CardType, rarity: Rarity = 'Common', cardId?: number): Promise<string> {
     try {
-      // Note: In a browser environment, this would be proxied through an API
-      // For local development with OpenClaw, we'll generate unique filenames
-      const timestamp = Date.now();
+      const response = await fetch('/api/generate-card-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          noun,
+          cardType,
+          rarity,
+          cardId: cardId ?? Date.now(),
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.image_url) return data.image_url;
+      }
+
+      // API failed — return picsum placeholder
       const safeName = noun.toLowerCase().replace(/\s+/g, '-');
-      const safeType = cardType.toLowerCase();
-      
-      // Return a path that matches where images would be stored
-      return `/api/generated/${safeName}-${safeType}-${timestamp}.jpg`;
+      return `https://picsum.photos/seed/${safeName}-${Date.now()}/832/1248`;
     } catch (error) {
       console.error('Error generating image:', error);
-      return `https://via.placeholder.com/832x1248/333333/FFFFFF?text=${encodeURIComponent(noun)}`;
+      const safeName = noun.toLowerCase().replace(/\s+/g, '-');
+      return `https://picsum.photos/seed/${safeName}-${Date.now()}/832/1248`;
     }
   }
 
@@ -153,8 +148,8 @@ export class AICardGenerator {
     // Generate AI-enhanced description
     const description = await this.generateAIDescription(noun, rarity, cardType, lastCards);
     
-    // Generate real image
-    const image_url = await this.generateCardImage(noun, cardType);
+    // Generate real image via MiniMax API
+    const image_url = await this.generateCardImage(noun, cardType, rarity, id);
 
     return {
       id,

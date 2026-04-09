@@ -166,7 +166,7 @@ export function GameLobby() {
         {/* Difficulty selector */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-white/70 mb-3">Select Difficulty</label>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {(['Easy', 'Medium', 'Hard'] as const).map(diff => {
               const config = DIFFICULTY_COLORS[diff];
               const isSelected = selectedDifficulty === diff;

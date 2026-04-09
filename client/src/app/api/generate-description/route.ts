@@ -20,10 +20,14 @@ export async function POST(request: NextRequest) {
     const { prompt, noun, rarity, cardType } = await request.json();
 
     if (!OPENAI_API_KEY) {
-      return NextResponse.json(
-        { error: 'OPENAI_API_KEY not configured' },
-        { status: 500 }
-      );
+      // No API key — return fallback description so card generation still works
+      return NextResponse.json({
+        success: true,
+        description: fallbackDescription(noun, rarity, cardType),
+        noun,
+        rarity,
+        cardType,
+      });
     }
 
     const systemPrompt = `You are an expert game designer for a fantasy card game. Generate creative, immersive card descriptions that bring creatures, spells, and buildings to life. Each description should be 2-3 sentences, evocative, and reflect the card's rarity and type.
@@ -60,18 +64,20 @@ Generate a card description based on the context above. Only return the descript
       }),
     });
 
-    if (!response.ok) {
+    let description = '';
+    if (response.ok) {
+      const data = await response.json();
+      description = data.choices?.[0]?.message?.content?.trim() || '';
+    } else {
       const errorData = await response.text();
       console.error('OpenAI API error:', response.status, errorData);
-      return NextResponse.json(
-        { error: 'AI generation failed', details: `OpenAI API error: ${response.status}` },
-        { status: 500 }
-      );
+      // Fall back gracefully instead of failing
     }
 
-    const data = await response.json();
-    const description = data.choices?.[0]?.message?.content?.trim()
-      || fallbackDescription(noun, rarity, cardType);
+    // Use fallback if AI failed or returned empty
+    if (!description) {
+      description = fallbackDescription(noun, rarity, cardType);
+    }
 
     return NextResponse.json({
       success: true,
@@ -90,15 +96,34 @@ Generate a card description based on the context above. Only return the descript
 }
 
 function fallbackDescription(noun: string, rarity: string, cardType: string): string {
-  const intensity = rarity === 'Legendary' ? 'legendary, world-altering' :
-    rarity === 'Epic' ? 'powerful, awe-inspiring' :
-    rarity === 'Rare' ? 'notable, formidable' : 'sturdy, reliable';
+  const intensities: Record<string, string[]> = {
+    Legendary: ['legendary, world-altering', 'mythic, reality-bending', 'peerless, god-touched'],
+    Epic:      ['powerful, awe-inspiring', 'formidable, battle-hardened', 'fearsome, unstoppable'],
+    Rare:      ['notable, formidable', 'seasoned, cunning', 'resilient, battle-tested'],
+    Common:    ['sturdy, reliable', 'steadfast, determined', 'tenacious, unyielding'],
+  };
+  const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+  const intensity = pick(intensities[rarity] ?? intensities.Common);
 
-  if (cardType === 'Unit') {
-    return `A ${intensity} ${noun} warrior whose reputation precedes them into every battle. Their presence on the field shifts the tide of combat in ways that become legend.`;
-  } else if (cardType === 'Building') {
-    return `An imposing ${noun} citadel whose ${intensity} defenses have repelled countless invasions. Within its walls, armies find refuge and strength.`;
-  } else {
-    return `A legendary ${noun} incantation that weaves ${intensity} magic to reshape the battlefield. Its effects echo long after the spell is cast.`;
-  }
+  const unitDescriptions = [
+    `A ${intensity} ${noun} warrior whose reputation precedes them into every battle. Their presence on the field shifts the tide of combat in ways that become legend.`,
+    `Forged in the fires of countless battles, this ${intensity} ${noun} fights with unwavering resolve. Allies rally behind them; enemies flee before them.`,
+    `Born of ancient lineage and tempered by war, this ${intensity} ${noun} carries the hopes of their people into every engagement. Their skill is unmatched among their kin.`,
+  ];
+
+  const buildingDescriptions = [
+    `An imposing ${noun} citadel whose ${intensity} defenses have repelled countless invasions. Within its walls, armies find refuge and strength.`,
+    `This ${intensity} ${noun} stronghold stands as a monument to engineering mastery. Its walls have never fallen, its garrisons never broken.`,
+    `Rising from the earth like a monument to defiance, this ${intensity} ${noun} fortress commands the battlefield. Those who siege it pay dearly.`,
+  ];
+
+  const spellDescriptions = [
+    `A ${intensity} ${noun} incantation that weaves ancient magic to reshape the battlefield. Its effects echo long after the spell is cast.`,
+    `Drawn from forgotten grimoires, this ${intensity} ${noun} spell unleashes devastation upon the unwary. Few survive its wrath unscathed.`,
+    `The air crackles with arcane energy when this ${intensity} ${noun} enchantment is invoked. Reality itself bends to the caster\'s will.`,
+  ];
+
+  if (cardType === 'Building') return pick(buildingDescriptions);
+  if (cardType === 'Spell') return pick(spellDescriptions);
+  return pick(unitDescriptions);
 }
