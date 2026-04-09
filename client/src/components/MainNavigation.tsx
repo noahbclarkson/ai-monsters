@@ -108,7 +108,7 @@ export function MainNavigation() {
                   }`}
                 >
                   <span className="text-current">{tab.icon}</span>
-                  <span className="text-xs md:text-sm hidden md:inline">{tab.label}</span>
+                  <span className="text-xs md:text-sm">{tab.label}</span>
                   {activeTab === tab.id && (
                     <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"></div>
                   )}

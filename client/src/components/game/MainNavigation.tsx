@@ -83,7 +83,7 @@ export function MainNavigation() {
                 className={`nav-tab ${activeTab === tab.id ? 'active' : ''}`}
               >
                 <span className="text-base">{tab.icon}</span>
-                <span className="text-xs sm:text-sm">{tab.label}</span>
+                <span className="hidden sm:inline text-sm">{tab.label}</span>
               </button>
             ))}
           </div>
