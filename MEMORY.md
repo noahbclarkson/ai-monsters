@@ -26,3 +26,4 @@
 
 ## Iterative Polish Updates (2026-04-08 Late Afternoon)
 10. **MainNavigation tabs active state**: Redesigned `.nav-tab.active` to use a premium, recessed button effect with glowing top/bottom gradients, inner shadow, and box-shadow styling, moving away from the basic flat layout block.
+- **2026-04-10**: Fixed "Opening Pack..." spinner and text alignment on the `PackOpening` component button by applying flexbox.

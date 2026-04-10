@@ -175,12 +175,12 @@ export function PackOpening() {
             <button
               onClick={handleOpenPack}
               disabled={opening}
-              className="btn btn-primary py-4 px-12 text-xl shadow-xl shadow-purple-500/20"
+              className="btn btn-primary py-4 px-12 text-xl shadow-xl shadow-purple-500/20 flex items-center justify-center mx-auto"
             >
               {opening ? (
                 <>
                   <div className="spinner spinner-sm mr-3" />
-                  Opening Pack...
+                  <span>Opening Pack...</span>
                 </>
               ) : (
                 'Open Standard Pack'

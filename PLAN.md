@@ -145,6 +145,7 @@ _Last updated: 2026-04-07 16:03 UTC_
 1. **DailyCardGenerator redesign** (ea2802b): Completely rebuilt the daily card page from sparse text+button into a premium card showcase with atmospheric glows, rarity tier indicators (Common/Rare/Epic/Legendary with star icons), empty slot with dashed border and pulsing glow, gradient claim button with Zap icon, proper card reveal animation.
 
 ## Issues Found (2026-04-08)
+- **Pack Opening Button Polish** — When opening a pack, the spinner and text were misaligned. Fixed by using a flex container.
 1. **Start Battle silently fails** — when playerId is null (client_connected hasn't fired), handlePlayVsBot returns early with no user feedback. Needs: error toast or visible disabled state.
 2. **AI APIs failing** — Both MiniMax (1004 login fail) and OpenAI (401) return auth errors. App falls back gracefully to picsum.photos images and template descriptions.
 3. **GameGenerator doesn't save to DB** — generates cards client-side only, never calls generateCard reducer.
@@ -195,3 +196,6 @@ _Last updated: 2026-04-07 16:03 UTC_
 - All emoji removed from source files (verified with grep). No emoji remain.
 - Premium SVG icons consistently used throughout the UI.
 - Build passes. No TypeScript errors. Previously, the icon/spinner and text were separated directly inside the button, occasionally causing misalignments. They are now wrapped in a flex container ensuring perfect horizontal centering of the label alongside its icon.
+
+## Iterative Polish Updates (2026-04-10 Morning)
+1. **Pack Opening Polish**: Fixed the "Opening Pack..." button in `PackOpening.tsx` where the text and loading spinner were misaligned. They are now wrapped in a flex container (`flex items-center justify-center mx-auto`) ensuring perfect horizontal centering of the label alongside its spinner icon.
