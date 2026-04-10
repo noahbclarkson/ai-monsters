@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { Swords, Building2, Sparkles } from 'lucide-react';
 
 interface GameCardProps {
   id?: number;
@@ -48,10 +49,10 @@ const RARITY_COLORS: Record<string, { border: string; glow: string; badge: strin
   },
 };
 
-const TYPE_CONFIG: Record<string, { icon: string; color: string }> = {
-  Unit: { icon: 'S', color: '#ef4444' },
-  Building: { icon: 'B', color: '#6366f1' },
-  Spell: { icon: 'X', color: '#22d3ee' },
+const TYPE_CONFIG: Record<string, { Icon: React.ElementType; color: string }> = {
+  Unit: { Icon: Swords, color: '#ef4444' },
+  Building: { Icon: Building2, color: '#6366f1' },
+  Spell: { Icon: Sparkles, color: '#22d3ee' },
 };
 
 const STAT_COLORS = {
@@ -165,11 +166,11 @@ export function GameCard({
                 {name}
               </h3>
               <div
-                className="w-7 h-7 rounded flex items-center justify-center text-white font-bold text-xs ml-2"
+                className="w-7 h-7 rounded flex items-center justify-center text-white ml-2"
                 style={{ background: `${typeConfig.color}33`, color: typeConfig.color }}
                 title={type}
               >
-                {typeConfig.icon}
+                <typeConfig.Icon size={14} strokeWidth={2} />
               </div>
             </div>
 

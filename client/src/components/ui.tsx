@@ -162,9 +162,9 @@ interface StatBoxProps {
 }
 
 const STAT_CONFIG = {
-  attack: { label: 'ATK', color: 'text-stat-attack', bg: 'bg-stat-attack/10', icon: '⚔' },
-  defense: { label: 'DEF', color: 'text-stat-defense', bg: 'bg-stat-defense/10', icon: '🛡' },
-  range: { label: 'RNG', color: 'text-stat-range', bg: 'bg-stat-range/10', icon: '◎' },
+  attack: { label: 'ATK', color: 'text-stat-attack', bg: 'bg-stat-attack/10', iconPath: 'M12 2L4 7v6c0 5.25 3.4 10.15 8 11.35 4.6-1.2 8-6.1 8-11.35V7l-8-5z' },
+  defense: { label: 'DEF', color: 'text-stat-defense', bg: 'bg-stat-defense/10', iconPath: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
+  range: { label: 'RNG', color: 'text-stat-range', bg: 'bg-stat-range/10', iconPath: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 4v8l6 3' },
 };
 
 export function StatBox({ type, value, size = 'md' }: StatBoxProps) {

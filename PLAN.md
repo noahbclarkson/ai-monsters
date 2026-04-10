@@ -167,4 +167,31 @@ _Last updated: 2026-04-07 16:03 UTC_
 3. **Difficulty Selector Polish**: Added `glow` property to `DIFFICULTY_COLORS` config. Selected difficulty buttons now have a `box-shadow` glow matching their color, plus an inner radial glow layer for depth.
 4. **Dead Code Identified**: Root `client/src/components/` contains duplicate files superseded by `game/` subdirectory (`CollectionGallery.tsx`, `GameLobby.tsx`, `GameBoard.tsx`, `Leaderboard.tsx`). Also `Card.tsx`, `MonsterCard.tsx`, `EnhancedCard.tsx` are unused/dead. Only `EnhancedCardGenerator.tsx` and `DailyCardGenerator.tsx` at root level are active (imported by MainNavigation).
 ## Iterative Polish Updates (2026-04-10 Late)
-5. **Start Battle Button Polish**: Adjusted layout of the Start Battle button in GameLobby to use flexbox gap centering. Previously, the icon/spinner and text were separated directly inside the button, occasionally causing misalignments. They are now wrapped in a flex container ensuring perfect horizontal centering of the label alongside its icon.
+5. **Start Battle Button Polish**: Adjusted layout of the Start Battle button in GameLobby to use flexbox gap centering.
+
+## Iterative Polish Updates (2026-04-10 Night)
+6. **Emoji Cleanup Sweep**: Removed all emoji from active source files, replacing with SVG icons:
+   - Leaderboard.tsx: Custom inline SVG medal icons (gold/silver/bronze ribbons with rank numbers + glow pulse animation)
+   - GameCard.tsx: Lucide `Swords`/`Building2`/`Sparkles` SVG icons instead of plain text S/B/X
+   - ui.tsx: SVG path data replacing ⚔🛡 emoji in STAT_CONFIG
+   - card-generator.ts / ai-card-generator.ts: Text labels (Melee/Structure/Magic) replacing emoji in dead getTypeIcon methods
+   - MobileGameControls.tsx: Removed ⚡🎮 from phase labels
+
+### Remaining P1 Issues (from PLAN.md)
+- Card hover animations — could be smoother and have better easing.
+- Card flip animation — was broken (rotate-y-180 Tailwind class doesn't exist), fixed with inline styles
+- Game board polish — are card zones clearly defined? Does placement feel tactile?
+- Error states — what happens when image fails to load? When API times out?
+
+### Remaining P2 Issues (from PLAN.md)
+- Ambient sound effects (optional, later)
+- Particle effects on card actions
+- Card collection counter with animated increment
+- Match-end animation — victory/defeat screen
+- Custom scrollbar matching dark theme (already implemented in globals.css)
+- Cursor styles — should feel like a game, not a webpage
+
+### 2026-04-10 Status
+- All emoji removed from source files (verified with grep). No emoji remain.
+- Premium SVG icons consistently used throughout the UI.
+- Build passes. No TypeScript errors. Previously, the icon/spinner and text were separated directly inside the button, occasionally causing misalignments. They are now wrapped in a flex container ensuring perfect horizontal centering of the label alongside its icon.

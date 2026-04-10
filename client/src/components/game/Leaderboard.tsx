@@ -43,6 +43,46 @@ function getWinRate(wins: number, losses: number): number {
   return total > 0 ? Math.round((wins / total) * 100) : 0;
 }
 
+// Inline SVG medal icons for top 3 ranks — no emoji
+function MedalIcon({ rank }: { rank: number }) {
+  const medalData = [
+    { fill: '#ffd700', stroke: '#b8860b', glow: 'rgba(255,215,0,0.4)', label: '1' },
+    { fill: '#d4d4d4', stroke: '#9a9a9a', glow: 'rgba(212,212,212,0.3)', label: '2' },
+    { fill: '#cd7f32', stroke: '#8b4513', glow: 'rgba(205,127,50,0.35)', label: '3' },
+  ];
+  const m = medalData[rank - 1];
+  return (
+    <div 
+      className="relative flex items-center justify-center animate-pulse" 
+      style={{ width: 40, height: 40, filter: `drop-shadow(0 0 6px ${m.glow})` }}
+    >
+      <svg width="32" height="40" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {/* Ribbon top */}
+        <path d="M10 0h12v14H10z" fill={m.fill} />
+        <path d="M10 0h6v14h-6z" fill={m.stroke} opacity="0.5" />
+        {/* Ribbon tails */}
+        <path d="M10 0L8 7h6L12 0z" fill={m.fill} opacity="0.85" />
+        <path d="M22 0l2 7h-6l2-7z" fill={m.fill} opacity="0.85" />
+        {/* Medal circle */}
+        <circle cx="16" cy="24" r="13" fill={m.fill} />
+        <circle cx="16" cy="24" r="9" fill={m.stroke} opacity="0.25" />
+        {/* Rank number */}
+        <text 
+          x="16" y="29" 
+          textAnchor="middle" 
+          fontSize="11" 
+          fontWeight="bold" 
+          fill="white" 
+          fontFamily="JetBrains Mono, monospace"
+          style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+        >
+          {m.label}
+        </text>
+      </svg>
+    </div>
+  );
+}
+
 interface LeaderboardEntryProps {
   player: Player;
   rank: number;
@@ -70,7 +110,7 @@ function LeaderboardEntry({ player, rank, isCurrentPlayer }: LeaderboardEntryPro
       <div className="flex items-center gap-4">
         {/* Rank */}
         <div className={`
-          w-10 h-10 rounded-xl flex items-center justify-center font-bold
+          ${isTop3 ? 'w-12 h-12' : 'w-10 h-10'} rounded-xl flex items-center justify-center font-bold
           ${isTop3 ? 'text-lg' : 'text-sm'}
         `}
         style={{
@@ -78,7 +118,11 @@ function LeaderboardEntry({ player, rank, isCurrentPlayer }: LeaderboardEntryPro
           color: isTop3 ? medalColors[rank - 1] : '#8888a8',
         }}
         >
-          {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank}
+          {rank <= 3 ? (
+            <MedalIcon rank={rank} />
+          ) : (
+            <span className="font-mono text-sm">{rank}</span>
+          )}
         </div>
 
         {/* Avatar */}

@@ -194,10 +194,10 @@ export class AICardGenerator {
 
   static getTypeIcon(type: string): string {
     switch (type) {
-      case 'Unit': return '⚔️';
-      case 'Building': return '🏰';
-      case 'Spell': return '✨';
-      default: return '🃏';
+      case 'Unit': return 'Melee';
+      case 'Building': return 'Structure';
+      case 'Spell': return 'Magic';
+      default: return 'Special';
     }
   }
 
