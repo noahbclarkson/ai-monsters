@@ -6,7 +6,7 @@ import { useCards } from '@/lib/useCards';
 import { GameBoardLoading } from './GameBoardLoading';
 import { useGame } from '@/lib/useGame';
 import { useSpacetimeDB } from '@/lib/spacetimedb';
-import { Swords, Shield } from 'lucide-react';
+
 
 interface GameBoardProps {
   gameId: number;
@@ -282,24 +282,10 @@ export function GameBoard({ gameId }: GameBoardProps) {
                       }}
                       onClick={() => handleTileClick(x, y)}
                     >
-                      {/* Zone labels */}
-                      {y === 1 && x === 0 && (
-                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-green-400/60 uppercase tracking-wider">
-                          Your Zone
-                        </div>
-                      )}
-                      {y === 1 && x === 3 && (
-                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-red-400/60 uppercase tracking-wider">
-                          Enemy Zone
-                        </div>
-                      )}
-                      
                       {/* Tile content */}
                       <div className="w-full h-full p-1">
                         {renderTileContent(x, y)}
                       </div>
-                      
-
                     </div>
                   );
                 })}
@@ -308,7 +294,33 @@ export function GameBoard({ gameId }: GameBoardProps) {
           </div>
           
           {/* Zone divider */}
-          <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2 flex items-center gap-3">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/40 border border-white/5">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-400/60" />
+              <span className="text-xs text-green-400/60 font-medium tracking-wider uppercase">Your Zone</span>
+            </div>
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/40 border border-white/5">
+              <div className="w-1.5 h-1.5 rounded-full bg-red-400/60" />
+              <span className="text-xs text-red-400/60 font-medium tracking-wider uppercase">Enemy Zone</span>
+            </div>
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          </div>
+
+          {/* Vertical zone labels on the sides */}
+          <div className="absolute left-2 top-4 bottom-4 flex flex-col justify-around pointer-events-none">
+            <div className="flex items-center gap-1.5">
+              <div className="w-1 h-8 rounded-full bg-gradient-to-b from-green-500/40 to-green-500/10" />
+              <span className="text-[10px] text-green-400/50 font-semibold uppercase tracking-widest" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>Your Zone</span>
+            </div>
+          </div>
+          <div className="absolute right-2 top-4 bottom-4 flex flex-col justify-around pointer-events-none">
+            <div className="flex items-center gap-1.5">
+              <div className="w-1 h-8 rounded-full bg-gradient-to-b from-red-500/40 to-red-500/10" />
+              <span className="text-[10px] text-red-400/50 font-semibold uppercase tracking-widest" style={{ writingMode: 'vertical-rl' }}>Enemy Zone</span>
+            </div>
+          </div>
         </div>
       </div>
 

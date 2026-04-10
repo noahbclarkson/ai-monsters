@@ -5,7 +5,7 @@ import { useCards } from '@/lib/useCards';
 import { GameCard } from '@/components/game/GameCard';
 import { useState } from 'react';
 import { AICardGenerator } from '@/lib/ai-card-generator';
-import { Sparkles, Gift, Clock, Star, TrendingUp, Zap } from 'lucide-react';
+import { Sparkles, Gift, Clock, Star, Zap } from 'lucide-react';
 
 const RARITY_TIERS = [
   { label: 'Common', color: '#6b7280', glow: 'rgba(107,114,128,0.3)' },

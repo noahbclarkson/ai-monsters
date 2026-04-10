@@ -7,10 +7,10 @@ import { useBotMatch } from '@/lib/useBotMatch';
 import { useSpacetimeDB } from '@/lib/spacetimedb';
 import { GameBoard } from './GameBoard';
 
-const DIFFICULTY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  Easy: { bg: 'rgba(34,197,94,0.15)', text: '#22c55e', border: 'rgba(34,197,94,0.4)' },
-  Medium: { bg: 'rgba(59,130,246,0.15)', text: '#3b82f6', border: 'rgba(59,130,246,0.4)' },
-  Hard: { bg: 'rgba(239,68,68,0.15)', text: '#ef4444', border: 'rgba(239,68,68,0.4)' },
+const DIFFICULTY_COLORS: Record<string, { bg: string; text: string; border: string; glow: string }> = {
+  Easy: { bg: 'rgba(34,197,94,0.15)', text: '#22c55e', border: 'rgba(34,197,94,0.4)', glow: 'rgba(34,197,94,0.3)' },
+  Medium: { bg: 'rgba(59,130,246,0.15)', text: '#3b82f6', border: 'rgba(59,130,246,0.4)', glow: 'rgba(59,130,246,0.3)' },
+  Hard: { bg: 'rgba(239,68,68,0.15)', text: '#ef4444', border: 'rgba(239,68,68,0.4)', glow: 'rgba(239,68,68,0.3)' },
 };
 
 const DIFFICULTY_DESCRIPTIONS: Record<string, string> = {
@@ -132,14 +132,29 @@ export function GameLobby() {
         <div className="glow-orb glow-orb-purple w-96 h-96 top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-20" />
         
         <h1 
-          className="text-5xl font-bold text-white mb-4 relative"
-          style={{ fontFamily: 'Cinzel, serif', letterSpacing: '0.05em' }}
+          className="text-5xl font-bold mb-4 relative animate-float"
+          style={{ 
+            fontFamily: 'Cinzel, serif', 
+            letterSpacing: '0.05em',
+            background: 'linear-gradient(135deg, #e8e8f5 0%, #a855f7 50%, #3b82f6 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            textShadow: 'none',
+            filter: 'drop-shadow(0 0 30px rgba(139,92,246,0.4))',
+          }}
         >
           AI Monsters Arena
         </h1>
         <p className="text-lg text-white/60 relative">
           Battle with unique AI-generated cards
         </p>
+        {/* Decorative divider */}
+        <div className="flex items-center justify-center gap-3 mt-6">
+          <div className="h-px w-16 bg-gradient-to-r from-transparent to-purple-500/40" />
+          <div className="w-2 h-2 rounded-full bg-purple-500/60" />
+          <div className="h-px w-16 bg-gradient-to-l from-transparent to-purple-500/40" />
+        </div>
       </div>
 
       {/* Connection status */}
@@ -176,20 +191,28 @@ export function GameLobby() {
                   onClick={() => setSelectedDifficulty(diff)}
                   className={`
                     p-4 rounded-xl text-center transition-all duration-200
-                    border
+                    border relative overflow-hidden
                   `}
                   style={{
                     background: isSelected ? config.bg : 'rgba(255,255,255,0.03)',
                     borderColor: isSelected ? config.border : 'rgba(255,255,255,0.08)',
+                    boxShadow: isSelected ? `0 0 20px ${config.glow}, 0 4px 12px rgba(0,0,0,0.3)` : 'none',
                   }}
                 >
+                  {/* Glow layer for selected state */}
+                  {isSelected && (
+                    <div 
+                      className="absolute inset-0 rounded-xl opacity-20"
+                      style={{ background: `radial-gradient(ellipse at center, ${config.glow} 0%, transparent 70%)` }}
+                    />
+                  )}
                   <div 
-                    className="text-lg font-bold mb-1"
+                    className="text-lg font-bold mb-1 relative"
                     style={{ color: isSelected ? config.text : '#8888a8' }}
                   >
                     {diff}
                   </div>
-                  <div className="text-xs text-white/40 leading-relaxed">
+                  <div className="text-xs text-white/40 leading-relaxed relative">
                     {DIFFICULTY_DESCRIPTIONS[diff]}
                   </div>
                 </button>
@@ -201,7 +224,7 @@ export function GameLobby() {
         <button
           onClick={handlePlayVsBot}
           disabled={!connected || starting}
-          className="w-full btn btn-success py-4 text-lg"
+          className="w-full btn btn-success py-4 text-lg relative overflow-hidden group"
         >
           {starting ? (
             <>
