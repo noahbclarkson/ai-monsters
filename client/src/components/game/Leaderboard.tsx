@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { Trophy } from 'lucide-react';
 import { useLeaderboard } from '@/lib/useLeaderboard';
+import { LeaderboardLoading } from './LeaderboardLoading';
 import { useSpacetimeDB } from '@/lib/spacetimedb';
 
 interface Player {
@@ -205,10 +206,7 @@ export function Leaderboard() {
     return (
       <main className="min-h-screen bg-atmospheric">
         <div className="container mx-auto px-4 py-8">
-          <div className="empty-state">
-            <div className="spinner spinner-lg mb-4" />
-            <p className="text-white/50">Loading leaderboard...</p>
-          </div>
+          <LeaderboardLoading />
         </div>
       </main>
     );

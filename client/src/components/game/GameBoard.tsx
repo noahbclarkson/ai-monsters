@@ -330,7 +330,17 @@ export function GameBoard({ gameId }: GameBoardProps) {
           <h3 className="text-lg font-semibold text-white" style={{ fontFamily: 'Cinzel, serif' }}>
             Your Hand
           </h3>
-          <span className="text-sm text-white/40">Click a card to select, then click a tile to place</span>
+          <span className="text-sm text-white/40">
+            {!isMyTurn ? (
+              <span className="text-amber-400/70">Waiting for opponent to finish...</span>
+            ) : boardState?.phase === 'Placement' ? (
+              "Click a card to auto-place it on your zone"
+            ) : boardState?.phase === 'Action' ? (
+              "Select a card on the board, then click target"
+            ) : (
+              "Combat in progress..."
+            )}
+          </span>
         </div>
         
         <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
@@ -351,13 +361,14 @@ export function GameBoard({ gameId }: GameBoardProps) {
               return (
                 <div
                   key={`hand-${handEntry.id}-${index}`}
-                  className="flex-shrink-0"
+                  className={`flex-shrink-0 ${!isMyTurn ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
                   onClick={() => {
+                    if (!isMyTurn || !playerId) return;
                     // Auto-place on first empty tile in player zone
                     for (let x = 0; x < 3; x++) {
                       for (let y = 0; y < 3; y++) {
                         if (!getTile(x, y)?.card_id) {
-                          placeCard(BigInt(handEntry.id), BigInt(playerId!), x, y).catch(console.error);
+                          placeCard(BigInt(handEntry.id), BigInt(playerId), x, y).catch(console.error);
                           return;
                         }
                       }
@@ -383,17 +394,32 @@ export function GameBoard({ gameId }: GameBoardProps) {
       </div>
 
       {/* Phase instructions */}
-      <div className="mt-4 p-4 rounded-lg bg-white/5 border border-white/5">
-        <h4 className="text-sm font-semibold text-white/80 mb-2">How to Play</h4>
+      <div className={`mt-4 p-4 rounded-lg border ${
+        boardState?.phase === 'Placement' ? 'bg-green-500/5 border-green-500/20' :
+        boardState?.phase === 'Action' ? 'bg-blue-500/5 border-blue-500/20' :
+        'bg-purple-500/5 border-purple-500/20'
+      }`}>
+        <div className="flex items-center gap-2 mb-2">
+          <div className={`w-2 h-2 rounded-full ${
+            boardState?.phase === 'Placement' ? 'bg-green-400 animate-pulse' :
+            boardState?.phase === 'Action' ? 'bg-blue-400 animate-pulse' :
+            'bg-purple-400 animate-pulse'
+          }`} />
+          <h4 className="text-sm font-semibold text-white/80">
+            {boardState?.phase === 'Placement' ? 'Placement Phase' :
+             boardState?.phase === 'Action' ? 'Action Phase' :
+             'Combat Phase'}
+          </h4>
+        </div>
         <div className="text-xs text-white/50 space-y-1">
           {boardState?.phase === 'Placement' && (
-            <p>Place cards from your hand onto your zone. Click a card in hand, then click an empty tile in your zone (rows 0-2).</p>
+            <p>Place cards from your hand onto your zone. Click a card in hand to auto-place it on the first empty tile in your zone (rows 0-2).</p>
           )}
           {boardState?.phase === 'Action' && (
-            <p>Move cards or attack enemies. Click your card to select it, then click an empty tile to move or an enemy card to attack.</p>
+            <p>Move cards to new positions or attack enemy cards. Click your card to select it, then click an empty tile to move or an enemy card to attack.</p>
           )}
           {boardState?.phase === 'Combat' && (
-            <p>Combat phase. Cards attack automatically based on their attack/defense stats.</p>
+            <p>Combat phase in progress. Cards are resolving attacks automatically based on their attack and defense stats.</p>
           )}
         </div>
       </div>
