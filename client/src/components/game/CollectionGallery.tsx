@@ -189,14 +189,34 @@ export function CollectionGallery() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <BookOpen size={28} className="text-purple-400" strokeWidth={1.5} />
-            <h1 
-              className="text-3xl font-bold text-white"
-              style={{ fontFamily: 'Cinzel, serif' }}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <BookOpen size={28} className="text-purple-400" strokeWidth={1.5} />
+              <h1 
+                className="text-3xl font-bold text-white"
+                style={{ fontFamily: 'Cinzel, serif' }}
+              >
+                Your Collection
+              </h1>
+            </div>
+            
+            <button
+              onClick={handleGenerateNewCard}
+              disabled={isGenerating || loading}
+              className="btn btn-success"
             >
-              Your Collection
-            </h1>
+              {isGenerating ? (
+                <>
+                  <div className="spinner spinner-sm" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles size={16} strokeWidth={1.8} />
+                  Generate Card
+                </>
+              )}
+            </button>
           </div>
           <p className="text-white/50">
             {cards.length} cards generated
@@ -250,24 +270,6 @@ export function CollectionGallery() {
               )}
             </button>
 
-            {/* Generate button */}
-            <button
-              onClick={handleGenerateNewCard}
-              disabled={isGenerating}
-              className="btn btn-success"
-            >
-              {isGenerating ? (
-                <>
-                  <div className="spinner spinner-sm" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Sparkles size={16} strokeWidth={1.8} />
-                  Generate Card
-                </>
-              )}
-            </button>
           </div>
 
           {/* Filter panel */}
