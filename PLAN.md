@@ -171,6 +171,19 @@ _Last updated: 2026-04-07 16:03 UTC_
 5. **Start Battle Button Polish**: Adjusted layout of the Start Battle button in GameLobby to use flexbox gap centering.
 
 ## Iterative Polish Updates (2026-04-10 Night)
+7. **PackOpening Overhaul**: Complete re-imagination of the pack opening experience:
+   - Pack box now floats with `animate-float` (subtle up/down motion)
+   - Outer radial glow ring appears on hover with blur and scale
+   - Decorative corner lines (TL/TR/BL/BR) on pack box
+   - Gift icon added to "Open Standard Pack" button
+   - Shimmer overlay sweeps across pack on hover (115deg gradient)
+   - Sparkle particles (animate-ping) burst around pack on hover — 4 particles at staggered delays
+   - Button gets hover scale + glow shadow + active:scale press feedback
+   - Staggered card flip reveal: all 5 cards appear face-down, then flip front-to-back in sequence (220ms stagger)
+   - Cards use GameCard `isFlipped`/`showBack` for physical rotateY card flip animation
+   - Stats bar grid made responsive: `grid-cols-2 sm:grid-cols-5`
+
+## Iterative Polish Updates (2026-04-10 Night)
 6. **Emoji Cleanup Sweep**: Removed all emoji from active source files, replacing with SVG icons:
    - Leaderboard.tsx: Custom inline SVG medal icons (gold/silver/bronze ribbons with rank numbers + glow pulse animation)
    - GameCard.tsx: Lucide `Swords`/`Building2`/`Sparkles` SVG icons instead of plain text S/B/X
