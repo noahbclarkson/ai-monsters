@@ -13,8 +13,8 @@ import { GameGenerator } from '@/components/game/GameGenerator';
 import { GameLobby } from '@/components/game/GameLobby';
 import { CollectionGallery } from '@/components/game/CollectionGallery';
 import { Leaderboard } from '@/components/game/Leaderboard';
-import { PackOpening } from '@/components/PackOpening';
-import DailyCardGenerator from '@/components/DailyCardGenerator';
+import { PackOpening } from '@/components/game/PackOpening';
+import DailyCardGenerator from '@/components/game/DailyCardGenerator';
 
 interface NavigationTab {
   id: string;

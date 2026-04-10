@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { PackOpening } from '@/components/PackOpening';
+import { PackOpening } from '@/components/game/PackOpening';
 import { Sparkles } from 'lucide-react';
 
 export function EnhancedCardGenerator() {
