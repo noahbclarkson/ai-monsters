@@ -227,15 +227,15 @@ export function GameLobby() {
           className="w-full btn btn-success py-4 text-lg relative overflow-hidden group"
         >
           {starting ? (
-            <>
+            <div className="flex items-center justify-center gap-2">
               <div className="spinner spinner-sm" />
-              Starting Match...
-            </>
+              <span>Starting Match...</span>
+            </div>
           ) : (
-            <>
+            <div className="flex items-center justify-center gap-2">
               <Swords size={18} strokeWidth={1.8} />
-              Start Battle
-            </>
+              <span>Start Battle</span>
+            </div>
           )}
         </button>
         {connected && !playerId && (
