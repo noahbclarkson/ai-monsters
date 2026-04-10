@@ -37,6 +37,8 @@ export function PackOpening() {
   const [opening, setOpening] = useState(false);
   const [showCards, setShowCards] = useState(false);
   const [openingProgress, setOpeningProgress] = useState('');
+  const [packHovered, setPackHovered] = useState(false);
+  const [revealedCount, setRevealedCount] = useState(0);
   const { conn, connected, playerId } = useSpacetimeDB();
   const { generateCard } = useCards();
 
@@ -118,7 +120,14 @@ export function PackOpening() {
       }
 
       setOpenedCards(generatedCards);
-      setTimeout(() => setShowCards(true), 300);
+      setShowCards(true);
+      setRevealedCount(0);
+      // Stagger card reveals — flip each one in sequence
+      for (let i = 0; i < generatedCards.length; i++) {
+        setTimeout(() => {
+          setRevealedCount(prev => Math.max(prev, i + 1));
+        }, 400 + i * 220);
+      }
 
     } catch (err) {
       console.error('Failed to open pack:', err);
@@ -156,12 +165,67 @@ export function PackOpening() {
       <div className="glass-card rounded-2xl p-8 relative overflow-hidden min-h-[500px] flex flex-col items-center justify-center">
         {!showCards ? (
           <div className="text-center space-y-8 relative z-10">
-            <div className={`relative transition-all duration-1000 ${opening ? 'scale-110 drop-shadow-[0_0_50px_rgba(139,92,246,0.8)]' : 'hover:scale-105'}`}>
+            {/* Pack container with glow and float */}
+            <div className="relative inline-block">
+              {/* Outer glow ring */}
               <div 
-                className={`w-48 h-64 mx-auto bg-gradient-to-br from-purple-600 to-indigo-800 rounded-xl border-4 border-white/20 shadow-2xl flex items-center justify-center cursor-pointer transition-all ${opening ? 'animate-pulse' : ''}`}
+                className={`absolute inset-0 rounded-2xl transition-all duration-500 pointer-events-none ${
+                  packHovered || opening 
+                    ? 'opacity-60 scale-105' 
+                    : 'opacity-0'
+                }`}
+                style={{ 
+                  background: 'radial-gradient(ellipse at center, rgba(139,92,246,0.5) 0%, transparent 70%)',
+                  filter: 'blur(20px)',
+                  transform: 'scale(1.2)',
+                }}
+              />
+
+              {/* Floating pack */}
+              <div 
+                className={`relative transition-all duration-300 ${
+                  opening 
+                    ? 'scale-110 drop-shadow-[0_0_50px_rgba(139,92,246,0.8)]' 
+                    : packHovered 
+                    ? 'scale-110 -translate-y-2 drop-shadow-[0_0_30px_rgba(139,92,246,0.5)]' 
+                    : 'hover:scale-105 animate-float'
+                }`}
                 onClick={!opening ? handleOpenPack : undefined}
+                onMouseEnter={() => setPackHovered(true)}
+                onMouseLeave={() => setPackHovered(false)}
               >
-                <Gift size={56} className="text-white drop-shadow-lg" strokeWidth={1.2} />
+                {/* Pack box */}
+                <div 
+                  className={`w-48 h-64 mx-auto bg-gradient-to-br from-purple-600 to-indigo-800 rounded-xl border-4 border-white/20 shadow-2xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 overflow-hidden ${
+                    opening ? 'animate-pulse' : ''
+                  }`}
+                >
+                  {/* Shimmer overlay on hover */}
+                  <div 
+                    className={`absolute inset-0 pointer-events-none transition-opacity duration-500 ${
+                      packHovered && !opening ? 'opacity-100' : 'opacity-0'
+                    }`}
+                    style={{
+                      background: 'linear-gradient(115deg, transparent 20%, rgba(255,255,255,0.1) 50%, transparent 80%)',
+                    }}
+                  />
+                  <Gift size={56} className="text-white drop-shadow-lg relative z-10" strokeWidth={1.2} />
+                  {/* Decorative corner lines */}
+                  <div className="absolute top-3 left-3 w-8 h-8 border-t-2 border-l-2 border-white/30 rounded-tl" />
+                  <div className="absolute top-3 right-3 w-8 h-8 border-t-2 border-r-2 border-white/30 rounded-tr" />
+                  <div className="absolute bottom-3 left-3 w-8 h-8 border-b-2 border-l-2 border-white/30 rounded-bl" />
+                  <div className="absolute bottom-3 right-3 w-8 h-8 border-b-2 border-r-2 border-white/30 rounded-br" />
+                </div>
+
+                {/* Sparkle particles on hover */}
+                {packHovered && !opening && (
+                  <>
+                    <div className="absolute -top-2 -left-2 w-3 h-3 rounded-full bg-purple-400 animate-ping opacity-60" />
+                    <div className="absolute -top-1 right-4 w-2 h-2 rounded-full bg-yellow-400 animate-ping opacity-80" style={{ animationDelay: '200ms' }} />
+                    <div className="absolute bottom-4 -right-3 w-2.5 h-2.5 rounded-full bg-blue-400 animate-ping opacity-70" style={{ animationDelay: '400ms' }} />
+                    <div className="absolute top-6 -left-4 w-1.5 h-1.5 rounded-full bg-pink-400 animate-ping opacity-60" style={{ animationDelay: '600ms' }} />
+                  </>
+                )}
               </div>
             </div>
 
@@ -175,15 +239,18 @@ export function PackOpening() {
             <button
               onClick={handleOpenPack}
               disabled={opening}
-              className="btn btn-primary py-4 px-12 text-xl shadow-xl shadow-purple-500/20 flex items-center justify-center mx-auto"
+              className="btn btn-primary py-4 px-12 text-xl shadow-xl shadow-purple-500/20 flex items-center justify-center mx-auto transition-all duration-300 hover:shadow-purple-500/40 hover:scale-105 active:scale-95"
             >
               {opening ? (
                 <>
-                  <div className="spinner spinner-sm mr-3" />
+                  <div className="spinner spinner-sm" style={{ borderTopColor: 'white' }} />
                   <span>Opening Pack...</span>
                 </>
               ) : (
-                'Open Standard Pack'
+                <>
+                  <Gift size={18} strokeWidth={1.8} />
+                  Open Standard Pack
+                </>
               )}
             </button>
             <p className="text-white/40 text-sm">Contains 5 AI-generated cards (2 Common, 2 Rare, 1 Epic)</p>
@@ -195,25 +262,34 @@ export function PackOpening() {
             </h2>
             
             <div className="flex flex-wrap justify-center gap-6 mb-12">
-              {openedCards.map((card, index) => (
-                <div 
-                  key={`${card.id}-${index}`} 
-                  className="animate-in slide-in-from-bottom-10 fade-in fill-mode-both"
-                  style={{ animationDelay: `${index * 150}ms` }}
-                >
-                  <GameCard
-                    name={card.name}
-                    description={card.description}
-                    attack={card.attack}
-                    defense={card.defense}
-                    range={card.range}
-                    rarity={card.rarity}
-                    type={card.card_type}
-                    imageUrl={card.image_url}
-                    size="md"
-                  />
-                </div>
-              ))}
+              {openedCards.map((card, index) => {
+                const isRevealed = index < revealedCount;
+                return (
+                  <div 
+                    key={`${card.id}-${index}`} 
+                    className="transition-all duration-500"
+                    style={{ 
+                      opacity: isRevealed ? 1 : 0,
+                      transform: isRevealed ? 'translateY(0) scale(1)' : 'translateY(16px) scale(0.9)',
+                      transitionDelay: `${index * 30}ms`,
+                    }}
+                  >
+                    <GameCard
+                      name={card.name}
+                      description={card.description}
+                      attack={card.attack}
+                      defense={card.defense}
+                      range={card.range}
+                      rarity={card.rarity}
+                      type={card.card_type}
+                      imageUrl={card.image_url}
+                      size="md"
+                      isFlipped={!isRevealed}
+                      showBack={true}
+                    />
+                  </div>
+                );
+              })}
             </div>
             
             <div className="text-center">
@@ -221,6 +297,7 @@ export function PackOpening() {
                 onClick={() => {
                   setShowCards(false);
                   setOpenedCards([]);
+                  setRevealedCount(0);
                 }}
                 className="btn btn-ghost py-3 px-8 text-lg"
               >

@@ -61,11 +61,132 @@ pub fn create_player(ctx: &ReducerContext, name: String, email: String) -> Resul
     Ok(())
 }
 
+fn generate_flavor_description(noun: &str, card_type: &str, rarity: &str, seed: u64) -> String {
+    let idx = (seed % 100) as usize;
+
+    let openings_units = [
+        "Forged in the fires of countless battles",
+        "Born of ancient lineage and tempered by war",
+        "Rising from the shadows with relentless fury",
+        "A formidable presence on any battlefield",
+        "Honed by centuries of relentless conflict",
+        "Carrying the weight of an ancient legacy",
+        "Shaped by the crucible of endless war",
+        "Unleashed from the depths of a forgotten realm",
+        "Steeled by trials that would break lesser beings",
+        "Driven by an unquenchable thirst for glory",
+    ];
+
+    let openings_buildings = [
+        "Rising from the earth like a monument to defiance",
+        "An imposing citadel whose defenses have repelled countless invasions",
+        "Built upon the bones of fallen empires",
+        "A fortress that has never known surrender",
+        "Constructed with mastery beyond mortal understanding",
+        "Standing sentinel over the battlefield",
+        "Its walls whisper tales of ancient victories",
+        "A bastion of power that dominates the horizon",
+        "Carved from living stone by forgotten artisans",
+        "Defying siege and storm for a thousand years",
+    ];
+
+    let openings_spells = [
+        "The air crackles with arcane energy when this incantation is invoked",
+        "A surge of raw magical force that reshapes reality itself",
+        "Woven from the fabric of pure mana",
+        "Reality bends and fractures under its power",
+        "An ancient enchantment that echoes through the ages",
+        "Channeling forces from beyond the mortal veil",
+        "A devastating weave of elemental fury",
+        "Its words of power have been passed down through millennia",
+        "The ground trembles as this spell takes hold",
+        "Light and shadow converge in a catastrophic burst",
+    ];
+
+    let qualities: [&str; 10] = [
+        "tenacious",
+        "formidable",
+        "relentless",
+        "cunning",
+        "battle-tested",
+        "unyielding",
+        "fearsome",
+        "indomitable",
+        "seasoned",
+        "unstoppable",
+    ];
+
+    let unit_endings = [
+        "fights with unwavering resolve. Allies rally behind them; enemies flee before them.",
+        "carries the hopes of their people into every engagement. Their skill is unmatched among their kin.",
+        "whose reputation precedes them into every battle. Their presence on the field shifts the tide of combat.",
+        "commands respect from friend and foe alike. Few dare to challenge them directly.",
+        "stands ready to face any threat. Their conviction is their greatest weapon.",
+        "has survived trials that would end lesser warriors. Each scar tells a story of victory.",
+        "moves with purpose and strikes with lethal precision. Nothing can sway them from their path.",
+        "embodies the warrior spirit of their kind. To face them is to face oblivion.",
+        "knows no fear and shows no mercy. Their blade speaks louder than any words.",
+        "strikes like a thunderbolt, leaving devastation in their wake.",
+    ];
+
+    let building_endings = [
+        "commands the battlefield. Those who siege it pay dearly.",
+        "stands as a monument to engineering mastery. Its walls have never fallen.",
+        "provides shelter and strength to all who dwell within.",
+        "dominates the surrounding terrain with unassailable fortifications.",
+        "houses garrisons that never sleep and defenses that never falter.",
+        "serves as both shield and sword, projecting power across the field.",
+        "has withstood every assault thrown against it. It will not fall today.",
+        "channels ancient protective wards that bolster nearby allies.",
+        "looms over the battlefield, a symbol of enduring might.",
+        "harbors secrets that turn the tide of war for those who control it.",
+    ];
+
+    let spell_endings = [
+        "Reality itself bends to the caster's will.",
+        "Its effects echo long after the spell is cast.",
+        "Leaving destruction and awe in equal measure.",
+        "Reshaping the battlefield in a single devastating moment.",
+        "Few who witness its power live to describe it.",
+        "The battlefield will never be the same after its casting.",
+        "Even the most battle-hardened warriors falter at its invocation.",
+        "The mana required is immense, but the result is catastrophic.",
+        "Legends say this spell once leveled an entire kingdom.",
+        "Its incantation sends shivers through the fabric of existence.",
+    ];
+
+    let rarity_prefix = match rarity {
+        "Epic" => "this fearsome, ",
+        "Legendary" => "this legendary, ",
+        _ => "this ",
+    };
+
+    let (openings, endings, type_label): (&[&str], &[&str], &str) = match card_type {
+        "Building" | "Tower" => (&openings_buildings, &building_endings, "fortress"),
+        "Spell" | "Magic" => (&openings_spells, &spell_endings, "enchantment"),
+        _ => (&openings_units, &unit_endings, "warrior"),
+    };
+
+    let opening = openings[idx % openings.len()];
+    let quality = qualities[idx % qualities.len()];
+    let ending = endings[(idx * 3 + 7) % endings.len()];
+
+    format!(
+        "{}, {} {} {} {} {}",
+        opening,
+        rarity_prefix,
+        quality,
+        noun,
+        type_label,
+        ending
+    )
+}
+
 // Card generation reducer
 #[reducer]
 pub fn generate_card(ctx: &ReducerContext, seed_noun: String, rarity: String, card_type: String, ai_description: String, ai_image_url: String) -> Result<(), String> {
     let card_id = generate_id(ctx);
-    let rarity_str = if rarity.is_empty() { "Common".to_string() } else { rarity };
+    let rarity_str = if rarity.is_empty() { "Common".to_string() } else { rarity.clone() };
     let card_type_str = if card_type.is_empty() { "Unit".to_string() } else { card_type };
 
     let (attack, defense, range) = generate_card_stats(&rarity_str, &card_type_str);
@@ -77,7 +198,7 @@ pub fn generate_card(ctx: &ReducerContext, seed_noun: String, rarity: String, ca
     };
 
     let description = if ai_description.is_empty() {
-        format!("A {} {}", seed_noun, card_type_str.to_lowercase())
+        generate_flavor_description(&seed_noun, &card_type_str, &rarity_str, ctx.timestamp.to_micros_since_unix_epoch() as u64)
     } else {
         ai_description
     };

@@ -14,9 +14,9 @@ const DIFFICULTY_COLORS: Record<string, { bg: string; text: string; border: stri
 };
 
 const DIFFICULTY_DESCRIPTIONS: Record<string, string> = {
-  Easy: 'Bot makes random moves. Great for learning.',
-  Medium: 'Bot uses basic strategy. Fair challenge.',
-  Hard: 'Bot plays optimally. For experienced players.',
+  Easy: 'Random moves — great for learning',
+  Medium: 'Basic strategy — a fair challenge',
+  Hard: 'Optimal play — for experienced players',
 };
 
 export function GameLobby() {

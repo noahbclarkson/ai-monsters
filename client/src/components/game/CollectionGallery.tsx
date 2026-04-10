@@ -224,7 +224,7 @@ export function CollectionGallery() {
         </div>
 
         {/* Stats bar */}
-        <div className="grid grid-cols-5 gap-3 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-8">
           {RARITY_ORDER.map(rarity => (
             <div
               key={rarity}
