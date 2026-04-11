@@ -25,6 +25,7 @@ export function GameLobby() {
   const [selectedDifficulty, setSelectedDifficulty] = useState('Medium');
   const [starting, setStarting] = useState(false);
   const [joining, setJoining] = useState(false);
+  const [lobbyError, setLobbyError] = useState<string | null>(null);
 
   const { matches, players, loading, error, getPlayerById, getActiveMatches } = useMatches();
   const { conn, connected, playerId } = useSpacetimeDB();
@@ -45,9 +46,10 @@ export function GameLobby() {
 
   const handlePlayVsBot = async () => {
     if (!conn || !playerId) {
-      console.error("Not connected or missing playerId");
+      setLobbyError("Not connected. Please wait a moment and try again.");
       return;
     }
+    setLobbyError(null);
     setStarting(true);
     try {
       const db = conn.db as Record<string, { iter(): Iterable<{ id: bigint }> }>;
@@ -104,11 +106,14 @@ export function GameLobby() {
           if (matchFound) break;
         }
         if (!matchFound) {
-          console.error('Failed to find match after creation');
+          setLobbyError("Failed to create match. Please try again.");
         }
+      } else {
+        setLobbyError("You need at least 5 cards to start a match. Open some packs!");
       }
     } catch (e) {
       console.error('Error starting bot match:', e);
+      setLobbyError(`Failed to start match: ${e instanceof Error ? e.message : 'Unknown error'}`);
     } finally {
       setStarting(false);
     }
@@ -157,10 +162,16 @@ export function GameLobby() {
         </div>
       </div>
 
-      {/* Connection status */}
+      {/* Connection status and errors */}
       {!connected && (
         <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-center">
           <p className="text-yellow-400">Connecting to server...</p>
+        </div>
+      )}
+
+      {lobbyError && (
+        <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-left">
+          <p className="text-red-400 text-sm">{lobbyError}</p>
         </div>
       )}
 
