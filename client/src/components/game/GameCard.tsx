@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { Swords, Building2, Sparkles } from 'lucide-react';
+import { getCardArtFallback } from '@/lib/card-art';
 
 interface GameCardProps {
   id?: number;
@@ -98,11 +99,12 @@ export function GameCard({
     '--rarity-gradient': rarityConfig.gradient,
   } as React.CSSProperties;
 
-  // Determine if we have a real image or need a themed placeholder
+  // Determine if we have a real image or need a fallback
   // Filter out picsum.photos URLs — they look terrible as card art
   const isPicsum = imageUrl?.includes('picsum.photos');
-  const hasRealImage = imageUrl && !imageError && !imageUrl.startsWith('/placeholder/') && !isPicsum;
-  const displayImageUrl = hasRealImage ? imageUrl : undefined;
+  const hasExplicitImage = imageUrl && !imageError && !imageUrl.startsWith('/placeholder/') && !isPicsum;
+  // Use explicit image if available, otherwise fall back to deterministic art library
+  const displayImageUrl = hasExplicitImage ? imageUrl : getCardArtFallback(name);
 
   // Outer wrapper provides 3D perspective for the flip animation
   const outerStyle: React.CSSProperties = {

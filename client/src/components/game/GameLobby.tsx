@@ -5,6 +5,7 @@ import { Bot, Swords, Globe, Search, X, FileText } from 'lucide-react';
 import { useMatches } from '@/lib/useMatches';
 import { useBotMatch } from '@/lib/useBotMatch';
 import { useSpacetimeDB } from '@/lib/spacetimedb';
+import { useCards } from '@/lib/useCards';
 import { GameBoard } from './GameBoard';
 
 const DIFFICULTY_COLORS: Record<string, { bg: string; text: string; border: string; glow: string }> = {
@@ -29,6 +30,7 @@ export function GameLobby() {
 
   const { matches, players, loading, error, getPlayerById, getActiveMatches } = useMatches();
   const { conn, connected, playerId } = useSpacetimeDB();
+  const { cards: allCards } = useCards();
   const { 
     match: botMatch, 
     startSinglePlayerMatch, 
@@ -52,15 +54,7 @@ export function GameLobby() {
     setLobbyError(null);
     setStarting(true);
     try {
-      const db = conn.db as Record<string, { iter(): Iterable<{ id: bigint }> }>;
-      const myCards: bigint[] = [];
-      const cardsTable = db.cards;
-      if (cardsTable) {
-        for (const card of cardsTable.iter()) {
-          myCards.push(card.id);
-          if (myCards.length >= 5) break;
-        }
-      }
+      const myCards: bigint[] = allCards.slice(0, 5).map(c => c.id);
 
       if (myCards.length < 5) {
         const reducers = conn.reducers as Record<string, (opts: unknown) => Promise<void>>;
@@ -74,13 +68,17 @@ export function GameLobby() {
             aiImageUrl: '',
           });
         }
+        // Re-read cards after generating
         myCards.length = 0;
-        if (cardsTable) {
-          for (const card of cardsTable.iter()) {
-            myCards.push(card.id);
-            if (myCards.length >= 5) break;
-          }
-        }
+        // Wait a tick for the subscription to fire
+        await new Promise(r => setTimeout(r, 500));
+      }
+
+      // Try reading from subscription data (allCards) first, then fall back to direct DB read
+      const cardIds = allCards.slice(0, 5).map(c => c.id);
+      if (cardIds.length >= 5) {
+        myCards.length = 0;
+        myCards.push(...cardIds);
       }
 
       if (myCards.length >= 5) {
