@@ -1,37 +1,86 @@
 export function GameBoardLoading() {
+  const COLS = 3;
+  const ROWS = 6;
+
   return (
-    <div className="flex flex-col h-[800px] w-full max-w-6xl mx-auto rounded-3xl overflow-hidden glass-card relative isolate">
-      {/* Background elements */}
-      <div className="absolute inset-0 bg-black/40 z-0"></div>
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+    <div className="w-full max-w-4xl mx-auto">
+      {/* Game Header skeleton */}
+      <div className="glass-card rounded-xl p-4 mb-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="w-48 h-7 bg-white/5 rounded-lg animate-pulse" />
+            <div className="w-36 h-4 bg-white/5 rounded animate-pulse" />
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="w-32 h-10 bg-white/5 rounded-lg animate-pulse" />
+            <div className="w-28 h-10 bg-white/5 rounded-lg animate-pulse" />
+          </div>
+        </div>
+      </div>
 
-      {/* Opponent Area */}
-      <div className="flex-1 flex flex-col justify-end items-center pb-8 z-10">
-        <div className="flex gap-4 mb-8">
+      {/* Board skeleton */}
+      <div className="relative">
+        <div className="absolute inset-0 bg-stone-texture rounded-2xl p-4 border border-white/5">
+          {/* Zone labels */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center gap-2">
+            <div className="w-20 h-5 bg-white/5 rounded-full animate-pulse" />
+            <div className="w-20 h-5 bg-white/5 rounded-full animate-pulse" />
+          </div>
+
+          {/* 6x3 grid of tiles */}
+          <div className="grid grid-cols-3 gap-2">
+            {Array.from({ length: ROWS }, (_, x) => (
+              <div key={`row-${x}`} className="contents">
+                {Array.from({ length: COLS }, (_, y) => {
+                  const isPlayerZone = x < 3;
+                  return (
+                    <div
+                      key={`tile-${x}-${y}`}
+                      className="rounded-lg animate-pulse"
+                      style={{
+                        minHeight: '100px',
+                        background: isPlayerZone
+                          ? 'rgba(16, 185, 129, 0.04)'
+                          : 'rgba(239, 68, 68, 0.04)',
+                        border: '1px solid rgba(255,255,255,0.05)',
+                      }}
+                    >
+                      {/* Empty tile indicator */}
+                      <div className="w-full h-full flex items-center justify-center p-1">
+                        <div
+                          className="w-8 h-8 rounded-lg"
+                          style={{ background: 'rgba(255,255,255,0.03)' }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Hand area skeleton */}
+      <div className="mt-6 glass-card rounded-xl p-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="w-28 h-6 bg-white/5 rounded animate-pulse" />
+          <div className="w-64 h-4 bg-white/5 rounded animate-pulse" />
+        </div>
+        <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
           {[1, 2, 3, 4, 5].map(i => (
-            <div key={i} className="w-[140px] h-[210px] rounded-xl bg-white/5 border border-white/10 animate-pulse" />
+            <div key={i} className="flex-shrink-0 w-28 h-44 bg-white/5 rounded-xl border border-white/10" />
           ))}
         </div>
       </div>
 
-      {/* Center Divider / Info */}
-      <div className="h-24 bg-white/5 border-y border-white/10 flex items-center justify-between px-12 z-10 backdrop-blur-md">
-        <div className="w-48 h-8 rounded-lg bg-white/5 animate-pulse" />
-        <div className="flex flex-col items-center gap-2">
-          <div className="w-32 h-6 rounded-lg bg-white/10 animate-pulse" />
-          <div className="w-24 h-4 rounded-lg bg-white/5 animate-pulse" />
+      {/* Phase instructions skeleton */}
+      <div className="mt-4 p-4 rounded-lg bg-purple-500/5 border border-purple-500/10">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-2 h-2 rounded-full bg-white/10 animate-pulse" />
+          <div className="w-32 h-4 bg-white/5 rounded animate-pulse" />
         </div>
-        <div className="w-48 h-8 rounded-lg bg-white/5 animate-pulse" />
-      </div>
-
-      {/* Player Area */}
-      <div className="flex-1 flex flex-col justify-start items-center pt-8 z-10">
-        <div className="flex gap-4 mt-8">
-          {[1, 2, 3, 4, 5].map(i => (
-            <div key={i} className="w-[140px] h-[210px] rounded-xl bg-white/5 border border-white/10 animate-pulse" />
-          ))}
-        </div>
+        <div className="w-80 h-3 bg-white/5 rounded animate-pulse" />
       </div>
     </div>
   );

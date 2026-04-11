@@ -212,3 +212,8 @@ _Last updated: 2026-04-07 16:03 UTC_
 
 ## Iterative Polish Updates (2026-04-10 Morning)
 1. **Pack Opening Polish**: Fixed the "Opening Pack..." button in `PackOpening.tsx` where the text and loading spinner were misaligned. They are now wrapped in a flex container (`flex items-center justify-center mx-auto`) ensuring perfect horizontal centering of the label alongside its spinner icon.
+
+## Iterative Polish Updates (2026-04-11 Morning)
+1. **CollectionGalleryLoading Overhaul**: Completely redesigned the loading skeleton to match the actual CollectionGallery layout. Previously showed a misleading sidebar skeleton that doesn't exist in the actual UI. Now properly shows header, stats bar, search/filter bar, and card grid skeleton matching the real layout.
+
+2. **GameBoardLoading Overhaul**: Completely redesigned from a fake 2-player hand view to a proper board skeleton matching the actual GameBoard layout. Previously showed "opponent hand" cards that never appear in the real game. Now properly shows 6x3 tile grid, zone labels, player hand area, and phase instructions skeleton matching the real board.

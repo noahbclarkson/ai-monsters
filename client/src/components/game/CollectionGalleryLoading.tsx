@@ -2,38 +2,41 @@ export function CollectionGalleryLoading() {
   return (
     <main className="min-h-screen bg-atmospheric">
       <div className="container mx-auto px-4 py-8">
+        {/* Header skeleton */}
         <div className="mb-8">
-          <div className="w-64 h-10 bg-white/5 rounded-lg animate-pulse mb-2" />
-          <div className="w-96 h-6 bg-white/5 rounded-lg animate-pulse" />
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-white/5 animate-pulse" />
+              <div className="w-48 h-10 bg-white/5 rounded-lg animate-pulse" />
+            </div>
+            <div className="w-36 h-10 rounded-lg bg-white/5 animate-pulse" />
+          </div>
+          <div className="w-32 h-5 bg-white/5 rounded-lg animate-pulse" />
         </div>
 
-        <div className="flex flex-col md:flex-row gap-8">
-          <aside className="w-full md:w-64 shrink-0 space-y-6">
-            <div className="glass-card rounded-2xl p-6">
-              <div className="w-24 h-6 bg-white/5 rounded animate-pulse mb-6" />
-              <div className="space-y-4">
-                <div className="h-10 bg-white/5 rounded-xl animate-pulse" />
-                <div className="space-y-2">
-                  <div className="w-20 h-4 bg-white/5 rounded animate-pulse" />
-                  <div className="h-10 bg-white/5 rounded-xl animate-pulse" />
-                </div>
-                <div className="space-y-2">
-                  <div className="w-20 h-4 bg-white/5 rounded animate-pulse" />
-                  <div className="h-10 bg-white/5 rounded-xl animate-pulse" />
-                </div>
-              </div>
+        {/* Stats bar */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-8">
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="glass-card rounded-xl p-4 text-center animate-pulse">
+              <div className="w-12 h-8 bg-white/5 rounded mx-auto mb-2" />
+              <div className="w-16 h-3 bg-white/5 rounded mx-auto" />
             </div>
-            
-            <div className="h-12 bg-white/5 rounded-xl border border-white/10 animate-pulse" />
-          </aside>
+          ))}
+        </div>
 
-          <div className="flex-1 min-w-0">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-                <div key={i} className="aspect-[2/3] bg-white/5 rounded-2xl animate-pulse border border-white/10" />
-              ))}
-            </div>
+        {/* Search + filter bar skeleton */}
+        <div className="glass-card rounded-2xl p-4 mb-6">
+          <div className="flex items-center gap-4">
+            <div className="flex-1 h-10 bg-white/5 rounded-lg animate-pulse" />
+            <div className="w-24 h-10 bg-white/5 rounded-lg animate-pulse" />
           </div>
+        </div>
+
+        {/* Cards grid skeleton */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+            <div key={i} className="aspect-[2/3] bg-white/5 rounded-2xl animate-pulse border border-white/10" />
+          ))}
         </div>
       </div>
     </main>
