@@ -98,10 +98,11 @@ export function GameCard({
     '--rarity-gradient': rarityConfig.gradient,
   } as React.CSSProperties;
 
-  // Use a reliable placeholder if imageUrl is missing or broken
-  const displayImageUrl = imageUrl && !imageError && !imageUrl.startsWith('/placeholder/') 
-    ? imageUrl 
-    : `https://picsum.photos/seed/${name.replace(/\s+/g, '')}/832/1248`;
+  // Determine if we have a real image or need a themed placeholder
+  // Filter out picsum.photos URLs — they look terrible as card art
+  const isPicsum = imageUrl?.includes('picsum.photos');
+  const hasRealImage = imageUrl && !imageError && !imageUrl.startsWith('/placeholder/') && !isPicsum;
+  const displayImageUrl = hasRealImage ? imageUrl : undefined;
 
   // Outer wrapper provides 3D perspective for the flip animation
   const outerStyle: React.CSSProperties = {
@@ -175,12 +176,30 @@ export function GameCard({
             </div>
 
             <div className={`relative ${sc.art} overflow-hidden`}>
-              <img
-                src={displayImageUrl}
-                alt={name}
-                className="w-full h-full object-cover"
-                onError={() => setImageError(true)}
-              />
+              {displayImageUrl ? (
+                <img
+                  src={displayImageUrl}
+                  alt={name}
+                  className="w-full h-full object-cover"
+                  onError={() => setImageError(true)}
+                />
+              ) : (
+                <div
+                  className="w-full h-full flex flex-col items-center justify-center relative"
+                  style={{ background: `linear-gradient(135deg, ${rarityConfig.gradient.replace('linear-gradient(135deg, ', '').replace(')', '')})` }}
+                >
+                  {/* Subtle pattern overlay */}
+                  <div className="absolute inset-0 opacity-10" style={{ background: 'repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255,255,255,0.03) 8px, rgba(255,255,255,0.03) 16px)' }} />
+                  {/* Radial glow behind icon */}
+                  <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at 50% 45%, rgba(255,255,255,0.12) 0%, transparent 60%)' }} />
+                  {/* Type icon */}
+                  <typeConfig.Icon size={size === 'sm' ? 20 : size === 'md' ? 32 : 44} className="relative z-10 drop-shadow-lg" style={{ color: 'rgba(255,255,255,0.7)', strokeWidth: 1.2 }} />
+                  {/* Card name initial */}
+                  <span className="relative z-10 mt-1 text-white/30 font-bold uppercase" style={{ fontFamily: 'Cinzel, serif', fontSize: size === 'sm' ? '8px' : size === 'md' ? '11px' : '14px', letterSpacing: '0.15em' }}>
+                    {name.split(' ').map(w => w[0]).join('')}
+                  </span>
+                </div>
+              )}
               <div
                 className="absolute inset-0 opacity-20"
                 style={{ background: `linear-gradient(180deg, transparent 50%, ${rarityConfig.border} 100%)` }}

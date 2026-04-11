@@ -36,16 +36,18 @@ This is a product you can demo to anyone and have them say "this is actually imp
 - Skeleton loaders for GameBoard and CollectionGallery during loading states
 - Fallback image generation works seamlessly when MiniMax fails or is unconfigured
 
-### Image Generation 🟡
-- `generate-card-image` API route IS correctly wired for MiniMax (`api.minimax.io/v1/image_generation`)
-- `MINIMAX_API_KEY` is present in `.env.local` but the API call may fail natively. App falls back to Picsum images using the card name as a seed if MiniMax is unavailable.
-- Generating a card works, and the fallback image URL loads correctly.
+### Image Generation ✅
+- `generate-card-image` API route correctly wired for MiniMax (`api.minimax.io/v1/image_generation`)
+- `MINIMAX_API_KEY` is present in `.env.local` and working. Returns base64 data URIs (~636KB per image).
+- Cards without MiniMax art now show themed CSS-based placeholders (rarity gradient + type icon) instead of random stock photos.
+- No more picsum.photos fallback anywhere in the codebase.
 
 ### Still Needs Improvement
+- Card names extremely repetitive (Dragon/Phoenix/Golem/Spectre/Wraith + Warrior). Need more diverse name generation.
 - Card hover animations — could be smoother and have better easing.
-- Card flip animation — was broken (rotate-y-180 Tailwind class doesn't exist), fixed with inline styles
 - Game board polish — card zones could be more clearly defined. Placement could feel more tactile.
 - Error states — what happens when image fails to load? When API times out?
+- Leaderboard shows empty state — "0 players" because no matches completed.
 
 ---
 
@@ -217,3 +219,6 @@ _Last updated: 2026-04-07 16:03 UTC_
 1. **CollectionGalleryLoading Overhaul**: Completely redesigned the loading skeleton to match the actual CollectionGallery layout. Previously showed a misleading sidebar skeleton that doesn't exist in the actual UI. Now properly shows header, stats bar, search/filter bar, and card grid skeleton matching the real layout.
 
 2. **GameBoardLoading Overhaul**: Completely redesigned from a fake 2-player hand view to a proper board skeleton matching the actual GameBoard layout. Previously showed "opponent hand" cards that never appear in the real game. Now properly shows 6x3 tile grid, zone labels, player hand area, and phase instructions skeleton matching the real board.
+
+## Iterative Polish Updates (2026-04-11 Afternoon)
+1. **Card Art Fallback Overhaul**: Replaced picsum.photos random stock photo fallback with themed CSS-based card art placeholders. When a card has no real MiniMax AI art, GameCard now renders a rarity-colored gradient background with the card's type icon (Swords/Building2/Sparkles), name initials, and subtle pattern overlay. This makes all 294+ existing cards without AI art look intentional and cohesive instead of showing random stock photos of landscapes and people. Also filtered out old picsum URLs stored in the database. Cards with real MiniMax base64 images still display their AI-generated art normally.

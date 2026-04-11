@@ -32,13 +32,11 @@ export class AICardGenerator {
         if (data.image_url) return data.image_url;
       }
 
-      // API failed — return picsum placeholder
-      const safeName = noun.toLowerCase().replace(/\s+/g, '-');
-      return `https://picsum.photos/seed/${safeName}-${Date.now()}/832/1248`;
+      // API failed — return empty string (card component renders themed CSS placeholder)
+      return '';
     } catch (error) {
       console.error('Error generating image:', error);
-      const safeName = noun.toLowerCase().replace(/\s+/g, '-');
-      return `https://picsum.photos/seed/${safeName}-${Date.now()}/832/1248`;
+      return '';
     }
   }
 

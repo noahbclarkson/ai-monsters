@@ -23,13 +23,11 @@ export async function POST(request: NextRequest) {
     const apiKey = process.env.MINIMAX_API_KEY;
 
     if (!apiKey) {
-      // Return a structured placeholder URL when no API key is configured
-      const safeName = noun.toLowerCase().replace(/\s+/g, '-');
-      const safeType = cardType.toLowerCase();
+      // Return empty image_url — the card component renders a themed CSS placeholder
       return NextResponse.json({
         success: false,
-        image_url: `https://picsum.photos/seed/${safeName}-${cardId}/832/1248`,
-        message: 'MINIMAX_API_KEY not configured; using placeholder'
+        image_url: '',
+        message: 'MINIMAX_API_KEY not configured; using themed placeholder'
       });
     }
 
@@ -67,11 +65,10 @@ export async function POST(request: NextRequest) {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('MiniMax API error:', response.status, errorText);
-      const safeName = noun.toLowerCase().replace(/\s+/g, '-');
       return NextResponse.json({
         success: false,
-        image_url: `https://picsum.photos/seed/${safeName}-${cardId}/832/1248`,
-        message: `MiniMax API error ${response.status}; using placeholder`
+        image_url: '',
+        message: `MiniMax API error ${response.status}; using themed placeholder`
       });
     }
 
@@ -99,11 +96,10 @@ export async function POST(request: NextRequest) {
 
     if (!base64Image) {
       console.error('MiniMax response missing base64:', JSON.stringify(data).substring(0, 200));
-      const safeName = noun.toLowerCase().replace(/\s+/g, '-');
       return NextResponse.json({
         success: false,
-        image_url: `https://picsum.photos/seed/${safeName}-${cardId}/832/1248`,
-        message: 'MiniMax response missing image data; using placeholder'
+        image_url: '',
+        message: 'MiniMax response missing image data; using themed placeholder'
       });
     }
 
