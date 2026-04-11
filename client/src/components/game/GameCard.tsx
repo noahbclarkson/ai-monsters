@@ -130,24 +130,32 @@ export function GameCard({
     overflow: 'hidden',
   };
 
+  // Glow intensifies on hover — cards should feel like they float toward you
+  const hoverGlow = isHovering
+    ? rarity === 'Legendary'
+      ? '0 0 0 1.5px rgba(245,158,11,1), 0 0 40px rgba(245,158,11,0.9), 0 0 80px rgba(245,158,11,0.4), 0 20px 60px rgba(0,0,0,0.7)'
+      : rarity === 'Epic'
+      ? '0 0 0 1.5px rgba(168,85,247,0.9), 0 0 35px rgba(168,85,247,0.8), 0 0 70px rgba(168,85,247,0.3), 0 18px 55px rgba(0,0,0,0.65)'
+      : rarity === 'Rare'
+      ? '0 0 0 1.5px rgba(59,130,246,0.8), 0 0 28px rgba(59,130,246,0.7), 0 0 55px rgba(59,130,246,0.25), 0 16px 50px rgba(0,0,0,0.6)'
+      : '0 0 0 1.5px rgba(107,114,128,0.6), 0 0 22px rgba(107,114,128,0.5), 0 0 40px rgba(107,114,128,0.2), 0 14px 45px rgba(0,0,0,0.55)'
+    : `0 0 0 1.5px ${rarityConfig.border}, 0 0 20px ${rarityConfig.glow}, 0 8px 32px rgba(0,0,0,0.5)`;
+
   return (
     <div
       className={`
         ${sc.card} rounded-xl overflow-hidden
-        transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]
-        ${isSelected ? 'scale-105 z-10 shadow-2xl' : 'hover:scale-[1.06] hover:-translate-y-3 hover:shadow-2xl'}
+        transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]
+        ${isSelected ? 'scale-105 z-10' : ''}
         ${isAttacking ? 'animate-pulse-ring' : ''}
         ${isDefending ? 'ring-2 ring-blue-400 ring-opacity-50' : ''}
       `}
       style={{
         ...outerStyle,
-        boxShadow: `
-          0 0 0 1.5px ${rarityConfig.border},
-          0 0 20px ${rarityConfig.glow},
-          0 8px 32px rgba(0,0,0,0.5)
-        `,
+        boxShadow: hoverGlow,
         ...cardStyle,
         cursor: 'pointer',
+        transform: isHovering && !isSelected ? 'scale(1.07) translateY(-16px)' : undefined,
       }}
       onClick={onClick}
       onMouseEnter={() => setIsHovering(true)}

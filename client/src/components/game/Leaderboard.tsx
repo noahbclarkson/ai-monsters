@@ -275,9 +275,11 @@ export function Leaderboard() {
           
           <div className="flex-1" />
           
-          <span className="text-sm text-white/50">
-            {sortedPlayers.length} players
-          </span>
+          {sortedPlayers.length > 0 && (
+            <span className="text-sm text-white/50">
+              {sortedPlayers.length} players
+            </span>
+          )}
         </div>
 
         {/* Leaderboard list */}
@@ -295,10 +297,17 @@ export function Leaderboard() {
         {/* Empty state */}
         {sortedPlayers.length === 0 && (
           <div className="empty-state">
-            <div className="empty-state-icon"><Trophy size={48} className="text-yellow-400/40" strokeWidth={1} /></div>
-            <p className="empty-state-title">No players yet</p>
+            <div className="relative">
+              <div className="empty-state-icon"><Trophy size={48} className="text-yellow-400/40" strokeWidth={1} /></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full bg-yellow-400/10 flex items-center justify-center">
+                  <span className="text-yellow-400/60 text-2xl font-bold" style={{ fontFamily: 'Cinzel, serif' }}>#</span>
+                </div>
+              </div>
+            </div>
+            <p className="empty-state-title">No ranked players yet</p>
             <p className="empty-state-desc">
-              Be the first to play and claim the top spot!
+              Complete your first match to earn a rank and appear on the leaderboard.
             </p>
           </div>
         )}

@@ -194,7 +194,7 @@ _Last updated: 2026-04-07 16:03 UTC_
    - MobileGameControls.tsx: Removed ⚡🎮 from phase labels
 
 ### Remaining P1 Issues (from PLAN.md)
-- Card hover animations — could be smoother and have better easing.
+- Card hover animations — DONE (2026-04-11 evening: rarity-specific glow intensification + spring easing)
 - Card flip animation — was broken (rotate-y-180 Tailwind class doesn't exist), fixed with inline styles
 - Game board polish — are card zones clearly defined? Does placement feel tactile?
 - Error states — what happens when image fails to load? When API times out?
@@ -225,3 +225,7 @@ _Last updated: 2026-04-07 16:03 UTC_
 
 ## Iterative Polish Updates (2026-04-11 Late Afternoon)
 1. **AI Content Persistence Fix**: Fixed critical bug where AI-generated descriptions and images were silently discarded during card generation. The SpacetimeDB `generate_card` reducer accepts `ai_description`/`ai_image_url` params but only uses them as hints -- it generates its own flavor text and placeholder image. All three card generation flows (Collection, Packs, Daily) now call `update_card_media` after card creation to persist the actual AI content. This ensures new cards get proper AI descriptions and MiniMax art. Existing cards with generic "A X unit" descriptions remain until regenerated.
+
+## Iterative Polish Updates (2026-04-11 Evening)
+1. **Card Hover Animation Polish**: Replaced basic `hover:scale-[1.06] hover:-translate-y-3` with rarity-specific glow intensification + spring easing + precise pixel lift. Glow spreads dramatically on hover (Legendary: 40px/80px, Epic: 35px/70px, Rare: 28px/55px, Common: 22px/40px) with spring easing `cubic-bezier(0.34,1.56,0.64,1)`. Transform controlled via React state + inline style (no CSS hover class conflicts). Affects all GameCard instances across all pages.
+2. **Leaderboard Empty State Polish**: Removed "0 players" counter (was shown above empty state -- felt broken). Empty state now shows centered #1 badge over trophy icon with message: "No ranked players yet / Complete your first match to earn a rank and appear on the leaderboard."
