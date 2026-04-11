@@ -222,3 +222,6 @@ _Last updated: 2026-04-07 16:03 UTC_
 
 ## Iterative Polish Updates (2026-04-11 Afternoon)
 1. **Card Art Fallback Overhaul**: Replaced picsum.photos random stock photo fallback with themed CSS-based card art placeholders. When a card has no real MiniMax AI art, GameCard now renders a rarity-colored gradient background with the card's type icon (Swords/Building2/Sparkles), name initials, and subtle pattern overlay. This makes all 294+ existing cards without AI art look intentional and cohesive instead of showing random stock photos of landscapes and people. Also filtered out old picsum URLs stored in the database. Cards with real MiniMax base64 images still display their AI-generated art normally.
+
+## Iterative Polish Updates (2026-04-11 Late Afternoon)
+1. **AI Content Persistence Fix**: Fixed critical bug where AI-generated descriptions and images were silently discarded during card generation. The SpacetimeDB `generate_card` reducer accepts `ai_description`/`ai_image_url` params but only uses them as hints -- it generates its own flavor text and placeholder image. All three card generation flows (Collection, Packs, Daily) now call `update_card_media` after card creation to persist the actual AI content. This ensures new cards get proper AI descriptions and MiniMax art. Existing cards with generic "A X unit" descriptions remain until regenerated.
