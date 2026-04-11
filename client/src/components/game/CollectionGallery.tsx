@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, BookOpen, Sparkles, Settings, X, Layers } from 'lucide-react';
+import { Search, BookOpen, Sparkles, Settings, X, Layers, ArrowUp, ArrowDown, Star } from 'lucide-react';
 import { GameCard } from './GameCard';
 import { CollectionGalleryLoading } from './CollectionGalleryLoading';
 import { useCards } from '@/lib/useCards';
@@ -223,24 +223,63 @@ export function CollectionGallery() {
           </p>
         </div>
 
-        {/* Stats bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-8">
-          {RARITY_ORDER.map(rarity => (
-            <div
-              key={rarity}
-              className="glass-card rounded-xl p-4 text-center"
-            >
-              <div 
-                className="text-2xl font-bold mb-1"
-                style={{ color: STATS_COLORS[rarity as keyof typeof STATS_COLORS] }}
-              >
-                {rarityStats[rarity as keyof typeof rarityStats]}
-              </div>
-              <div className="text-xs text-white/50 uppercase tracking-wider">
-                {rarity}
-              </div>
+        {/* Stats bar with distribution */}
+        <div className="glass-card rounded-2xl p-5 mb-8">
+          {/* Rarity distribution bar */}
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-xs text-white/40 uppercase tracking-wider font-semibold shrink-0">Collection</span>
+            <div className="flex-1 h-2.5 rounded-full overflow-hidden bg-white/5 flex">
+              {RARITY_ORDER.map(rarity => {
+                const count = rarityStats[rarity as keyof typeof rarityStats];
+                if (count === 0) return null;
+                return (
+                  <div
+                    key={rarity}
+                    className="h-full transition-all duration-500"
+                    style={{
+                      width: `${(count / rarityStats.Total) * 100}%`,
+                      background: STATS_COLORS[rarity as keyof typeof STATS_COLORS],
+                      opacity: rarity === 'Legendary' ? 1 : rarity === 'Epic' ? 0.85 : 0.7,
+                    }}
+                  />
+                );
+              })}
             </div>
-          ))}
+            <span className="text-sm font-bold text-white shrink-0" style={{ fontFamily: 'JetBrains Mono, monospace' }}>{rarityStats.Total}</span>
+          </div>
+
+          {/* Rarity breakdown pills */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {RARITY_ORDER.map(rarity => {
+              const count = rarityStats[rarity as keyof typeof rarityStats];
+              const color = STATS_COLORS[rarity as keyof typeof STATS_COLORS];
+              return (
+                <button
+                  key={rarity}
+                  onClick={() => setFilters(prev => ({
+                    ...prev,
+                    rarity: prev.rarity === rarity ? 'All' : rarity,
+                  }))}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border ${
+                    filters.rarity === rarity
+                      ? 'border-white/20 shadow-lg'
+                      : 'border-white/5 hover:border-white/10'
+                  }`}
+                  style={{
+                    background: filters.rarity === rarity
+                      ? `${color}25`
+                      : 'rgba(255,255,255,0.03)',
+                    color: count > 0 ? color : 'rgba(255,255,255,0.25)',
+                    boxShadow: filters.rarity === rarity ? `0 0 12px ${color}30` : 'none',
+                  }}
+                >
+                  <Star size={10} strokeWidth={2.5} fill={count > 0 ? color : 'none'} style={{ opacity: count > 0 ? 1 : 0.4 }} />
+                  <span>{count}</span>
+                  <span className="text-white/40 hidden sm:inline">{rarity}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Search and filters */}
@@ -327,26 +366,35 @@ export function CollectionGallery() {
                       sortOrder: prev.sortOrder === 'asc' ? 'desc' : 'asc' 
                     }))}
                     className="btn btn-ghost px-3"
+                    title={filters.sortOrder === 'asc' ? 'Sort ascending' : 'Sort descending'}
                   >
-                    {filters.sortOrder === 'asc' ? '↑' : '↓'}
+                    {filters.sortOrder === 'asc' 
+                      ? <ArrowUp size={14} strokeWidth={2} />
+                      : <ArrowDown size={14} strokeWidth={2} />
+                    }
                   </button>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Active filters summary */}
-          {hasActiveFilters && (
-            <div className="mt-4 flex items-center gap-2">
-              <span className="text-sm text-white/50">Showing {filteredCards.length} of {cards.length}</span>
+          {/* Results count */}
+          <div className="mt-4 flex items-center gap-3">
+            <span className="text-sm text-white/50">
+              {hasActiveFilters 
+                ? <>Showing <span className="text-white/80 font-semibold">{filteredCards.length}</span> of {cards.length} cards</>
+                : <><span className="text-white/80 font-semibold">{filteredCards.length}</span> cards</>
+              }
+            </span>
+            {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="text-sm text-purple-400 hover:text-purple-300"
+                className="text-sm text-purple-400 hover:text-purple-300 transition-colors"
               >
                 Clear filters
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Cards grid */}
