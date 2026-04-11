@@ -27,8 +27,8 @@ export function GameGenerator() {
         newCard.name,
         newCard.rarity,
         newCard.card_type,
-        newCard.description,
-        newCard.image_url
+        '',
+        ''
       );
       
       setGeneratedCards(prev => [...prev, newCard]);
@@ -52,8 +52,8 @@ export function GameGenerator() {
           card.name,
           card.rarity,
           card.card_type,
-          card.description,
-          card.image_url
+          '',
+          ''
         );
       }
       

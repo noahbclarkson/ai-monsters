@@ -64,7 +64,7 @@ export default function DailyCardGenerator() {
         if (imgData.image_url) aiImageUrl = imgData.image_url;
       }
 
-      await generateCard(noun, rarity, cardType, aiDescription, aiImageUrl);
+      await generateCard(noun, rarity, cardType, '', '');
 
       await new Promise(resolve => setTimeout(resolve, 1200));
 
@@ -82,10 +82,21 @@ export default function DailyCardGenerator() {
             defense: card.defense,
             range: card.range,
             rarity: card.rarity,
-            card_type: card.card_type,
-            image_url: card.image_url,
+            card_type: card.cardType || card.card_type,
+            image_url: card.imageUrl || card.image_url,
           };
         }
+      }
+
+      // Update the card with actual AI content (description + image)
+      if (lastCard && (aiDescription || aiImageUrl)) {
+        (conn.reducers as any).update_card_media({
+          cardId: Number(lastCard.id),
+          description: aiDescription,
+          imageUrl: aiImageUrl,
+        });
+        if (aiDescription) lastCard.description = aiDescription;
+        if (aiImageUrl) lastCard.image_url = aiImageUrl;
       }
 
       setDailyCard(lastCard);

@@ -6,6 +6,7 @@ import { GameCard } from './GameCard';
 import { CollectionGalleryLoading } from './CollectionGalleryLoading';
 import { useCards } from '@/lib/useCards';
 import { AICardGenerator } from '@/lib/ai-card-generator';
+import { useSpacetimeDB } from '@/lib/spacetimedb';
 
 interface GalleryCard {
   id: number;
@@ -39,6 +40,7 @@ const STATS_COLORS = {
 
 export function CollectionGallery() {
   const { cards: dbCards, loading, error, generateCard } = useCards();
+  const { conn } = useSpacetimeDB();
   const [filteredCards, setFilteredCards] = useState<GalleryCard[]>([]);
   const [selectedCard, setSelectedCard] = useState<GalleryCard | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -150,7 +152,26 @@ export function CollectionGallery() {
         aiImageUrl = imgData.image_url || '';
       }
 
-      await generateCard(noun, rarity, cardType, aiDescription, aiImageUrl);
+      await generateCard(noun, rarity, cardType, '', '');
+
+      // generateCard sets server stats but ignores AI description/image — read back
+      // the new card and call update_card_media to persist the actual AI content
+      if (!conn) return;
+      const db = conn.db as Record<string, { iter(): Iterable<any> }>;
+      let newCard: any = null;
+      if (db.cards) {
+        for (const c of db.cards.iter()) {
+          newCard = c;
+        }
+      }
+      if (newCard && (aiDescription || aiImageUrl)) {
+        const cardId = Number(newCard.id);
+        (conn.reducers as any).update_card_media({
+          cardId,
+          description: aiDescription,
+          imageUrl: aiImageUrl,
+        });
+      }
     } catch (error) {
       console.error('Error generating card:', error);
     } finally {
