@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSpacetimeDB } from '@/lib/spacetimedb';
 import {
   Sparkles,
   Swords,
@@ -33,6 +34,7 @@ const TABS: NavigationTab[] = [
 
 export function MainNavigation() {
   const [activeTab, setActiveTab] = useState('lobby');
+  const { connected, error } = useSpacetimeDB();
 
   return (
     <div className="min-h-screen bg-atmospheric flex flex-col">
@@ -65,8 +67,24 @@ export function MainNavigation() {
             
             {/* Connection status */}
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-sm text-white/60">Online</span>
+              <div
+                className="w-2 h-2 rounded-full animate-pulse"
+                style={{
+                  background: connected && !error
+                    ? '#22c55e'
+                    : error
+                    ? '#ef4444'
+                    : '#f59e0b',
+                  boxShadow: connected && !error
+                    ? '0 0 8px rgba(34,197,94,0.6)'
+                    : error
+                    ? '0 0 8px rgba(239,68,68,0.6)'
+                    : '0 0 8px rgba(245,158,11,0.6)',
+                }}
+              />
+              <span className="text-sm text-white/60">
+                {error ? 'Error' : connected ? 'Online' : 'Connecting...'}
+              </span>
             </div>
           </div>
         </div>

@@ -103,8 +103,10 @@ export function GameCard({
   // Filter out picsum.photos URLs — they look terrible as card art
   const isPicsum = imageUrl?.includes('picsum.photos');
   const hasExplicitImage = imageUrl && !imageError && !imageUrl.startsWith('/placeholder/') && !isPicsum;
-  // Use explicit image if available, otherwise fall back to deterministic art library
-  const displayImageUrl = hasExplicitImage ? imageUrl : getCardArtFallback(name);
+  // Use explicit MiniMax image if available, otherwise generate matching CSS gradient art
+  const displayImageUrl = hasExplicitImage
+    ? imageUrl
+    : getCardArtFallback({ name, type, rarity });
 
   // Outer wrapper provides 3D perspective for the flip animation
   const outerStyle: React.CSSProperties = {
