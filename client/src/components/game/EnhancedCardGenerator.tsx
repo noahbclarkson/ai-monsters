@@ -22,10 +22,10 @@ export function EnhancedCardGenerator() {
           
           <button
             onClick={() => setShowPack(true)}
-            className="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-300 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl hover:from-purple-500 hover:to-blue-500 hover:shadow-[0_0_40px_rgba(139,92,246,0.4)] overflow-hidden"
+            className="group relative btn btn-primary py-4 px-8 text-lg overflow-hidden"
           >
             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
-            <span className="relative flex items-center gap-3 text-lg">
+            <span className="relative flex items-center gap-3">
               <Sparkles size={20} strokeWidth={1.5} />
               Open a Pack
             </span>

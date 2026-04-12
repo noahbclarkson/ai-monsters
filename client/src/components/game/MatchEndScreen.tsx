@@ -47,7 +47,7 @@ export function MatchEndScreen({ gameId, onPlayAgain, onBackToLobby }: MatchEndS
       />
 
       {/* Main panel */}
-      <div className="relative z-10 glass-card rounded-3xl p-10 max-w-md w-full mx-4 text-center space-y-8 animate-in fade-in zoom-in duration-500">
+      <div className="relative z-10 glass-card rounded-2xl p-10 max-w-md w-full mx-4 text-center space-y-8 animate-in fade-in zoom-in duration-500">
 
         {/* Icon */}
         <div className="flex justify-center">
@@ -71,10 +71,7 @@ export function MatchEndScreen({ gameId, onPlayAgain, onBackToLobby }: MatchEndS
             ) : isDraw ? (
               <Sparkles size={48} className="text-purple-400" strokeWidth={1.5} />
             ) : (
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M24 4L30 18H44L32 28L36 42L24 34L12 42L16 28L4 18H18L24 4Z" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinejoin="round"/>
-                <path d="M24 14L27 22H35L29 27L31 35L24 31L17 35L19 27L13 22H21L24 14Z" fill="#ef4444" opacity="0.3"/>
-              </svg>
+              <Sparkles size={48} className="text-red-400" strokeWidth={1.5} />
             )}
           </div>
         </div>

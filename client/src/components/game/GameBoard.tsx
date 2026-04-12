@@ -298,12 +298,12 @@ export function GameBoard({ gameId, isSpectating = false, onPlayAgain, onBackToL
           {/* Zone divider */}
           <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2 flex items-center gap-3">
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/40 border border-white/5">
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/40">
               <div className="w-1.5 h-1.5 rounded-full bg-green-400/60" />
               <span className="text-xs text-green-400/60 font-medium tracking-wider uppercase">Your Zone</span>
             </div>
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/40 border border-white/5">
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/40">
               <div className="w-1.5 h-1.5 rounded-full bg-red-400/60" />
               <span className="text-xs text-red-400/60 font-medium tracking-wider uppercase">Enemy Zone</span>
             </div>

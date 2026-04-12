@@ -203,6 +203,19 @@ _Last updated: 2026-04-12 03:10 UTC_
 - Game board zone polish — placement feels tactile but could be improved
 - Error states — CSS fallback handles image load failures well now
 
+### 2026-04-13 Early Morning
+1. **card-art.ts SVG validity fix** (69e34fb):
+   - Moved `<radialGradient id="centerGlow">` inside `<defs>` — previously it was placed OUTSIDE `<defs>` making `url(#centerGlow)` an undefined SVG reference
+   - Renamed `TYPE_SHAPES` (misleading name, contained mixed CSS/SVG strings) → `TYPE_CSS_GRADIENT` with clean CSS gradient strings per card type
+   - Changed type shape fill from `url(#typeShape)` (broken SVG gradient ID reference that was never properly defined) → `${typeCssGradient}` (CSS gradient string applied directly as fill attribute — widely supported in browsers for SVG elements)
+   - Removed orphaned `<radialGradient id="typeShape">` from defs (was dead code after the above fix)
+   - All card gradient art now renders correctly across all card types
+
+2. **PackOpening card name generation fix** (69e34fb):
+   - Old: `noun = NOUNS[...] + (i > 0 ? suffix[i-1] : '').trim() || fallbackNoun` — at `i=0`, suffix array returned `[-1]` = undefined, so card 0 got no suffix (bare noun), while cards 1-4 got suffixes inconsistently
+   - New: `const suffixes = ['Prime', 'Alpha', 'Void', 'Storm', 'Doom']; noun = NOUNS[...] + ' ' + suffixes[i]` — all 5 pack cards now consistently get a suffix
+   - Build passes, TypeScript clean
+
 ### Remaining P2 Issues (from PLAN.md)
 - Ambient sound effects (optional, later)
 - Particle effects on card actions

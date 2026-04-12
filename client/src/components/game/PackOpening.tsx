@@ -256,7 +256,7 @@ export function PackOpening() {
             <button
               onClick={handleOpenPack}
               disabled={opening}
-              className="btn btn-primary py-4 px-12 text-xl shadow-xl shadow-purple-500/20 flex items-center justify-center mx-auto transition-all duration-300 hover:shadow-purple-500/40 hover:scale-105 active:scale-95"
+              className="btn btn-primary py-4 px-12 text-xl shadow-xl shadow-purple-500/20 flex items-center justify-center mx-auto"
             >
               {opening ? (
                 <>

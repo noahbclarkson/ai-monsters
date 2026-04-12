@@ -313,7 +313,7 @@ export function GameLobby() {
               return (
                 <div 
                   key={String(match.id)}
-                  className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-colors"
+                  className="p-4 rounded-xl glass-card transition-all duration-200"
                 >
                   <div className="flex items-center justify-between">
                     <div>
@@ -387,7 +387,7 @@ export function GameLobby() {
             </div>
           )}
           {!isMyTurn && !isBotTurn && botMatch && (
-            <div className="p-4 rounded-lg bg-white/5 border border-white/5">
+            <div className="p-4 rounded-lg glass-card">
               <span className="text-white/60">Waiting for opponent...</span>
             </div>
           )}
