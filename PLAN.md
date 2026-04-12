@@ -207,9 +207,9 @@ _Last updated: 2026-04-12 03:10 UTC_
 - Ambient sound effects (optional, later)
 - Particle effects on card actions
 - Card collection counter with animated increment
-- Match-end animation — victory/defeat screen
+- Match-end animation — victory/defeat screen — done (4bed27a)
 - Custom scrollbar matching dark theme (already implemented in globals.css)
-- Cursor styles — should feel like a game, not a webpage
+- Cursor styles — should feel like a game, not a webpage — done (4bed27a, inline SVG cursors)
 
 ### 2026-04-10 Status
 - All emoji removed from source files (verified with grep). No emoji remain.
