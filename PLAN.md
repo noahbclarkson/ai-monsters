@@ -133,7 +133,7 @@ Agent workspace: `/home/ubuntu/.openclaw/workspace-aimonsters/`
 
 ---
 
-_Last updated: 2026-04-07 16:03 UTC_
+_Last updated: 2026-04-12 03:10 UTC_
 
 ## Iterative Polish Updates (2026-04-07 Later)
 1. Created skeleton loaders `GameBoardLoading` and `CollectionGalleryLoading`.
@@ -193,11 +193,15 @@ _Last updated: 2026-04-07 16:03 UTC_
    - card-generator.ts / ai-card-generator.ts: Text labels (Melee/Structure/Magic) replacing emoji in dead getTypeIcon methods
    - MobileGameControls.tsx: Removed ⚡🎮 from phase labels
 
-### Remaining P1 Issues (from PLAN.md)
-- Card hover animations — DONE (2026-04-11 evening: rarity-specific glow intensification + spring easing)
-- Card flip animation — was broken (rotate-y-180 Tailwind class doesn't exist), fixed with inline styles
-- Game board polish — are card zones clearly defined? Does placement feel tactile?
-- Error states — what happens when image fails to load? When API times out?
+### 2026-04-12 Early Morning
+1. **Card Art Fallback Overhaul** (2e419cc): Replaced 11-image hash-based fallback with full CSS gradient SVG art generator. Every card now gets unique, matching art derived from its own name/type/rarity — no more mismatches like Void Dragon showing bone-dragon.png. Art is deterministic SVG data URI with rarity palettes, type shape overlays, name color accents, initials, grid pattern.
+2. **Header Connection Status Fix** (2e419cc): MainNavigation header now reads real SpacetimeDB connection state instead of hardcoded "Online" green dot. Shows: green = connected, amber = connecting, red = error.
+3. **MiniMax Status**: The MiniMax API integration was replaced on 2026-04-11 with local art library (commit 49ba43b). The 11 pre-generated PNG art files in `/card-art/` are hash-assigned, causing card-art mismatches. The CSS gradient fallback is superior. Image generation API (`/api/generate-card-image`) now returns local art files; `generate-description` uses OpenAI.
+
+### Remaining P1 Issues
+- Match-end animation (victory/defeat screen) — not implemented
+- Game board zone polish — placement feels tactile but could be improved
+- Error states — CSS fallback handles image load failures well now
 
 ### Remaining P2 Issues (from PLAN.md)
 - Ambient sound effects (optional, later)
