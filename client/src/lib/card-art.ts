@@ -23,12 +23,12 @@ const RARITY_PALETTE: Record<string, { c1: string; c2: string; accent: string }>
   Legendary: { c1: '#451a03', c2: '#d97706', accent: '#fbbf24' },
 };
 
-/** Per-type background shapes */
-const TYPE_SHAPES: Record<string, string> = {
-  Unit:     'radial-gradient(ellipse at 30% 25%, rgba(239,68,68,0.35) 0%, transparent 55%)',
-  Building: 'radial-gradient(ellipse at 65% 30%, rgba(99,102,241,0.35) 0%, transparent 55%)',
-  Spell:    'radial-gradient(ellipse at 50% 20%, rgba(34,211,238,0.35) 0%, transparent 55%)',
-  Structure: 'radial-gradient(ellipse at 50% 70%, rgba(168,85,247,0.3) 0%, transparent 55%)',
+/** Per-type background shape — used as inline CSS fill, not SVG gradient ID */
+const TYPE_CSS_GRADIENT: Record<string, string> = {
+  Unit:     'radial-gradient(ellipse at 35% 30%, rgba(239,68,68,0.3) 0%, transparent 60%)',
+  Building: 'radial-gradient(ellipse at 65% 35%, rgba(99,102,241,0.3) 0%, transparent 60%)',
+  Spell:    'radial-gradient(ellipse at 50% 25%, rgba(34,211,238,0.3) 0%, transparent 60%)',
+  Structure:'radial-gradient(ellipse at 50% 70%, rgba(168,85,247,0.25) 0%, transparent 60%)',
 };
 
 /** Name-derived color accents for variety */
@@ -69,7 +69,7 @@ function getInitials(name: string): string {
 export function getCardArtFallback(params: CardArtParams): string {
   const { name, type, rarity } = params;
   const rarityPalette = RARITY_PALETTE[rarity] ?? RARITY_PALETTE.Common;
-  const typeShape = TYPE_SHAPES[type] ?? TYPE_SHAPES.Unit;
+  const typeCssGradient = TYPE_CSS_GRADIENT[type] ?? TYPE_CSS_GRADIENT.Unit;
   const nameIndex = hashString(name) % NAME_ACCENTS.length;
   const nameAccent = NAME_ACCENTS[nameIndex];
 
@@ -101,12 +101,6 @@ export function getCardArtFallback(params: CardArtParams): string {
       <stop offset="100%" stop-color="${nameAccent[2]}" stop-opacity="0"/>
     </radialGradient>
 
-    <!-- Type shape overlay -->
-    <radialGradient id="typeShape" cx="50%" cy="35%" r="50%">
-      <stop offset="0%" stop-color="${rarityPalette.accent}" stop-opacity="0.25"/>
-      <stop offset="100%" stop-color="${rarityPalette.accent}" stop-opacity="0"/>
-    </radialGradient>
-
     <!-- Rarity shimmer stripe -->
     <linearGradient id="shimmer" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="rgba(255,255,255,0)" stop-opacity="0"/>
@@ -114,6 +108,12 @@ export function getCardArtFallback(params: CardArtParams): string {
       <stop offset="60%" stop-color="rgba(255,255,255,0.06)" stop-opacity="1"/>
       <stop offset="100%" stop-color="rgba(255,255,255,0)" stop-opacity="0"/>
     </linearGradient>
+
+    <!-- Center radial glow (must be inside defs to be referenced by url) -->
+    <radialGradient id="centerGlow" cx="50%" cy="40%" r="45%">
+      <stop offset="0%" stop-color="${rarityPalette.accent}" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="${rarityPalette.accent}" stop-opacity="0"/>
+    </radialGradient>
 
     <!-- Subtle grid pattern -->
     <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -133,14 +133,10 @@ export function getCardArtFallback(params: CardArtParams): string {
   <!-- Secondary accent (bottom-right) -->
   <rect width="${W}" height="${H}" fill="url(#nameAccent2)"/>
 
-  <!-- Type shape -->
-  <rect width="${W}" height="${H}" fill="url(#typeShape)"/>
+  <!-- Type shape (CSS gradient, applied directly as fill for broad browser compat) -->
+  <rect width="${W}" height="${H}" fill="${typeCssGradient}"/>
 
   <!-- Center radial glow from rarity accent -->
-  <radialGradient id="centerGlow" cx="50%" cy="40%" r="45%">
-    <stop offset="0%" stop-color="${rarityPalette.accent}" stop-opacity="0.3"/>
-    <stop offset="100%" stop-color="${rarityPalette.accent}" stop-opacity="0"/>
-  </radialGradient>
   <rect width="${W}" height="${H}" fill="url(#centerGlow)"/>
 
   <!-- Shimmer stripe -->

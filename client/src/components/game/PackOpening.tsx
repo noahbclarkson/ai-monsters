@@ -54,7 +54,8 @@ export function PackOpening() {
       for (let i = 0; i < 5; i++) {
         const rarity = PACK_RARITIES[i];
         const cardType = CARD_TYPES[i] as 'Unit' | 'Building' | 'Spell';
-        const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)] + (i > 0 ? ` ${['Alpha', 'Prime', 'Void', 'Storm', 'Doom'][i - 1] || ''}` : '').trim() || NOUNS[Math.floor(Math.random() * NOUNS.length)];
+        const suffixes = ['Prime', 'Alpha', 'Void', 'Storm', 'Doom'];
+        const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)] + ' ' + suffixes[i];
         const uniqueName = `${noun}${rarity === 'Legendary' ? ' of the Eternal' : rarity === 'Epic' ? ' of Power' : ''}`;
 
         setOpeningProgress(`Generating ${uniqueName}...`);
