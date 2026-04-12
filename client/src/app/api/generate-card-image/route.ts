@@ -1,19 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { getCardArtFallback } from '@/lib/card-art';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 
 /**
  * Card Image Generation API
  *
- * Uses a curated library of AI-generated fantasy art images stored in public/card-art/.
- * Each card gets a deterministic image assignment based on its cardId, ensuring
- * the same card always shows the same art.
+ * Returns beautiful, deterministic CSS gradient art for every card.
+ * Each card gets unique art derived from its own name/type/rarity —
+ * no hash collisions, no mismatched stock photos, no external API calls.
  *
- * The art library is pre-generated using the OpenClaw image_generate tool (minimax-portal).
+ * Art is generated client-side in GameCard via getCardArtFallback(),
+ * so this route now primarily serves as a compatibility endpoint that
+ * returns the gradient art as a data URI.
  */
 
-// Load art library once at module level
+const MINIMAX_API_KEY = process.env.MINIMAX_API_KEY;
+const MINIMAX_API_URL = 'https://api.minimax.io/v1/image_generation';
+
+// Load art library at module level (no longer used for primary art, kept for diagnostics)
 const ART_DIR = join(process.cwd(), 'public', 'card-art');
 let artFiles: string[] = [];
 
@@ -22,7 +28,79 @@ try {
     .filter(f => f.endsWith('.png') || f.endsWith('.jpg') || f.endsWith('.webp'))
     .sort();
 } catch {
-  console.warn('card-art directory not found, cards will use themed placeholders');
+  artFiles = [];
+}
+
+// Try MiniMax AI generation — returns base64 data URI on success, null on failure.
+// Wrapped in a hard timeout so it never blocks the route handler.
+async function generateWithMiniMax(
+  noun: string,
+  cardType: string,
+  rarity: string
+): Promise<string | null> {
+  if (!MINIMAX_API_KEY) return null;
+
+  const prompt = buildCardPrompt(noun, cardType, rarity);
+
+  // Race between MiniMax fetch and a hard 8s timeout.
+  // If MiniMax is slow/unreachable, we fall through to the gradient fallback.
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8_000);
+
+    const response = await fetch(MINIMAX_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${MINIMAX_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ model: 'image-01', prompt, aspect_ratio: '2:3' }),
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timer));
+
+    if (!response.ok) {
+      const errText = await response.text().catch(() => '');
+      console.error(`MiniMax API error ${response.status}:`, errText);
+      return null;
+    }
+
+    const data = await response.json() as {
+      base_resp?: { status_code: number; status_msg: string };
+      data?: Array<{ base64?: string }>;
+    };
+
+    if (data.base_resp?.status_code !== 0) {
+      console.error('MiniMax generation failed:', data.base_resp?.status_msg);
+      return null;
+    }
+
+    const base64 = data.data?.[0]?.base64;
+    if (base64) {
+      return `data:image/jpeg;base64,${base64}`;
+    }
+
+    return null;
+  } catch (err) {
+    // AbortError (timeout) or network error — fall through to gradient art
+    return null;
+  }
+}
+
+function buildCardPrompt(noun: string, cardType: string, rarity: string): string {
+  const rarityStyle: Record<string, string> = {
+    Legendary: 'legendary epic golden divine ornate masterwork',
+    Epic:      'powerful impressive dramatic high fantasy',
+    Rare:      'solid quality detailed fantasy art',
+    Common:    'clean fantasy art',
+  };
+  const style = rarityStyle[rarity] ?? rarityStyle.Common;
+  const typeContext: Record<string, string> = {
+    Unit:     'a fierce fantasy creature or warrior',
+    Building: 'an imposing fantasy fortress or structure',
+    Spell:    'a dramatic magical spell or enchantment',
+  };
+  const context = typeContext[cardType] ?? typeContext.Unit;
+  return `Fantasy card art: ${noun}, ${context}. ${style}. Dark atmospheric background, dramatic lighting, intricate details, high quality digital art for a trading card game. 2:3 portrait aspect ratio.`;
 }
 
 export async function POST(request: NextRequest) {
@@ -41,32 +119,28 @@ export async function POST(request: NextRequest) {
   try {
     const { noun, cardType, rarity, cardId } = await request.json();
 
-    if (artFiles.length === 0) {
+    // Try MiniMax AI generation first (non-blocking, fast timeout)
+    const minimaxImage = await generateWithMiniMax(noun, cardType ?? 'Unit', rarity ?? 'Common');
+    if (minimaxImage) {
       return NextResponse.json({
-        success: false,
-        image_url: '',
-        message: 'Art library not available; using themed placeholder'
+        success: true,
+        image_url: minimaxImage,
+        source: 'minimax',
       });
     }
 
-    // Deterministic art selection based on cardId
-    // Uses the cardId as a seed so the same card always gets the same art
-    const seed = typeof cardId === 'number' ? cardId : Date.now();
-    const index = seed % artFiles.length;
-    const selectedArt = artFiles[index];
-
-    // The image URL is relative to public/ — Next.js serves these at /card-art/filename
-    const imageUrl = `/card-art/${selectedArt}`;
-
+    // Fallback: return beautiful CSS gradient art as data URI.
+    // getCardArtFallback generates unique art per card from name/type/rarity.
+    const gradientArt = getCardArtFallback({ name: noun, type: cardType ?? 'Unit', rarity: rarity ?? 'Common' });
     return NextResponse.json({
       success: true,
-      image_url: imageUrl,
-      art_file: selectedArt,
+      image_url: gradientArt,
+      source: 'gradient',
     });
   } catch (error) {
-    console.error('Error in card image assignment:', error);
+    console.error('Error in card image generation:', error);
     return NextResponse.json(
-      { error: 'Failed to assign card image', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Failed to generate card image', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

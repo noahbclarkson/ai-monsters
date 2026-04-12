@@ -84,16 +84,19 @@ export function GameLobby() {
       if (myCards.length >= 5) {
         await startSinglePlayerMatch(selectedDifficulty, myCards.slice(0, 5));
 
-        // Wait for the match to appear in the database and navigate to it
-        const maxAttempts = 20; // 2s max wait
+        // Wait for the match to appear in the database and navigate to it.
+        // startSinglePlayerMatch creates the match with us as either player1 or player2.
+        // Poll for up to 4 seconds (40 attempts x 100ms), checking both player slots.
+        const maxAttempts = 40;
         let matchFound = false;
         for (let attempt = 0; attempt < maxAttempts; attempt++) {
           await new Promise(r => setTimeout(r, 100));
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const matchesTable = (conn.db as any).game_matches as { iter(): Iterable<{ id: bigint; player1Id: bigint; status: string }> } | undefined;
+          const matchesTable = (conn.db as any).game_matches as { iter(): Iterable<{ id: bigint; player1Id: bigint; player2Id: bigint; status: string }> } | undefined;
           if (matchesTable) {
             for (const row of matchesTable.iter()) {
-              if (row.player1Id === playerId && row.status === 'Active') {
+              const isOurs = (row.player1Id === playerId || row.player2Id === playerId) && row.status === 'Active';
+              if (isOurs) {
                 setSelectedMatchId(row.id);
                 setActiveTab('play');
                 matchFound = true;
@@ -104,7 +107,7 @@ export function GameLobby() {
           if (matchFound) break;
         }
         if (!matchFound) {
-          setLobbyError("Failed to create match. Please try again.");
+          setLobbyError("Failed to find match after creation. Please try again.");
         }
       } else {
         setLobbyError("You need at least 5 cards to start a match. Open some packs!");
