@@ -198,7 +198,7 @@ export function GameCard({
               ) : (
                 <div
                   className="w-full h-full flex flex-col items-center justify-center relative"
-                  style={{ background: `linear-gradient(135deg, ${rarityConfig.gradient.replace('linear-gradient(135deg, ', '').replace(')', '')})` }}
+                  style={{ background: rarityConfig.gradient }}
                 >
                   {/* Subtle pattern overlay */}
                   <div className="absolute inset-0 opacity-10" style={{ background: 'repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255,255,255,0.03) 8px, rgba(255,255,255,0.03) 16px)' }} />

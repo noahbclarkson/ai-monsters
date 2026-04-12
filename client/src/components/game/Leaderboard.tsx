@@ -54,7 +54,7 @@ function MedalIcon({ rank }: { rank: number }) {
   const m = medalData[rank - 1];
   return (
     <div 
-      className="relative flex items-center justify-center animate-pulse" 
+      className="relative flex items-center justify-center" 
       style={{ width: 40, height: 40, filter: `drop-shadow(0 0 6px ${m.glow})` }}
     >
       <svg width="32" height="40" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -355,8 +355,15 @@ export function GameBoard({ gameId, isSpectating = false }: GameBoardProps) {
               : [];
             if (myHandCards.length === 0) {
               return (
-                <div className="flex-shrink-0 w-24 h-36 rounded-lg border-2 border-dashed border-white/10 flex items-center justify-center">
-                  <span className="text-white/30 text-xs">No cards</span>
+                <div className="flex-shrink-0 w-24 h-36 rounded-lg border border-white/[0.06] flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                  <div className="text-center">
+                    <div className="w-8 h-8 rounded-lg border border-white/[0.08] flex items-center justify-center mx-auto mb-2" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7 1v12M1 7h12" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" strokeLinecap="round"/>
+                      </svg>
+                    </div>
+                    <span className="text-white/25 text-[10px] font-medium">Empty</span>
+                  </div>
                 </div>
               );
             }
