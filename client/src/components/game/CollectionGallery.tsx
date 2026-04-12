@@ -244,8 +244,8 @@ export function CollectionGallery() {
           </p>
         </div>
 
-        {/* Stats bar with distribution */}
-        <div className="glass-card rounded-2xl p-5 mb-8">
+        {/* Stats bar — rarity distribution */}
+        <div className="glass-card rounded-2xl p-5 mb-4">
           {/* Rarity distribution bar */}
           <div className="flex items-center gap-3 mb-4">
             <span className="text-xs text-white/40 uppercase tracking-wider font-semibold shrink-0">Collection</span>
@@ -304,7 +304,7 @@ export function CollectionGallery() {
         </div>
 
         {/* Search and filters */}
-        <div className="glass-card rounded-2xl p-4 mb-6">
+        <div className="glass-card rounded-2xl p-4 mb-4">
           <div className="flex items-center gap-4">
             {/* Search */}
             <div className="flex-1 relative">
@@ -399,8 +399,11 @@ export function CollectionGallery() {
             </div>
           )}
 
-          {/* Results count */}
-          <div className="mt-4 flex items-center gap-3">
+        </div>
+
+        {/* Results + card grid container */}
+        <div className="mt-4">
+          <div className="flex items-center justify-between mb-3 px-1">
             <span className="text-sm text-white/50">
               {hasActiveFilters 
                 ? <>Showing <span className="text-white/80 font-semibold">{filteredCards.length}</span> of {cards.length} cards</>
@@ -416,7 +419,6 @@ export function CollectionGallery() {
               </button>
             )}
           </div>
-        </div>
 
         {/* Cards grid */}
         {(isGenerating || loading) ? (
@@ -472,6 +474,7 @@ export function CollectionGallery() {
             ))}
           </div>
         )}
+        </div>
       </div>
 
       {/* Card detail modal */}
