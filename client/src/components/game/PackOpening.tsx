@@ -212,15 +212,19 @@ export function PackOpening() {
                     opening ? 'animate-pulse' : ''
                   }`}
                 >
-                  {/* Shimmer overlay on hover */}
-                  <div 
-                    className={`absolute inset-0 pointer-events-none transition-opacity duration-500 ${
-                      packHovered && !opening ? 'opacity-100' : 'opacity-0'
-                    }`}
-                    style={{
-                      background: 'linear-gradient(115deg, transparent 20%, rgba(255,255,255,0.1) 50%, transparent 80%)',
-                    }}
-                  />
+                  {/* Shimmer sweep on hover */}
+                  <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
+                    <div 
+                      className={`absolute inset-0 transition-all duration-700 ${
+                        packHovered && !opening ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full'
+                      }`}
+                      style={{
+                        background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 45%, rgba(255,255,255,0.15) 55%, transparent 100%)',
+                        transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+                        transitionProperty: 'opacity, transform',
+                      }}
+                    />
+                  </div>
                   <Gift size={56} className="text-white drop-shadow-lg relative z-10" strokeWidth={1.2} />
                   {/* Decorative corner lines */}
                   <div className="absolute top-3 left-3 w-8 h-8 border-t-2 border-l-2 border-white/30 rounded-tl" />

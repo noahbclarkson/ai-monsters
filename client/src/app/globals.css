@@ -657,6 +657,43 @@ h1, h2, h3, h4, h5, h6,
 .spinner-sm { width: 16px; height: 16px; border-width: 2px; }
 .spinner-lg { width: 40px; height: 40px; border-width: 3px; }
 
+/* === Match End Screen Animations === */
+@keyframes matchFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes matchZoomIn {
+  from { opacity: 0; transform: scale(0.92) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+
+@keyframes matchSlideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-match-in { animation: matchFadeIn 0.4s ease-out forwards; }
+.animate-match-zoom { animation: matchZoomIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.animate-match-slide-up { animation: matchSlideUp 0.5s ease-out forwards; }
+
+/* === Custom Game Cursors === */
+.game-cursor-default { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%238b5cf6' stroke='%23000' stroke-width='1' d='M12 2L9 9H2l6 5-2 7 6-4 6 4-2-7 6-5h-7z'/%3E%3C/svg%3E") 12 12, auto; }
+.game-cursor-pointer { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%2310b981' stroke='%23000' stroke-width='1' d='M12 2L9 9H2l6 5-2 7 6-4 6 4-2-7 6-5h-7z'/%3E%3C/svg%3E") 12 12, pointer; }
+.game-cursor-attack { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='none' stroke='%23ef4444' stroke-width='1.5'/%3E%3Cline x1='12' y1='4' x2='12' y2='10' stroke='%23ef4444' stroke-width='1.5'/%3E%3Cline x1='12' y1='14' x2='12' y2='20' stroke='%23ef4444' stroke-width='1.5'/%3E%3Cline x1='4' y1='12' x2='10' y2='12' stroke='%23ef4444' stroke-width='1.5'/%3E%3Cline x1='14' y1='12' x2='20' y2='12' stroke='%23ef4444' stroke-width='1.5'/%3E%3C/svg%3E") 12 12, crosshair; }
+.game-cursor-disabled { cursor: not-allowed; }
+
+/* === Pack Shimmer Sweep === */
+@keyframes packShimmer {
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(250%) skewX(-15deg); }
+}
+
+.animate-pack-shimmer {
+  animation: packShimmer 0.8s ease-in-out forwards;
+}
+
 /* === Reduced motion === */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

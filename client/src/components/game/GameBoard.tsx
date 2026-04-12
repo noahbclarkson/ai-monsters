@@ -1,16 +1,18 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { GameCard } from './GameCard';
+import { MatchEndScreen } from './MatchEndScreen';
 import { useCards } from '@/lib/useCards';
 import { GameBoardLoading } from './GameBoardLoading';
 import { useGame } from '@/lib/useGame';
 import { useSpacetimeDB } from '@/lib/spacetimedb';
 
-
 interface GameBoardProps {
   gameId: number;
   isSpectating?: boolean;
+  onPlayAgain?: () => void;
+  onBackToLobby?: () => void;
 }
 
 interface TileData {
@@ -20,7 +22,7 @@ interface TileData {
   owner?: bigint;
 }
 
-export function GameBoard({ gameId, isSpectating = false }: GameBoardProps) {
+export function GameBoard({ gameId, isSpectating = false, onPlayAgain, onBackToLobby }: GameBoardProps) {
   const { cards: allCards } = useCards();
   const {
     match,
@@ -141,19 +143,17 @@ export function GameBoard({ gameId, isSpectating = false }: GameBoardProps) {
     const tile = getTile(x, y);
     const isSelected = selectedTile?.x === x && selectedTile?.y === y;
     const isValidTgt = isValidTarget(x, y);
-    const isPlayerZone = x < 3;
-    const isEnemyZone = x >= 3;
 
-    let classes = 'relative rounded-lg transition-all duration-150';
+    let classes = 'relative rounded-lg transition-all duration-150 game-cursor-default';
     
     if (isSelected) {
-      classes += ' ring-2 ring-purple-400 ring-opacity-80';
+      classes += ' ring-2 ring-purple-400 ring-opacity-80 game-cursor-pointer';
     }
     
     if (isValidTgt && selectedTile) {
       classes += tile?.card_id 
-        ? ' ring-2 ring-red-500 ring-opacity-80' 
-        : ' ring-2 ring-green-500 ring-opacity-60';
+        ? ' ring-2 ring-red-500 ring-opacity-80 game-cursor-attack' 
+        : ' ring-2 ring-green-500 ring-opacity-60 game-cursor-pointer';
     }
 
     return classes;
@@ -161,10 +161,8 @@ export function GameBoard({ gameId, isSpectating = false }: GameBoardProps) {
 
   const getTileBg = (x: number): string => {
     if (x < 3) {
-      // Player zone - subtle green tint
       return 'rgba(16, 185, 129, 0.04)';
     }
-    // Enemy zone - subtle red tint
     return 'rgba(239, 68, 68, 0.04)';
   };
 
@@ -172,7 +170,6 @@ export function GameBoard({ gameId, isSpectating = false }: GameBoardProps) {
     const tile = getTile(x, y);
     
     if (!tile?.card_id) {
-      // Empty tile — subtle center indicator
       return (
         <div className="w-full h-full flex items-center justify-center group transition-all duration-300">
           <div className="w-8 h-8 rounded-lg border border-white/[0.05] bg-white/[0.02] flex items-center justify-center transition-all duration-300 group-hover:border-white/[0.15] group-hover:bg-white/[0.05] group-hover:scale-110 shadow-[0_0_15px_rgba(0,0,0,0.1)_inset]">
@@ -184,7 +181,6 @@ export function GameBoard({ gameId, isSpectating = false }: GameBoardProps) {
       );
     }
 
-    // Card on tile
     const dbCard = allCards.find(c => c.id === tile.card_id);
     return (
       <GameCard
@@ -221,6 +217,15 @@ export function GameBoard({ gameId, isSpectating = false }: GameBoardProps) {
 
   return (
     <div className="w-full max-w-4xl mx-auto">
+      {/* Match end overlay */}
+      {status === 'Completed' && onPlayAgain && onBackToLobby && (
+        <MatchEndScreen
+          gameId={gameId}
+          onPlayAgain={onPlayAgain}
+          onBackToLobby={onBackToLobby}
+        />
+      )}
+
       {/* Game Header */}
       <div className="glass-card rounded-xl p-4 mb-6">
         <div className="flex items-center justify-between">
@@ -234,12 +239,10 @@ export function GameBoard({ gameId, isSpectating = false }: GameBoardProps) {
           </div>
           
           <div className="flex items-center gap-4">
-            {/* Turn indicator */}
             <div className={`px-4 py-2 rounded-lg ${isMyTurn ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
               <span className="font-semibold">{spectating ? 'Spectating' : isMyTurn ? 'Your Turn' : 'Opponent Turn'}</span>
             </div>
 
-            {/* End Turn button — hidden when spectating */}
             {!spectating && (
               <button
                 onClick={handleEndTurn}
@@ -252,7 +255,6 @@ export function GameBoard({ gameId, isSpectating = false }: GameBoardProps) {
           </div>
         </div>
 
-        {/* Status message */}
         {selectedTile && (
           <div className="mt-4 p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
             <p className="text-sm text-purple-300">
@@ -264,13 +266,10 @@ export function GameBoard({ gameId, isSpectating = false }: GameBoardProps) {
 
       {/* Game Board */}
       <div className="relative">
-        {/* Ambient glow effects */}
         <div className="glow-orb glow-orb-purple w-64 h-64 -top-20 -left-20 opacity-30" />
         <div className="glow-orb glow-orb-blue w-48 h-48 -bottom-10 -right-10 opacity-20" />
         
-        {/* Board container */}
         <div className="relative bg-stone-texture rounded-2xl p-4 border border-white/5">
-          {/* Board grid */}
           <div className="grid grid-cols-3 gap-2">
             {Array.from({ length: ROWS }, (_, x) => (
               <div key={`row-${x}`} className="contents">
@@ -286,7 +285,6 @@ export function GameBoard({ gameId, isSpectating = false }: GameBoardProps) {
                       }}
                       onClick={() => handleTileClick(x, y)}
                     >
-                      {/* Tile content */}
                       <div className="w-full h-full p-1">
                         {renderTileContent(x, y)}
                       </div>
@@ -312,7 +310,7 @@ export function GameBoard({ gameId, isSpectating = false }: GameBoardProps) {
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           </div>
 
-          {/* Vertical zone labels on the sides */}
+          {/* Vertical zone labels */}
           <div className="absolute left-2 top-4 bottom-4 flex flex-col justify-around pointer-events-none">
             <div className="flex items-center gap-1.5">
               <div className="w-1 h-8 rounded-full bg-gradient-to-b from-green-500/40 to-green-500/10" />
@@ -328,7 +326,7 @@ export function GameBoard({ gameId, isSpectating = false }: GameBoardProps) {
         </div>
       </div>
 
-      {/* Hand area — hidden when spectating */}
+      {/* Hand area */}
       {!spectating && (
       <div className="mt-6 glass-card rounded-xl p-4">
         <div className="flex items-center justify-between mb-4">
@@ -378,7 +376,6 @@ export function GameBoard({ gameId, isSpectating = false }: GameBoardProps) {
                   className={`flex-shrink-0 ${!isMyTurn ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
                   onClick={() => {
                     if (!isMyTurn || !playerId) return;
-                    // Auto-place on first empty tile in player zone
                     for (let x = 0; x < 3; x++) {
                       for (let y = 0; y < 3; y++) {
                         if (!getTile(x, y)?.card_id) {
@@ -408,7 +405,7 @@ export function GameBoard({ gameId, isSpectating = false }: GameBoardProps) {
       </div>
       )}
 
-      {/* Phase instructions — hidden when spectating */}
+      {/* Phase instructions */}
       {!spectating && (
       <div className={`mt-4 glass-card rounded-xl p-4 border ${
         boardState?.phase === 'Placement' ? 'border-green-500/20' :
