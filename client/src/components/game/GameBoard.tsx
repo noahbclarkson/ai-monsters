@@ -10,6 +10,7 @@ import { useSpacetimeDB } from '@/lib/spacetimedb';
 
 interface GameBoardProps {
   gameId: number;
+  isSpectating?: boolean;
 }
 
 interface TileData {
@@ -19,7 +20,7 @@ interface TileData {
   owner?: bigint;
 }
 
-export function GameBoard({ gameId }: GameBoardProps) {
+export function GameBoard({ gameId, isSpectating = false }: GameBoardProps) {
   const { cards: allCards } = useCards();
   const {
     match,
@@ -36,12 +37,13 @@ export function GameBoard({ gameId }: GameBoardProps) {
   } = useGame(BigInt(gameId));
 
   const { playerId } = useSpacetimeDB();
+  const spectating = isSpectating ?? false;
   const [selectedTile, setSelectedTile] = useState<{x: number, y: number} | null>(null);
   const [animatingCard, setAnimatingCard] = useState<string | null>(null);
 
   const status = match?.status ?? 'Active';
   const currentTurn = match ? Number(match.currentTurn) : 1;
-  const isMyTurn = Number(playerId) === currentTurn;
+  const isMyTurn = spectating ? false : Number(playerId) === currentTurn;
 
   // Board layout: 6 rows x 3 columns
   // Player 1 zone: rows 0-2 (bottom of board visually)
@@ -234,17 +236,19 @@ export function GameBoard({ gameId }: GameBoardProps) {
           <div className="flex items-center gap-4">
             {/* Turn indicator */}
             <div className={`px-4 py-2 rounded-lg ${isMyTurn ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-              <span className="font-semibold">{isMyTurn ? 'Your Turn' : 'Opponent Turn'}</span>
+              <span className="font-semibold">{spectating ? 'Spectating' : isMyTurn ? 'Your Turn' : 'Opponent Turn'}</span>
             </div>
-            
-            {/* End Turn button */}
-            <button
-              onClick={handleEndTurn}
-              disabled={!isMyTurn || status !== 'Active'}
-              className="btn btn-primary disabled:opacity-40"
-            >
-              End Turn
-            </button>
+
+            {/* End Turn button — hidden when spectating */}
+            {!spectating && (
+              <button
+                onClick={handleEndTurn}
+                disabled={!isMyTurn || status !== 'Active'}
+                className="btn btn-primary disabled:opacity-40"
+              >
+                End Turn
+              </button>
+            )}
           </div>
         </div>
 
@@ -324,7 +328,8 @@ export function GameBoard({ gameId }: GameBoardProps) {
         </div>
       </div>
 
-      {/* Hand area */}
+      {/* Hand area — hidden when spectating */}
+      {!spectating && (
       <div className="mt-6 glass-card rounded-xl p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-white" style={{ fontFamily: 'Cinzel, serif' }}>
@@ -392,8 +397,10 @@ export function GameBoard({ gameId }: GameBoardProps) {
           })()}
         </div>
       </div>
+      )}
 
-      {/* Phase instructions */}
+      {/* Phase instructions — hidden when spectating */}
+      {!spectating && (
       <div className={`mt-4 p-4 rounded-lg border ${
         boardState?.phase === 'Placement' ? 'bg-green-500/5 border-green-500/20' :
         boardState?.phase === 'Action' ? 'bg-blue-500/5 border-blue-500/20' :
@@ -423,6 +430,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
           )}
         </div>
       </div>
+      )}
     </div>
   );
 }

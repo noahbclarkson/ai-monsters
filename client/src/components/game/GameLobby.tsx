@@ -392,9 +392,11 @@ export function GameLobby() {
       )}
 
       {/* Game board */}
-      {selectedMatchId && (
-        <GameBoard gameId={Number(selectedMatchId)} />
-      )}
+      {selectedMatchId && (() => {
+        const match = matches?.find((m: any) => m.id === selectedMatchId);
+        const isSpectating = match ? (match.player1Id !== playerId && match.player2Id !== playerId) : false;
+        return <GameBoard gameId={Number(selectedMatchId)} isSpectating={isSpectating} />;
+      })()}
     </div>
   );
 
