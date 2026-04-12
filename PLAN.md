@@ -246,3 +246,13 @@ _Last updated: 2026-04-12 03:10 UTC_
 ## Iterative Polish Updates (2026-04-11 Evening)
 1. **Card Hover Animation Polish**: Replaced basic `hover:scale-[1.06] hover:-translate-y-3` with rarity-specific glow intensification + spring easing + precise pixel lift. Glow spreads dramatically on hover (Legendary: 40px/80px, Epic: 35px/70px, Rare: 28px/55px, Common: 22px/40px) with spring easing `cubic-bezier(0.34,1.56,0.64,1)`. Transform controlled via React state + inline style (no CSS hover class conflicts). Affects all GameCard instances across all pages.
 2. **Leaderboard Empty State Polish**: Removed "0 players" counter (was shown above empty state -- felt broken). Empty state now shows centered #1 badge over trophy icon with message: "No ranked players yet / Complete your first match to earn a rank and appear on the leaderboard."
+
+## Iterative Polish Updates (2026-04-12 Late Night)
+1. **Consistency polish**: Did systematic audit across all game components to ensure consistent use of `btn btn-primary`, `glass-card`, and Lucide SVG icons instead of inline Tailwind gradients, raw bg-white/5 borders, or bare emoji/JSX.
+   - EnhancedCardGenerator: replaced custom `bg-gradient-to-r from-purple-600 to-blue-600` button with `btn btn-primary`
+   - MatchEndScreen: replaced inline SVG star (Defeat) with `Sparkles` Lucide icon (text-red-400), changed `rounded-3xl` to `rounded-2xl`
+   - GameLobby: active match cards and waiting-for-opponent messages now use `glass-card` instead of raw bg-white/5 borders
+   - PackOpening: removed redundant Tailwind hover/transition on Open Pack button (btn-primary already handles this)
+   - CollectionGallery: modal backdrop upgraded from `backdrop-blur-sm` to `backdrop-blur-md` (matching MatchEndScreen)
+   - GameBoard: removed orphaned `border border-white/5` from zone label badges (bg-black/40 is sufficient)
+2. **Git**: 9a6eb64 fix(ui): consistency polish, 10aea2d docs: update memory for 2026-04-12 late night review cycle
