@@ -207,31 +207,55 @@ export function PackOpening() {
                 onMouseEnter={() => setPackHovered(true)}
                 onMouseLeave={() => setPackHovered(false)}
               >
-                {/* Pack box */}
+          {/* Pack box */}
                 <div 
-                  className={`w-48 h-64 mx-auto bg-gradient-to-br from-purple-600 to-indigo-800 rounded-xl border-4 border-white/20 shadow-2xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 overflow-hidden ${
+                  className={`w-48 h-64 mx-auto rounded-xl border-4 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 overflow-hidden relative ${
                     opening ? 'animate-pulse' : ''
                   }`}
+                  style={{
+                    background: 'linear-gradient(135deg, #1a1a3e 0%, #2d1b5e 30%, #1a1a3e 50%, #2d1b5e 70%, #1a1a3e 100%)',
+                    borderColor: 'rgba(139,92,246,0.6)',
+                    boxShadow: packHovered || opening
+                      ? '0 0 0 2px rgba(139,92,246,0.4), 0 0 40px rgba(139,92,246,0.5), inset 0 0 30px rgba(139,92,246,0.1)'
+                      : '0 0 0 1px rgba(139,92,246,0.3), inset 0 0 20px rgba(139,92,246,0.05)',
+                    transform: packHovered && !opening ? 'scale(1.02)' : undefined,
+                  }}
                 >
-                  {/* Shimmer sweep on hover */}
-                  <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
+                  {/* Holographic shimmer overlay */}
+                  <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl opacity-0" data-shimmer="true">
                     <div 
                       className={`absolute inset-0 transition-all duration-700 ${
-                        packHovered && !opening ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full'
+                        packHovered && !opening ? 'opacity-100' : 'opacity-0'
                       }`}
                       style={{
-                        background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 45%, rgba(255,255,255,0.15) 55%, transparent 100%)',
-                        transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
-                        transitionProperty: 'opacity, transform',
+                        background: 'linear-gradient(105deg, transparent 20%, rgba(139,92,246,0.15) 35%, rgba(168,85,247,0.2) 45%, rgba(59,130,246,0.15) 55%, transparent 70%)',
+                        backgroundSize: '200% 200%',
+                        animation: packHovered ? 'holoShimmer 2s ease infinite' : 'none',
                       }}
                     />
                   </div>
-                  <Gift size={56} className="text-white drop-shadow-lg relative z-10" strokeWidth={1.2} />
-                  {/* Decorative corner lines */}
-                  <div className="absolute top-3 left-3 w-8 h-8 border-t-2 border-l-2 border-white/30 rounded-tl" />
-                  <div className="absolute top-3 right-3 w-8 h-8 border-t-2 border-r-2 border-white/30 rounded-tr" />
-                  <div className="absolute bottom-3 left-3 w-8 h-8 border-b-2 border-l-2 border-white/30 rounded-bl" />
-                  <div className="absolute bottom-3 right-3 w-8 h-8 border-b-2 border-r-2 border-white/30 rounded-br" />
+                  {/* Inner glow border */}
+                  <div 
+                    className="absolute inset-1 rounded-lg pointer-events-none"
+                    style={{ border: '1px solid rgba(139,92,246,0.25)' }}
+                  />
+                  {/* Decorative corner brackets */}
+                  <div className="absolute top-2 left-2 w-10 h-10 border-t-2 border-l-2 rounded-tl" style={{ borderColor: 'rgba(139,92,246,0.5)' }} />
+                  <div className="absolute top-2 right-2 w-10 h-10 border-t-2 border-r-2 rounded-tr" style={{ borderColor: 'rgba(139,92,246,0.5)' }} />
+                  <div className="absolute bottom-2 left-2 w-10 h-10 border-b-2 border-l-2 rounded-bl" style={{ borderColor: 'rgba(139,92,246,0.5)' }} />
+                  <div className="absolute bottom-2 right-2 w-10 h-10 border-b-2 border-r-2 rounded-br" style={{ borderColor: 'rgba(139,92,246,0.5)' }} />
+                  {/* Gift icon with glow */}
+                  <div 
+                    className="relative z-10 p-4 rounded-xl"
+                    style={{ background: 'rgba(139,92,246,0.1)', boxShadow: '0 0 20px rgba(139,92,246,0.3)' }}
+                  >
+                    <Gift size={48} className="text-purple-300 drop-shadow-lg" strokeWidth={1.2} />
+                  </div>
+                  {/* Pack label */}
+                  <div className="relative z-10 mt-3 text-center">
+                    <p className="text-xs font-bold uppercase tracking-widest text-purple-300/60">Standard</p>
+                    <p className="text-sm font-semibold text-purple-200/80">5 Cards</p>
+                  </div>
                 </div>
 
                 {/* Sparkle particles on hover */}

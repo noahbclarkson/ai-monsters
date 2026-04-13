@@ -690,6 +690,12 @@ h1, h2, h3, h4, h5, h6,
   100% { transform: translateX(250%) skewX(-15deg); }
 }
 
+/* Holographic shimmer for pack opening */
+@keyframes holoShimmer {
+  0% { background-position: 200% 200%; }
+  100% { background-position: -200% -200%; }
+}
+
 .animate-pack-shimmer {
   animation: packShimmer 0.8s ease-in-out forwards;
 }
