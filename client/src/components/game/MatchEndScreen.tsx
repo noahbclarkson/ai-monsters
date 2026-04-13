@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Trophy, Crown, RotateCcw, ArrowLeft, Sparkles } from 'lucide-react';
+import { Trophy, Crown, RotateCcw, ArrowLeft, Sparkles, XCircle } from 'lucide-react';
 import { useGame } from '@/lib/useGame';
 import { useSpacetimeDB } from '@/lib/spacetimedb';
 import { useMatches } from '@/lib/useMatches';
@@ -71,7 +71,7 @@ export function MatchEndScreen({ gameId, onPlayAgain, onBackToLobby }: MatchEndS
             ) : isDraw ? (
               <Sparkles size={48} className="text-purple-400" strokeWidth={1.5} />
             ) : (
-              <Sparkles size={48} className="text-red-400" strokeWidth={1.5} />
+              <XCircle size={48} className="text-red-400" strokeWidth={1.5} />
             )}
           </div>
         </div>

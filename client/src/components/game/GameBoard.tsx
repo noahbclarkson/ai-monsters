@@ -310,19 +310,7 @@ export function GameBoard({ gameId, isSpectating = false, onPlayAgain, onBackToL
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           </div>
 
-          {/* Vertical zone labels */}
-          <div className="absolute left-2 top-4 bottom-4 flex flex-col justify-around pointer-events-none">
-            <div className="flex items-center gap-1.5">
-              <div className="w-1 h-8 rounded-full bg-gradient-to-b from-green-500/40 to-green-500/10" />
-              <span className="text-[10px] text-green-400/50 font-semibold uppercase tracking-widest" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>Your Zone</span>
-            </div>
-          </div>
-          <div className="absolute right-2 top-4 bottom-4 flex flex-col justify-around pointer-events-none">
-            <div className="flex items-center gap-1.5">
-              <div className="w-1 h-8 rounded-full bg-gradient-to-b from-red-500/40 to-red-500/10" />
-              <span className="text-[10px] text-red-400/50 font-semibold uppercase tracking-widest" style={{ writingMode: 'vertical-rl' }}>Enemy Zone</span>
-            </div>
-          </div>
+          {/* Vertical zone labels — removed: redundant with center divider */}
         </div>
       </div>
 
