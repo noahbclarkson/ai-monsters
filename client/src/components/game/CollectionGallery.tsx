@@ -544,7 +544,7 @@ export function CollectionGallery() {
                   {/* Description */}
                   <div className="glass-card rounded-xl p-4">
                     <h4 className="text-sm font-semibold text-white/70 mb-2">Description</h4>
-                    <p className="text-white/80 leading-relaxed">
+                    <p className="text-white/80 leading-relaxed whitespace-pre-wrap break-words">
                       {selectedCard.description || 'No description available.'}
                     </p>
                   </div>

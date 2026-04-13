@@ -139,7 +139,13 @@ function LeaderboardEntry({ player, rank, isCurrentPlayer }: LeaderboardEntryPro
           <div className="flex items-center gap-2 mb-1">
             <span className="font-semibold text-white truncate">{player.name}</span>
             {isCurrentPlayer && (
-              <span className="px-2 py-0.5 rounded text-xs bg-purple-500/20 text-purple-400">
+              <span className="px-2 py-0.5 rounded text-xs font-semibold"
+                style={{
+                  background: 'rgba(139,92,246,0.2)',
+                  color: '#a855f7',
+                  boxShadow: '0 0 8px rgba(139,92,246,0.4), 0 0 16px rgba(139,92,246,0.15)',
+                }}
+              >
                 You
               </span>
             )}
