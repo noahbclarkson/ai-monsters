@@ -258,6 +258,10 @@ _Last updated: 2026-04-12 03:10 UTC_
 - Image generation: works as gradient fallback, needs real API keys for AI content
 - Browser automation unavailable — audited code manually
 
+### 2026-04-13 Late Afternoon
+1. **MatchEndScreen defeat icon fix**: Defeat state used `Sparkles` icon (same as draw). Changed to `XCircle` from lucide-react — more semantically appropriate for a loss screen. Victory still uses `Crown`, draw still uses `Sparkles`.
+2. **GameBoard redundant zone labels removed**: "Your Zone" and "Enemy Zone" appeared twice — once in the horizontal center divider and again as vertical text on the left/right edges. Vertical labels removed. Board now cleaner with only the center divider labels.
+
 ### P1 Remaining
 - DailyCardGenerator button loading feedback (minor UX issue)
 - Real AI API keys for MiniMax + OpenAI in production
