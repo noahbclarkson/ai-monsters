@@ -247,7 +247,22 @@ _Last updated: 2026-04-12 03:10 UTC_
 1. **Card Hover Animation Polish**: Replaced basic `hover:scale-[1.06] hover:-translate-y-3` with rarity-specific glow intensification + spring easing + precise pixel lift. Glow spreads dramatically on hover (Legendary: 40px/80px, Epic: 35px/70px, Rare: 28px/55px, Common: 22px/40px) with spring easing `cubic-bezier(0.34,1.56,0.64,1)`. Transform controlled via React state + inline style (no CSS hover class conflicts). Affects all GameCard instances across all pages.
 2. **Leaderboard Empty State Polish**: Removed "0 players" counter (was shown above empty state -- felt broken). Empty state now shows centered #1 badge over trophy icon with message: "No ranked players yet / Complete your first match to earn a rank and appear on the leaderboard."
 
-## Iterative Polish Updates (2026-04-12 Late Night)
+## Iterative Polish Updates (2026-04-13 Afternoon)
+1. **PackOpening reveal timing fix** (d5de9e2): Reduced card flip stagger from 400ms base + 220ms between to 300ms base + 180ms between. Cards now flip faster and feel more responsive.
+2. **GameBoard phase border contrast fix** (d5de9e2): Phase instructions box borders increased from 20→30 opacity for better visibility against dark background.
+3. **Image gen API status**: Gradient art fallback (SVG data URI, ~5KB) works perfectly when AI APIs fail. MINIMAX_API_KEY and OPENAI_API_KEY not configured in production — gradient art is beautiful but not AI-generated.
+
+### 2026-04-13 Findings
+- Pack reveal animation: was slow (400ms+220ms), fixed to 300ms+180ms
+- DailyCardGenerator button: no inline loading spinner on button during generation
+- Image generation: works as gradient fallback, needs real API keys for AI content
+- Browser automation unavailable — audited code manually
+
+### P1 Remaining
+- DailyCardGenerator button loading feedback (minor UX issue)
+- Real AI API keys for MiniMax + OpenAI in production
+
+### 2026-04-12 Late Night
 1. **Consistency polish**: Did systematic audit across all game components to ensure consistent use of `btn btn-primary`, `glass-card`, and Lucide SVG icons instead of inline Tailwind gradients, raw bg-white/5 borders, or bare emoji/JSX.
    - EnhancedCardGenerator: replaced custom `bg-gradient-to-r from-purple-600 to-blue-600` button with `btn btn-primary`
    - MatchEndScreen: replaced inline SVG star (Defeat) with `Sparkles` Lucide icon (text-red-400), changed `rounded-3xl` to `rounded-2xl`
