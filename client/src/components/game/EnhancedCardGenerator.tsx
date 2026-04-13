@@ -41,7 +41,7 @@ export function EnhancedCardGenerator() {
               onClick={() => setShowPack(false)}
               className="text-white/50 hover:text-white transition-colors"
             >
-              Back to Generator
+              Back to Packs
             </button>
           </div>
           <PackOpening />
