@@ -133,7 +133,9 @@ Agent workspace: `/home/ubuntu/.openclaw/workspace-aimonsters/`
 
 ---
 
-_Last updated: 2026-04-12 03:10 UTC_
+_Last updated: 2026-04-13 22:10 UTC_
+
+_Last git commit: 3f9e2cf — fix(ui): modal description no-truncate + Leaderboard "You" badge glow_
 
 ## Iterative Polish Updates (2026-04-07 Later)
 1. Created skeleton loaders `GameBoardLoading` and `CollectionGalleryLoading`.
@@ -264,7 +266,11 @@ _Last updated: 2026-04-12 03:10 UTC_
 
 ### P1 Remaining
 - DailyCardGenerator button loading feedback (minor UX issue)
-- Real AI API keys for MiniMax + OpenAI in production
+- Real AI API keys for MiniMax + OpenAI in production (keys now present in .env.local — not verified end-to-end due to no browser)
+
+### 2026-04-13 Night
+1. **CollectionGallery modal description fix** (3f9e2cf): Removed `line-clamp-3` truncation. Modal now shows complete AI-generated card descriptions (important for Rare/Epic cards with long flavor text). Added `whitespace-pre-wrap break-words` for proper text wrapping.
+2. **Leaderboard "You" badge glow** (3f9e2cf): Added explicit purple glow (`box-shadow: 0 0 8px rgba(139,92,246,0.4), 0 0 16px rgba(139,92,246,0.15)`) and `#a855f7` text color to make current-player badge visually prominent.
 
 ### 2026-04-12 Late Night
 1. **Consistency polish**: Did systematic audit across all game components to ensure consistent use of `btn btn-primary`, `glass-card`, and Lucide SVG icons instead of inline Tailwind gradients, raw bg-white/5 borders, or bare emoji/JSX.
