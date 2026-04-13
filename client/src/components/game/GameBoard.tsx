@@ -408,9 +408,9 @@ export function GameBoard({ gameId, isSpectating = false, onPlayAgain, onBackToL
       {/* Phase instructions */}
       {!spectating && (
       <div className={`mt-4 glass-card rounded-xl p-4 border ${
-        boardState?.phase === 'Placement' ? 'border-green-500/20' :
-        boardState?.phase === 'Action' ? 'border-blue-500/20' :
-        'border-purple-500/20'
+        (boardState?.phase ?? 'Combat') === 'Placement' ? 'border-green-500/30' :
+        (boardState?.phase ?? 'Combat') === 'Action' ? 'border-blue-500/30' :
+        'border-purple-500/30'
       }`}>
         <div className="flex items-center gap-3 mb-2">
           <div className={`w-2.5 h-2.5 rounded-full ${

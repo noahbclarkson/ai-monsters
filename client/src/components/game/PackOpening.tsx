@@ -135,11 +135,11 @@ export function PackOpening() {
       setOpenedCards(generatedCards);
       setShowCards(true);
       setRevealedCount(0);
-      // Stagger card reveals — flip each one in sequence
+      // Stagger card reveals — flip each one front-to-back with 180ms between cards
       for (let i = 0; i < generatedCards.length; i++) {
         setTimeout(() => {
-          setRevealedCount(prev => Math.max(prev, i + 1));
-        }, 400 + i * 220);
+          setRevealedCount(i + 1);
+        }, 300 + i * 180);
       }
 
     } catch (err) {
