@@ -317,12 +317,24 @@ export function GameBoard({ gameId, isSpectating = false, onPlayAgain, onBackToL
       {!spectating && (
       <div className="mt-6 glass-card rounded-xl p-4">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-white" style={{ fontFamily: 'Cinzel, serif' }}>
-            Your Hand
-          </h3>
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-semibold text-white" style={{ fontFamily: 'Cinzel, serif' }}>
+              Your Hand
+            </h3>
+            {(() => {
+              const myHandCards = handCards
+                ? handCards.filter((c: any) => Number(c.playerId) === Number(playerId))
+                : [];
+              return myHandCards.length > 0 ? (
+                <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold" style={{ background: 'rgba(139,92,246,0.15)', color: '#a855f7', border: '1px solid rgba(139,92,246,0.25)' }}>
+                  {myHandCards.length} card{myHandCards.length !== 1 ? 's' : ''}
+                </span>
+              ) : null;
+            })()}
+          </div>
           <span className="text-sm text-white/40">
             {!isMyTurn ? (
-              <span className="text-amber-400/70">Waiting for opponent to finish...</span>
+              <span className="text-amber-400/70">Waiting for opponent...</span>
             ) : boardState?.phase === 'Placement' ? (
               "Click a card to auto-place it on your zone"
             ) : boardState?.phase === 'Action' ? (
@@ -340,16 +352,28 @@ export function GameBoard({ gameId, isSpectating = false, onPlayAgain, onBackToL
               : [];
             if (myHandCards.length === 0) {
               return (
-                <div className="glass-card rounded-xl flex flex-col items-center justify-center gap-3 py-8 px-6 min-w-[200px]">
-                  <div className="w-12 h-12 rounded-xl border border-dashed border-white/10 flex items-center justify-center">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="2" y="4" width="16" height="12" rx="2" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5"/>
-                      <path d="M10 8v4M8 10h4" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" strokeLinecap="round"/>
+                <div className="relative w-full flex flex-col items-center justify-center gap-4 py-10">
+                  {/* Corner decorations */}
+                  <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-purple-500/30 rounded-tl-xl" />
+                  <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-purple-500/30 rounded-tr-xl" />
+                  <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-purple-500/30 rounded-bl-xl" />
+                  <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-purple-500/30 rounded-br-xl" />
+                  {/* Ambient glow */}
+                  <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(139,92,246,0.06) 0%, transparent 70%)' }} />
+                  {/* Card stack icon */}
+                  <div className="relative w-14 h-14 rounded-xl flex items-center justify-center" style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)' }}>
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      {/* Back card */}
+                      <rect x="6" y="4" width="16" height="20" rx="2" fill="rgba(139,92,246,0.12)" stroke="rgba(139,92,246,0.25)" strokeWidth="1"/>
+                      {/* Front card */}
+                      <rect x="4" y="6" width="16" height="20" rx="2" fill="rgba(139,92,246,0.15)" stroke="rgba(139,92,246,0.35)" strokeWidth="1.2"/>
+                      {/* Plus icon */}
+                      <path d="M12 14v4M10 16h4" stroke="rgba(139,92,246,0.6)" strokeWidth="1.5" strokeLinecap="round"/>
                     </svg>
                   </div>
                   <div className="text-center">
-                    <p className="text-white/40 text-sm font-medium">No cards in hand</p>
-                    <p className="text-white/20 text-xs mt-1">Draw cards from your deck</p>
+                    <p className="text-white/50 text-sm font-medium">No cards in hand</p>
+                    <p className="text-white/25 text-xs mt-1">Draw cards from your deck</p>
                   </div>
                 </div>
               );

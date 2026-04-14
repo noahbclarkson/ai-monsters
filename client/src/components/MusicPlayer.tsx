@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { Volume2, VolumeX } from 'lucide-react';
 import { useSounds } from './SoundEffects';
 
 interface MusicPlayerProps {
@@ -150,7 +151,10 @@ const MusicPlayer = ({ enabled = true, volume = 0.3 }: MusicPlayerProps) => {
           }`}
           title={musicEnabled && isPlaying ? 'Pause Music' : 'Play Music'}
         >
-          {musicEnabled && isPlaying ? '🎵' : '🔇'}
+          {musicEnabled && isPlaying 
+            ? <Volume2 size={18} strokeWidth={1.8} />
+            : <VolumeX size={18} strokeWidth={1.8} />
+          }
         </button>
         
         <div className="text-white">
