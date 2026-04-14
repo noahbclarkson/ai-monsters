@@ -45,9 +45,8 @@ This is a product you can demo to anyone and have them say "this is actually imp
 ### Still Needs Improvement
 - Card names extremely repetitive (Dragon/Phoenix/Golem/Spectre/Wraith + Warrior). Need more diverse name generation.
 - Card hover animations — could be smoother and have better easing.
-- Game board polish — card zones could be more clearly defined. Placement could feel more tactile.
 - Error states — what happens when image fails to load? When API times out?
-- Leaderboard shows empty state — "0 players" because no matches completed.
+  (CSS gradient fallback handles image failures gracefully; error banner in DailyCardGenerator)
 
 ---
 
@@ -135,7 +134,7 @@ Agent workspace: `/home/ubuntu/.openclaw/workspace-aimonsters/`
 
 _Last updated: 2026-04-13 22:10 UTC_
 
-_Last git commit: 3f9e2cf — fix(ui): modal description no-truncate + Leaderboard "You" badge glow_
+_Last git commit: bb60aab — fix(ui): remove dead code with emoji, fix SVG topFade gradient reference_
 
 ## Iterative Polish Updates (2026-04-07 Later)
 1. Created skeleton loaders `GameBoardLoading` and `CollectionGalleryLoading`.
@@ -281,3 +280,8 @@ _Last git commit: 3f9e2cf — fix(ui): modal description no-truncate + Leaderboa
    - CollectionGallery: modal backdrop upgraded from `backdrop-blur-sm` to `backdrop-blur-md` (matching MatchEndScreen)
    - GameBoard: removed orphaned `border border-white/5` from zone label badges (bg-black/40 is sufficient)
 2. **Git**: 9a6eb64 fix(ui): consistency polish, 10aea2d docs: update memory for 2026-04-12 late night review cycle
+
+### 2026-04-14 Early Morning
+1. **card-art.ts SVG topFade fix** (bb60aab): The `topFade` linearGradient was defined AFTER the rect element referencing it via `url(#topFade)`. SVG requires all referenced elements to be inside `<defs>` before use. Fixed by moving `topFade` gradient definition inside the main `<defs>` block alongside the other gradients.
+2. **Dead code removal** (bb60aab): Deleted `card-generator.ts` — completely unused file never imported, contained emoji characters (⬜🔵🟣🟡) and via.placeholder.com URLs. Confirmed zero imports of `CardGenerator` class across codebase.
+3. **AICardGenerator cleanup** (bb60aab): Removed four dead methods: `getRarityEmoji` (had emoji), `getRarityColor`, `getTypeIcon`, `simulateAIDescription` — all were defined but never called anywhere in the codebase.
