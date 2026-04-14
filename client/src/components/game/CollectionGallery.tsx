@@ -201,6 +201,16 @@ export function CollectionGallery() {
 
   const hasActiveFilters = searchTerm || filters.rarity !== 'All' || filters.type !== 'All';
 
+  // Close modal on Escape key
+  useEffect(() => {
+    if (!selectedCard) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSelectedCard(null);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [selectedCard]);
+
   if (loading && dbCards.length === 0) {
     return <CollectionGalleryLoading />;
   }

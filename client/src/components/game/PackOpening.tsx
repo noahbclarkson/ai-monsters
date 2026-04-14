@@ -51,12 +51,22 @@ export function PackOpening() {
       // Generate 5 cards with realistic rarity distribution
       const generatedCards: CardInfo[] = [];
 
+      // Shuffle suffixes once per pack so every pack produces different name patterns
+      const baseSuffixes = ['Prime', 'Alpha', 'Void', 'Storm', 'Doom'];
+      const shuffledSuffixes = [...baseSuffixes].sort(() => Math.random() - 0.5);
+
       for (let i = 0; i < 5; i++) {
         const rarity = PACK_RARITIES[i];
         const cardType = CARD_TYPES[i] as 'Unit' | 'Building' | 'Spell';
-        const suffixes = ['Prime', 'Alpha', 'Void', 'Storm', 'Doom'];
-        const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)] + ' ' + suffixes[i];
-        const uniqueName = `${noun}${rarity === 'Legendary' ? ' of the Eternal' : rarity === 'Epic' ? ' of Power' : ''}`;
+        const suffix = shuffledSuffixes[i];
+        const baseName = NOUNS[Math.floor(Math.random() * NOUNS.length)];
+        // Occasionally give a rare/epic card an extra epithet for variety
+        const epithet = rarity === 'Legendary'
+          ? [' of the Eternal', ' the Undying', ', Doom Bringer'][Math.floor(Math.random() * 3)]
+          : rarity === 'Epic'
+          ? [' of Power', ' the Fierce', ', Warbringer'][Math.floor(Math.random() * 3)]
+          : '';
+        const uniqueName = `${baseName} ${suffix}${epithet}`;
 
         setOpeningProgress(`Generating ${uniqueName}...`);
 

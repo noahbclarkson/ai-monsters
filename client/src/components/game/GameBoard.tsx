@@ -295,19 +295,18 @@ export function GameBoard({ gameId, isSpectating = false, onPlayAgain, onBackToL
             ))}
           </div>
           
-          {/* Zone divider */}
-          <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2 flex items-center gap-3">
-            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/40">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-400/60" />
-              <span className="text-xs text-green-400/60 font-medium tracking-wider uppercase">Your Zone</span>
+          {/* Zone labels — positioned over their respective half-zones */}
+          <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 pointer-events-none flex items-center">
+            {/* Your Zone label — left side of player zone (rows 0-2, left column) */}
+            <div className="absolute left-3 top-1/4 -translate-y-1/2 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/50 backdrop-blur-sm">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-400/70" />
+              <span className="text-xs text-green-400/80 font-semibold tracking-wider uppercase">Your Zone</span>
             </div>
-            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/40">
-              <div className="w-1.5 h-1.5 rounded-full bg-red-400/60" />
-              <span className="text-xs text-red-400/60 font-medium tracking-wider uppercase">Enemy Zone</span>
+            {/* Enemy Zone label — right side of enemy zone (rows 3-5, right column) */}
+            <div className="absolute right-3 bottom-1/4 translate-y-1/2 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/50 backdrop-blur-sm">
+              <div className="w-1.5 h-1.5 rounded-full bg-red-400/70" />
+              <span className="text-xs text-red-400/80 font-semibold tracking-wider uppercase">Enemy Zone</span>
             </div>
-            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           </div>
 
           {/* Vertical zone labels — removed: redundant with center divider */}
