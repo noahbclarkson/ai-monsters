@@ -132,9 +132,9 @@ Agent workspace: `/home/ubuntu/.openclaw/workspace-aimonsters/`
 
 ---
 
-_Last updated: 2026-04-13 22:10 UTC_
+_Last updated: 2026-04-14 15:36 UTC_
 
-_Last git commit: bb60aab — fix(ui): remove dead code with emoji, fix SVG topFade gradient reference_
+_Last git commit: 7e4915f — fix(ui): premium icon consistency, remove redundant button glow, enlarge leaderboard medals_
 
 ## Iterative Polish Updates (2026-04-07 Later)
 1. Created skeleton loaders `GameBoardLoading` and `CollectionGalleryLoading`.
@@ -290,3 +290,8 @@ _Last git commit: bb60aab — fix(ui): remove dead code with emoji, fix SVG topF
 1. **PackOpening card name randomization** (b499149): Fixed predictable card name generation. Previously `suffixes[i]` always produced the same pattern (Dragon Prime, Phoenix Alpha, Golem Void...) because `i` (0-4) was used as a fixed index into a suffixes array. Now: shuffle suffixes once per pack using Fisher-Yates, then deal from shuffled deck. Also added epithets for Legendary/Epic cards (' of the Eternal', ' the Undying', ' of Power', ' the Fierce', etc.) for extra variety. Every pack now produces genuinely different names.
 2. **GameBoard zone divider redesign** (b499149): Removed the broken center-positioned divider with invisible transparent gradient lines. Replaced with two floating zone labels positioned over their respective half-zones: "Your Zone" (green) anchored top-left, "Enemy Zone" (red) anchored bottom-right, both using `bg-black/50 backdrop-blur-sm` for a clean floating aesthetic.
 3. **CollectionGallery Escape key modal close** (b499149): Added keyboard dismissal for the card detail modal. Pressing Escape now closes the modal, matching user expectations for desktop UIs.
+
+### 2026-04-14 Late Afternoon
+1. **GameLobby back button icon** (7e4915f): Replaced unicode `←` arrow with `ArrowLeft` Lucide SVG icon — consistent with the premium icon standard throughout the rest of the UI.
+2. **MatchEndScreen Play Again button polish** (7e4915f): Removed redundant `absolute -inset-1` gradient inner div that was fighting visually with `btn btn-success` base styling. `btn btn-success` already provides correct green; the extra decorative layer created a muddy layered glow.
+3. **Leaderboard medal redesign** (7e4915f): Medal SVG was cramped (32x40 inside 40x40 container, rank number barely legible at font-size 11). Redesigned: SVG viewBox 38x52, container 48x56, larger medal circle (r=16), rank number at font-size 13 with better text shadow. Container increased from w-12 h-12 to w-14 h-14 to fit.
