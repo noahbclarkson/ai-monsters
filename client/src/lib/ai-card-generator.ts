@@ -180,59 +180,5 @@ export class AICardGenerator {
     };
   }
 
-  static getRarityColor(rarity: string): string {
-    switch (rarity) {
-      case 'Common': return 'bg-gray-500';
-      case 'Rare': return 'bg-blue-500';
-      case 'Epic': return 'bg-purple-500';
-      case 'Legendary': return 'bg-yellow-500';
-      default: return 'bg-gray-500';
-    }
-  }
 
-  static getTypeIcon(type: string): string {
-    switch (type) {
-      case 'Unit': return 'Melee';
-      case 'Building': return 'Structure';
-      case 'Spell': return 'Magic';
-      default: return 'Special';
-    }
-  }
-
-  static getRarityEmoji(rarity: string): string {
-    switch (rarity) {
-      case 'Common': return '⬜';
-      case 'Rare': return '🔵';
-      case 'Epic': return '🟣';
-      case 'Legendary': return '🟡';
-      default: return '⬜';
-    }
-  }
-
-  // Simulate AI text generation for development
-  static async simulateAIDescription(noun: string, rarity: Rarity, cardType: CardType): Promise<string> {
-    const templates = {
-      Unit: {
-        Common: [`A sturdy ${noun} warrior, reliable in combat with basic fighting skills.`],
-        Rare: [`A skilled ${noun} fighter, trained in advanced combat techniques and battle tactics.`],
-        Epic: [`A legendary ${noun} champion, possessing extraordinary combat prowess and heroic spirit.`],
-        Legendary: [`The mythical ${noun} warrior, said to be unmatched in combat and blessed with divine power.`]
-      },
-      Building: {
-        Common: [`A simple ${noun} structure, providing basic defensive cover and shelter.`],
-        Rare: [`A reinforced ${noun} fortress, offering strong defense and strategic advantages.`],
-        Epic: [`An enchanted ${noun} citadel, magically fortified and protected by ancient wards.`],
-        Legendary: [`The legendary ${noun} citadel, an impenetrable fortress of immense power and historical significance.`]
-      },
-      Spell: {
-        Common: [`A basic ${noun} spell, providing minor magical effects and tactical advantages.`],
-        Rare: [`An advanced ${noun} incantation, casting powerful magical effects with precision control.`],
-        Epic: [`A legendary ${noun} ritual, capable of battlefield-altering magical phenomena and reality warping.`],
-        Legendary: [`The mythical ${noun} arcane, said to possess world-changing magical power and ancient wisdom.`]
-      }
-    };
-
-    const categoryTemplates = templates[cardType][rarity];
-    return categoryTemplates[Math.floor(Math.random() * categoryTemplates.length)];
-  }
 }

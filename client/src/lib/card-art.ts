@@ -119,6 +119,12 @@ export function getCardArtFallback(params: CardArtParams): string {
     <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
       <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
     </pattern>
+
+    <!-- Top fade — defined inside defs (before refs) so url(#topFade) resolves -->
+    <linearGradient id="topFade" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#000" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </linearGradient>
   </defs>
 
   <!-- Base fill -->
@@ -173,14 +179,8 @@ export function getCardArtFallback(params: CardArtParams): string {
   <!-- Rarity bar (left edge accent line) -->
   <rect x="0" y="0" width="3" height="${H}" fill="${rarityPalette.accent}" opacity="0.6" rx="1.5"/>
 
-  <!-- Top fade -->
+  <!-- Top fade — topFade is inside defs above, this ref comes after defs close but browsers handle forward refs in defs -->
   <rect x="0" y="0" width="${W}" height="40" fill="url(#topFade)" opacity="0.5"/>
-  <defs>
-    <linearGradient id="topFade" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#000" stop-opacity="0.3"/>
-      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
-    </linearGradient>
-  </defs>
 </svg>`;
 
   return `data:image/svg+xml;base64,${btoa(svg)}`;
