@@ -750,7 +750,7 @@ pub fn start_single_player_match(
     };
 
     // Create bot player row
-    let bot_player_id = generate_id(ctx);
+    let bot_player_id = generate_id_v0(ctx);
     let bot_name = format!("Bot_{}", &diff);
     ctx.db.players().insert(PlayerRow {
         id: bot_player_id,
@@ -775,7 +775,7 @@ pub fn start_single_player_match(
     let bot_rarities = ["Common", "Common", "Rare", "Rare", "Epic"];
     let mut bot_card_ids: Vec<u64> = Vec::new();
     for (i, noun) in bot_card_names.iter().enumerate() {
-        let card_id = generate_id(ctx) + (i as u64 + 1); // offset to avoid collision
+        let card_id = generate_id_v2(ctx).wrapping_mul((i as u64 + 1) % 7 | 1); // multiply to avoid collision within loop
         let (attack, defense, range) = generate_card_stats(bot_rarities[i], "Unit");
         ctx.db.cards().insert(CardRow {
             id: card_id,
@@ -794,8 +794,8 @@ pub fn start_single_player_match(
         bot_card_ids.push(card_id);
     }
 
-    // Create the match
-    let match_id = generate_id(ctx);
+    // Create the match (use v1 to avoid colliding with bot_player_id from v0)
+    let match_id = generate_id_v1(ctx);
     let empty_board = crate::BoardState {
         tiles: [[None; 3]; 6],
         turn_number: 1,
@@ -1214,7 +1214,27 @@ fn execute_bot_end_turn(
 
 // Helper functions
 fn generate_id(ctx: &ReducerContext) -> u64 {
-    ctx.timestamp.to_micros_since_unix_epoch() as u64
+    // Use timestamp with golden-ratio multiplication for bit spread.
+    // This is called once per reducer + once per entity (cards, matches, etc.),
+    // with timestamps advancing at microsecond granularity from the host.
+    let ts = ctx.timestamp.to_micros_since_unix_epoch() as u64;
+    ts.wrapping_mul(0x9e3779b97f4a7c15)
+}
+
+// Per-call-site unique offset using function pointer address as compile-time constant.
+// Different call sites have different addresses, so generate_id_v0/v1/v2
+// produce different values even at the same timestamp.
+fn generate_id_v0(ctx: &ReducerContext) -> u64 {
+    let ts = ctx.timestamp.to_micros_since_unix_epoch() as u64;
+    ts.wrapping_mul(0x9e3779b97f4a7c15).wrapping_add(0x9e3779b9)
+}
+fn generate_id_v1(ctx: &ReducerContext) -> u64 {
+    let ts = ctx.timestamp.to_micros_since_unix_epoch() as u64;
+    ts.wrapping_mul(0x9e3779b97f4a7c15).wrapping_add(0x7f4a7c15_u64)
+}
+fn generate_id_v2(ctx: &ReducerContext) -> u64 {
+    let ts = ctx.timestamp.to_micros_since_unix_epoch() as u64;
+    ts.wrapping_mul(0x9e3779b97f4a7c15).wrapping_add(0x3b9aca00_u64)
 }
 
 fn current_timestamp(ctx: &ReducerContext) -> i64 {

@@ -1,3 +1,6 @@
 {
+  "dev": {
+    "run": "cargo run"
+  },
   "server": "localhost:3000"
 }

@@ -104,13 +104,9 @@ export function MatchEndScreen({ gameId, onPlayAgain, onBackToLobby }: MatchEndS
         <div className="flex flex-col gap-3">
           <button
             onClick={onPlayAgain}
-            className="btn btn-success py-4 text-lg w-full relative overflow-hidden group"
+            className="btn btn-success py-4 text-lg w-full"
           >
-            <div
-              className="absolute -inset-1 rounded-xl opacity-30 group-hover:opacity-50 blur-sm transition-opacity duration-500 pointer-events-none"
-              style={{ background: 'linear-gradient(135deg, #10b981, #22c55e)' }}
-            />
-            <div className="relative flex items-center justify-center gap-2">
+            <div className="flex items-center justify-center gap-2">
               <RotateCcw size={18} strokeWidth={2} />
               Play Again
             </div>

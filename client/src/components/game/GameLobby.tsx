@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Bot, Swords, Globe, Search, X, FileText } from 'lucide-react';
+import { Bot, Swords, Globe, Search, X, FileText, ArrowLeft } from 'lucide-react';
 import { useMatches } from '@/lib/useMatches';
 import { useBotMatch } from '@/lib/useBotMatch';
 import { useSpacetimeDB } from '@/lib/spacetimedb';
@@ -370,9 +370,10 @@ export function GameLobby() {
           setActiveTab('lobby');
           setSelectedMatchId(null);
         }}
-        className="mb-6 btn btn-ghost"
+        className="mb-6 btn btn-ghost flex items-center gap-2"
       >
-        ← Back to Lobby
+        <ArrowLeft size={16} strokeWidth={2} />
+        Back to Lobby
       </button>
 
       {/* Turn indicator */}
