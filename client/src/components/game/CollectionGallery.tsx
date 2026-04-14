@@ -257,8 +257,7 @@ export function CollectionGallery() {
         {/* Stats bar — rarity distribution */}
         <div className="glass-card rounded-2xl p-5 mb-4">
           {/* Rarity distribution bar */}
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-xs text-white/40 uppercase tracking-wider font-semibold shrink-0">Collection</span>
+          <div className="flex items-center gap-4 mb-4">
             <div className="flex-1 h-2.5 rounded-full overflow-hidden bg-white/5 flex">
               {RARITY_ORDER.map(rarity => {
                 const count = rarityStats[rarity as keyof typeof rarityStats];
