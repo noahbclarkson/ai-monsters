@@ -18,7 +18,7 @@ interface Player {
 }
 
 const RANK_CONFIG: Record<string, { name: string; color: string; bg: string; minRating: number }> = {
-  novice: { name: 'Novice', color: '#9ca3af', bg: 'rgba(156,163,175,0.15)', minRating: 0 },
+  novice: { name: 'Novice', color: '#d1d5db', bg: 'rgba(156,163,175,0.12)', minRating: 0 },
   bronze: { name: 'Bronze', color: '#cd7f32', bg: 'rgba(205,127,50,0.15)', minRating: 600 },
   silver: { name: 'Silver', color: '#c0c0c0', bg: 'rgba(192,192,192,0.15)', minRating: 800 },
   gold: { name: 'Gold', color: '#ffd700', bg: 'rgba(255,215,0,0.15)', minRating: 1000 },

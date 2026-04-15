@@ -52,6 +52,35 @@ export function CollectionGallery() {
     sortOrder: 'desc',
   });
   const [showFilters, setShowFilters] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalEntered, setModalEntered] = useState(false);
+
+  // Animated modal open/close — backdrop fades in, content scales up
+  const handleSelectCard = useCallback((card: GalleryCard) => {
+    setSelectedCard(card);
+    setModalVisible(true);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => setModalEntered(true));
+    });
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setModalEntered(false);
+    setTimeout(() => {
+      setModalVisible(false);
+      setSelectedCard(null);
+    }, 250);
+  }, []);
+
+  // Close modal on Escape key
+  useEffect(() => {
+    if (!selectedCard) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleCloseModal();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [selectedCard, handleCloseModal]);
 
   // Map DB cards to gallery cards
   const cards: GalleryCard[] = useMemo(() => {
@@ -200,16 +229,6 @@ export function CollectionGallery() {
   }, []);
 
   const hasActiveFilters = searchTerm || filters.rarity !== 'All' || filters.type !== 'All';
-
-  // Close modal on Escape key
-  useEffect(() => {
-    if (!selectedCard) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setSelectedCard(null);
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [selectedCard]);
 
   if (loading && dbCards.length === 0) {
     return <CollectionGalleryLoading />;
@@ -464,7 +483,7 @@ export function CollectionGallery() {
             {filteredCards.map((card) => (
               <div
                 key={card.id}
-                onClick={() => setSelectedCard(card)}
+                onClick={() => handleSelectCard(card)}
                 className="cursor-pointer transition-all duration-300 hover:scale-105 hover:-translate-y-1"
                 style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
               >
@@ -488,13 +507,21 @@ export function CollectionGallery() {
       </div>
 
       {/* Card detail modal */}
-      {selectedCard && (
+      {modalVisible && (
         <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4"
-          onClick={() => setSelectedCard(null)}
+          className={`fixed inset-0 flex items-center justify-center z-50 p-4 transition-all duration-300 ${
+            modalEntered ? 'bg-black/80 backdrop-blur-md' : 'bg-black/0 backdrop-blur-none'
+          }`}
+          style={{ pointerEvents: modalEntered ? 'auto' : 'none' }}
+          onClick={handleCloseModal}
         >
           <div 
-            className="glass-card rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
+            className={`glass-card rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden transition-all duration-300 ${
+              modalEntered 
+                ? 'opacity-100 scale-100 translate-y-0' 
+                : 'opacity-0 scale-95 translate-y-4'
+            }`}
+            style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal header */}
@@ -504,7 +531,7 @@ export function CollectionGallery() {
                 <h3 className="font-semibold text-white">Card Details</h3>
               </div>
               <button
-                onClick={() => setSelectedCard(null)}
+                onClick={handleCloseModal}
                 className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors"
                 aria-label="Close card details"
               >
@@ -518,14 +545,14 @@ export function CollectionGallery() {
                 {/* Card preview */}
                 <div>
                   <GameCard
-                    name={selectedCard.name}
-                    description={selectedCard.description}
-                    attack={selectedCard.attack}
-                    defense={selectedCard.defense}
-                    range={selectedCard.range}
-                    rarity={selectedCard.rarity}
-                    type={selectedCard.type}
-                    imageUrl={selectedCard.image_url}
+                    name={selectedCard!.name}
+                    description={selectedCard!.description}
+                    attack={selectedCard!.attack}
+                    defense={selectedCard!.defense}
+                    range={selectedCard!.range}
+                    rarity={selectedCard!.rarity}
+                    type={selectedCard!.type}
+                    imageUrl={selectedCard!.image_url}
                     size="lg"
                   />
                 </div>
@@ -537,9 +564,9 @@ export function CollectionGallery() {
                     <h4 className="text-sm font-semibold text-white/70 mb-3">Combat Stats</h4>
                     <div className="space-y-3">
                       {[
-                        { label: 'Attack', value: selectedCard.attack, color: '#f87171' },
-                        { label: 'Defense', value: selectedCard.defense, color: '#60a5fa' },
-                        { label: 'Range', value: selectedCard.range, color: '#4ade80' },
+                        { label: 'Attack', value: selectedCard!.attack, color: '#f87171' },
+                        { label: 'Defense', value: selectedCard!.defense, color: '#60a5fa' },
+                        { label: 'Range', value: selectedCard!.range, color: '#4ade80' },
                       ].map(stat => (
                         <div key={stat.label} className="flex items-center justify-between">
                           <span style={{ color: stat.color }}>{stat.label}</span>
@@ -555,7 +582,7 @@ export function CollectionGallery() {
                   <div className="glass-card rounded-xl p-4">
                     <h4 className="text-sm font-semibold text-white/70 mb-2">Description</h4>
                     <p className="text-white/80 leading-relaxed whitespace-pre-wrap break-words">
-                      {selectedCard.description || 'No description available.'}
+                      {selectedCard!.description || 'No description available.'}
                     </p>
                   </div>
 
@@ -565,26 +592,26 @@ export function CollectionGallery() {
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-white/50">Card ID</span>
-                        <span className="text-white/80 font-mono">#{selectedCard.id}</span>
+                        <span className="text-white/80 font-mono">#{selectedCard!.id}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-white/50">Type</span>
-                        <span className="text-white/80">{selectedCard.type}</span>
+                        <span className="text-white/80">{selectedCard!.type}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-white/50">Rarity</span>
                         <span 
                           className="font-semibold"
-                          style={{ color: STATS_COLORS[selectedCard.rarity as keyof typeof STATS_COLORS] }}
+                          style={{ color: STATS_COLORS[selectedCard!.rarity as keyof typeof STATS_COLORS] }}
                         >
-                          {selectedCard.rarity}
+                          {selectedCard!.rarity}
                         </span>
                       </div>
-                      {selectedCard.created_at > 0 && (
+                      {selectedCard!.created_at > 0 && (
                         <div className="flex justify-between">
                           <span className="text-white/50">Created</span>
                           <span className="text-white/80">
-                            {new Date(selectedCard.created_at * 1000).toLocaleDateString()}
+                            {new Date(selectedCard!.created_at * 1000).toLocaleDateString()}
                           </span>
                         </div>
                       )}
