@@ -794,6 +794,13 @@ pub fn start_single_player_match(
         bot_card_ids.push(card_id);
     }
 
+    // Clean up any stale hand entries for this player from previous matches.
+    // player_hands.id is the card_id, so re-using same card IDs would cause duplicate-key
+    // panic without this cleanup.
+    ctx.db.player_hands().iter()
+        .filter(|h| h.player_id == human_player_id)
+        .for_each(|h| { ctx.db.player_hands().id().delete(h.id); });
+
     // Create the match (use v1 to avoid colliding with bot_player_id from v0)
     let match_id = generate_id_v1(ctx);
     let empty_board = crate::BoardState {
