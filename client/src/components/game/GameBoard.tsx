@@ -42,6 +42,7 @@ export function GameBoard({ gameId, isSpectating = false, onPlayAgain, onBackToL
   const spectating = isSpectating ?? false;
   const [selectedTile, setSelectedTile] = useState<{x: number, y: number} | null>(null);
   const [animatingCard, setAnimatingCard] = useState<string | null>(null);
+  const [highlightedTile, setHighlightedTile] = useState<{x: number, y: number} | null>(null);
 
   const status = match?.status ?? 'Active';
   const currentTurn = match ? Number(match.currentTurn) : 1;
@@ -165,6 +166,15 @@ export function GameBoard({ gameId, isSpectating = false, onPlayAgain, onBackToL
     }
     return 'rgba(239, 68, 68, 0.04)';
   };
+
+  // Phase config for consistent styling across header and instructions
+  const phaseConfig = {
+    Placement: { border: 'border-green-500/30', dot: 'bg-green-400', glow: 'shadow-[0_0_8px_rgba(34,197,94,0.6)]', label: 'Placement Phase' },
+    Action:    { border: 'border-blue-500/30',  dot: 'bg-blue-400',  glow: 'shadow-[0_0_8px_rgba(59,130,246,0.6)]',  label: 'Action Phase'    },
+    Combat:    { border: 'border-purple-500/30',dot: 'bg-purple-400',glow: 'shadow-[0_0_8px_rgba(168,85,247,0.6)]', label: 'Combat Phase'    },
+  };
+  const phase = (boardState?.phase ?? 'Combat') as keyof typeof phaseConfig;
+  const currentPhase = phaseConfig[phase] ?? phaseConfig.Combat;
 
   const renderTileContent = (x: number, y: number) => {
     const tile = getTile(x, y);
@@ -304,6 +314,7 @@ export function GameBoard({ gameId, isSpectating = false, onPlayAgain, onBackToL
               <div key={`row-${x}`} className="contents">
                 {Array.from({ length: COLS }, (_, y) => {
                   const tile = getTile(x, y);
+                  const isHighlighted = highlightedTile?.x === x && highlightedTile?.y === y;
                   return (
                     <div
                       key={`tile-${x}-${y}`}
@@ -311,6 +322,10 @@ export function GameBoard({ gameId, isSpectating = false, onPlayAgain, onBackToL
                       style={{ 
                         background: getTileBg(x),
                         minHeight: '100px',
+                        ...(isHighlighted && {
+                          boxShadow: '0 0 0 2px rgba(34,197,94,0.8), 0 0 30px rgba(34,197,94,0.5), inset 0 0 20px rgba(34,197,94,0.1)',
+                          transition: 'box-shadow 0.1s ease-out',
+                        }),
                       }}
                       onClick={() => handleTileClick(x, y)}
                     >
@@ -419,7 +434,9 @@ export function GameBoard({ gameId, isSpectating = false, onPlayAgain, onBackToL
                     for (let x = 0; x < 3; x++) {
                       for (let y = 0; y < 3; y++) {
                         if (!getTile(x, y)?.card_id) {
+                          setHighlightedTile({ x, y });
                           placeCard(BigInt(handEntry.id), BigInt(playerId), x, y).catch(console.error);
+                          setTimeout(() => setHighlightedTile(null), 1200);
                           return;
                         }
                       }
@@ -447,21 +464,11 @@ export function GameBoard({ gameId, isSpectating = false, onPlayAgain, onBackToL
 
       {/* Phase instructions */}
       {!spectating && (
-      <div className={`mt-4 glass-card rounded-xl p-4 border ${
-        (boardState?.phase ?? 'Combat') === 'Placement' ? 'border-green-500/30' :
-        (boardState?.phase ?? 'Combat') === 'Action' ? 'border-blue-500/30' :
-        'border-purple-500/30'
-      }`}>
+      <div className={`mt-4 glass-card rounded-xl p-4 border ${currentPhase.border}`}>
         <div className="flex items-center gap-3 mb-2">
-          <div className={`w-2.5 h-2.5 rounded-full ${
-            boardState?.phase === 'Placement' ? 'bg-green-400 shadow-[0_0_8px_rgba(34,197,94,0.6)]' :
-            boardState?.phase === 'Action' ? 'bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.6)]' :
-            'bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.6)]'
-          }`} />
+          <div className={`w-2.5 h-2.5 rounded-full ${currentPhase.dot} ${currentPhase.glow}`} />
           <h4 className="text-sm font-semibold text-white" style={{ fontFamily: 'Cinzel, serif' }}>
-            {boardState?.phase === 'Placement' ? 'Placement Phase' :
-             boardState?.phase === 'Action' ? 'Action Phase' :
-             'Combat Phase'}
+            {currentPhase.label}
           </h4>
         </div>
         <div className="text-xs text-white/50 leading-relaxed space-y-1">

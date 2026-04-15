@@ -170,11 +170,13 @@ function LeaderboardEntry({ player, rank, isCurrentPlayer }: LeaderboardEntryPro
 
         {/* Stats */}
         <div className="text-right">
-          <div className="text-white font-semibold">
-            {player.wins}W / {player.losses}L
+          <div className="text-white font-semibold font-mono">
+            {player.wins}<span className="text-white/40 font-normal">W</span>
+            <span className="text-white/20 mx-1">/</span>
+            {player.losses}<span className="text-white/40 font-normal">L</span>
           </div>
           <div 
-            className="text-sm font-semibold"
+            className="text-sm font-semibold mt-0.5"
             style={{ color: winRate >= 60 ? '#22c55e' : winRate >= 40 ? '#f59e0b' : '#ef4444' }}
           >
             {winRate}% WR

@@ -30,6 +30,15 @@ export function MatchEndScreen({ gameId, onPlayAgain, onBackToLobby }: MatchEndS
     return player?.name ?? `Player ${winnerId.toString().slice(-6)}`;
   }, [winnerId, getPlayerById]);
 
+  const handlePlayAgain = () => {
+    // First return to lobby to re-read card state, then start a new match
+    onBackToLobby();
+    // Delay starting new match until lobby has re-rendered and read fresh card data
+    setTimeout(() => {
+      onPlayAgain();
+    }, 600);
+  };
+
   if (status !== 'Completed') return null;
 
   return (
@@ -103,11 +112,11 @@ export function MatchEndScreen({ gameId, onPlayAgain, onBackToLobby }: MatchEndS
         {/* Actions */}
         <div className="flex flex-col gap-3">
           <button
-            onClick={onPlayAgain}
-            className="btn btn-success py-4 text-lg w-full"
+            onClick={handlePlayAgain}
+            className="btn btn-success py-4 text-lg w-full group"
           >
             <div className="flex items-center justify-center gap-2">
-              <RotateCcw size={18} strokeWidth={2} />
+              <RotateCcw size={18} strokeWidth={2} className="transition-transform group-hover:-rotate-45 duration-300" />
               Play Again
             </div>
           </button>
