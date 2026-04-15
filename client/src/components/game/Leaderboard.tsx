@@ -105,10 +105,13 @@ function LeaderboardEntry({ player, rank, isCurrentPlayer }: LeaderboardEntryPro
         glass-card rounded-xl p-4 transition-all duration-200
         ${isCurrentPlayer ? 'ring-2 ring-purple-500/50' : ''}
         ${isTop3 ? 'border' : ''}
+        hover:scale-[1.015] hover:shadow-lg
       `}
       style={{
         borderColor: isTop3 ? medalColors[rank - 1] + '40' : undefined,
-      }}
+        transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+        '--tw-shadow-color': isTop3 ? medalColors[rank - 1] + '30' : 'rgba(139,92,246,0.15)',
+      } as React.CSSProperties}
     >
       <div className="flex items-center gap-4">
         {/* Rank */}

@@ -465,7 +465,8 @@ export function CollectionGallery() {
               <div
                 key={card.id}
                 onClick={() => setSelectedCard(card)}
-                className="cursor-pointer"
+                className="cursor-pointer transition-all duration-300 hover:scale-105 hover:-translate-y-1"
+                style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
               >
                 <GameCard
                   name={card.name}
