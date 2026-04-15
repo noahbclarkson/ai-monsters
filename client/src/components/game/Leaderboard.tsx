@@ -189,6 +189,8 @@ export function Leaderboard() {
   const { leaderboard, loading, error } = useLeaderboard(50);
   const [sortBy, setSortBy] = useState<'rating' | 'wins' | 'level'>('rating');
   const { playerId } = useSpacetimeDB();
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const sortedPlayers = useMemo((): Player[] => {
     const mapped = leaderboard.map(p => {
@@ -210,8 +212,18 @@ export function Leaderboard() {
       if (sortBy === 'wins') return b.wins - a.wins;
       if (sortBy === 'level') return b.level - a.level;
       return 0;
-    }).slice(0, 50);
+    });
   }, [leaderboard, sortBy]);
+
+  // Paginated view — reset to page 1 when sort order changes
+  const totalPages = Math.max(1, Math.ceil(sortedPlayers.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedPlayers = sortedPlayers.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  const handleSortChange = (key: typeof sortBy) => {
+    setSortBy(key);
+    setCurrentPage(1);
+  };
 
   if (loading) {
     return (
@@ -277,7 +289,7 @@ export function Leaderboard() {
           ] as const).map(({ key, label }) => (
             <button
               key={key}
-              onClick={() => setSortBy(key)}
+              onClick={() => handleSortChange(key)}
               className={`btn text-sm ${sortBy === key ? 'btn-primary' : 'btn-ghost'}`}
             >
               {label}
@@ -295,15 +307,56 @@ export function Leaderboard() {
 
         {/* Leaderboard list */}
         <div className="space-y-3">
-          {sortedPlayers.map((player, index) => (
+          {paginatedPlayers.map((player, index) => (
             <LeaderboardEntry
               key={player.id}
               player={player}
-              rank={index + 1}
+              rank={(safePage - 1) * PAGE_SIZE + index + 1}
               isCurrentPlayer={player.id === playerId?.toString()}
             />
           ))}
         </div>
+
+        {/* Pagination controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-3 mt-8">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={safePage === 1}
+              className="btn btn-ghost px-4 text-sm disabled:opacity-30"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+              Prev
+            </button>
+            <div className="flex items-center gap-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-9 h-9 rounded-lg text-sm font-semibold transition-all duration-150 ${
+                    page === safePage
+                      ? 'bg-purple-500/30 text-purple-300 border border-purple-500/40'
+                      : 'text-white/50 hover:text-white hover:bg-white/5 border border-transparent'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={safePage === totalPages}
+              className="btn btn-ghost px-4 text-sm disabled:opacity-30"
+            >
+              Next
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          </div>
+        )}
 
         {/* Empty state */}
         {sortedPlayers.length === 0 && (

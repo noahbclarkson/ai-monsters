@@ -170,11 +170,40 @@ export function GameBoard({ gameId, isSpectating = false, onPlayAgain, onBackToL
     const tile = getTile(x, y);
     
     if (!tile?.card_id) {
+      const isPlayerZone = x < 3;
+      const zoneColor = isPlayerZone ? '16, 185, 129' : '239, 68, 68'; // green or red
       return (
         <div className="w-full h-full flex items-center justify-center group transition-all duration-300">
-          <div className="w-8 h-8 rounded-lg border border-white/[0.05] bg-white/[0.02] flex items-center justify-center transition-all duration-300 group-hover:border-white/[0.15] group-hover:bg-white/[0.05] group-hover:scale-110 shadow-[0_0_15px_rgba(0,0,0,0.1)_inset]">
-            <svg width="12" height="12" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" className="transition-opacity duration-300 opacity-40 group-hover:opacity-100">
-              <path d="M5 1v8M1 5h8" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" strokeLinecap="round"/>
+          <div 
+            className="relative w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110"
+            style={{ 
+              border: `1.5px dashed rgba(${zoneColor}, 0.25)`,
+              background: `rgba(${zoneColor}, 0.03)`,
+              boxShadow: `inset 0 0 20px rgba(${zoneColor}, 0.04)`,
+            }}
+          >
+            {/* Ambient glow that intensifies on hover */}
+            <div 
+              className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              style={{ background: `radial-gradient(circle, rgba(${zoneColor}, 0.08) 0%, transparent 70%)` }}
+            />
+            {/* Plus icon */}
+            <svg 
+              width="16" 
+              height="16" 
+              viewBox="0 0 16 16" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+              className="relative z-10 transition-all duration-300"
+              style={{ opacity: 0.3, color: `rgb(${zoneColor})` }}
+            >
+              <path 
+                d="M8 2v12M2 8h12" 
+                stroke="currentColor" 
+                strokeWidth="1.5" 
+                strokeLinecap="round"
+                className="group-hover:opacity-100 group-hover:stroke-[2]"
+              />
             </svg>
           </div>
         </div>

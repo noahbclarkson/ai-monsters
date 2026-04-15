@@ -44,6 +44,7 @@ export function CollectionGallery() {
   const [filteredCards, setFilteredCards] = useState<GalleryCard[]>([]);
   const [selectedCard, setSelectedCard] = useState<GalleryCard | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<FilterOptions>({
     rarity: 'All',
@@ -149,6 +150,7 @@ export function CollectionGallery() {
   }, [cards, searchTerm, filters]);
 
   const handleGenerateNewCard = async () => {
+    setGenerationError(null);
     setIsGenerating(true);
     try {
       const noun = AICardGenerator.generateRandomNoun();
@@ -203,6 +205,7 @@ export function CollectionGallery() {
       }
     } catch (error) {
       console.error('Error generating card:', error);
+      setGenerationError(error instanceof Error ? error.message : 'Failed to generate card. Please try again.');
     } finally {
       setIsGenerating(false);
     }
@@ -272,6 +275,35 @@ export function CollectionGallery() {
             {cards.length} cards generated
           </p>
         </div>
+
+        {/* Generation error banner */}
+        {generationError && (
+          <div className="glass-card rounded-xl p-4 mb-4 border border-red-500/30">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-red-400 text-sm font-medium">Card generation failed</p>
+                <p className="text-red-400/60 text-xs mt-1">{generationError}</p>
+              </div>
+              <button
+                onClick={() => setGenerationError(null)}
+                className="w-6 h-6 rounded flex items-center justify-center text-red-400/50 hover:text-red-400 hover:bg-red-500/10 transition-colors flex-shrink-0"
+                aria-label="Dismiss error"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Stats bar — rarity distribution */}
         <div className="glass-card rounded-2xl p-5 mb-4">
