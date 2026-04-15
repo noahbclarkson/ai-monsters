@@ -188,11 +188,16 @@ export function CollectionGallery() {
       // generateCard sets server stats but ignores AI description/image — read back
       // the new card and call update_card_media to persist the actual AI content
       if (!conn) return;
-      const db = conn.db as Record<string, { iter(): Iterable<any> }>;
-      let newCard: any = null;
+      const db = conn.db as Record<string, { iter(): Iterable<{ id: bigint; [key: string]: any }> }>;
+      let newCard: { id: bigint; [key: string]: any } | null = null;
+      let maxId = BigInt(0);
       if (db.cards) {
         for (const c of db.cards.iter()) {
-          newCard = c;
+          // Pick the card with the highest id — that's the one we just created
+          if (c.id > maxId) {
+            maxId = c.id;
+            newCard = c;
+          }
         }
       }
       if (newCard && (aiDescription || aiImageUrl)) {

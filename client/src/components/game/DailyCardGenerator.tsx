@@ -68,23 +68,27 @@ export default function DailyCardGenerator() {
 
       await new Promise(resolve => setTimeout(resolve, 1200));
 
-      const db = conn.db as Record<string, { iter(): Iterable<any> }>;
+      const db = conn.db as Record<string, { iter(): Iterable<{ id: bigint; [key: string]: any }> }>;
       const cardsTable = db.cards;
       let lastCard: any = null;
+      let maxId = BigInt(0);
 
       if (cardsTable) {
         for (const card of cardsTable.iter()) {
-          lastCard = {
-            id: Number(card.id || card.cardId),
-            name: card.name,
-            description: card.description,
-            attack: card.attack,
-            defense: card.defense,
-            range: card.range,
-            rarity: card.rarity,
-            card_type: card.cardType || card.card_type,
-            image_url: card.imageUrl || card.image_url,
-          };
+          if (card.id > maxId) {
+            maxId = card.id;
+            lastCard = {
+              id: Number(card.id || card.cardId),
+              name: card.name,
+              description: card.description,
+              attack: card.attack,
+              defense: card.defense,
+              range: card.range,
+              rarity: card.rarity,
+              card_type: card.cardType || card.card_type,
+              image_url: card.imageUrl || card.image_url,
+            };
+          }
         }
       }
 

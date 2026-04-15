@@ -105,23 +105,27 @@ export function PackOpening() {
         // Save to SpacetimeDB (server ignores aiDescription/aiImageUrl)
         await generateCard(uniqueName, rarity, cardType, '', '');
 
-        // Read back the card we just created (last card in table)
-        const db = conn.db as Record<string, { iter(): Iterable<any> }>;
+        // Read back the card we just created (card with highest id = most recent)
+        const db = conn.db as Record<string, { iter(): Iterable<{ id: bigint; [key: string]: any }> }>;
         const cardsTable = db.cards;
         let lastCard: CardInfo | null = null;
+        let maxId = BigInt(0);
         if (cardsTable) {
           for (const card of cardsTable.iter()) {
-            lastCard = {
-              id: Number(card.id),
-              name: card.name,
-              description: card.description,
-              attack: card.attack,
-              defense: card.defense,
-              range: card.range,
-              rarity: card.rarity as CardInfo['rarity'],
-              card_type: card.cardType || card.card_type || 'Unit',
-              image_url: card.imageUrl || card.image_url || '',
-            };
+            if (card.id > maxId) {
+              maxId = card.id;
+              lastCard = {
+                id: Number(card.id),
+                name: card.name,
+                description: card.description,
+                attack: card.attack,
+                defense: card.defense,
+                range: card.range,
+                rarity: card.rarity as CardInfo['rarity'],
+                card_type: card.cardType || card.card_type || 'Unit',
+                image_url: card.imageUrl || card.image_url || '',
+              };
+            }
           }
         }
 
