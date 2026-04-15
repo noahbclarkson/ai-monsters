@@ -136,7 +136,7 @@ export function GameBoard({ gameId, isSpectating = false, onPlayAgain, onBackToL
   };
 
   const handleEndTurn = () => {
-    endTurn().catch(console.error);
+    if (playerId) endTurn(BigInt(playerId)).catch(console.error);
   };
 
   const getTileClasses = (x: number, y: number): string => {

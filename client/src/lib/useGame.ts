@@ -206,11 +206,11 @@ export function useGame(matchId: bigint) {
     [conn, matchId]
   );
 
-  // end_turn
-  const endTurn = useCallback(async () => {
+  // end_turn — requires playerId for server-side identity validation
+  const endTurn = useCallback(async (playerId: bigint) => {
     if (!conn) throw new Error("Not connected");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (conn.reducers as any).endTurn({ matchId });
+    return (conn.reducers as any).endTurn({ matchId, playerId });
   }, [conn, matchId]);
 
   return {

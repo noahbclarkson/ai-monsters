@@ -22,13 +22,13 @@ export function GameGenerator() {
         generatedCards.map(c => c.name)
       );
       
-      // Save to SpacetimeDB
+      // Save to SpacetimeDB with full AI description and image
       await dbGenerateCard(
         newCard.name,
         newCard.rarity,
         newCard.card_type,
-        '',
-        ''
+        newCard.description,
+        newCard.image_url
       );
       
       setGeneratedCards(prev => [...prev, newCard]);
@@ -46,14 +46,14 @@ export function GameGenerator() {
         generatedCards.map(c => c.name)
       );
       
-      // Save to SpacetimeDB
+      // Save to SpacetimeDB with full AI descriptions and images
       for (const card of pack.cards) {
         await dbGenerateCard(
           card.name,
           card.rarity,
           card.card_type,
-          '',
-          ''
+          card.description,
+          card.image_url
         );
       }
       

@@ -183,7 +183,9 @@ export function getCardArtFallback(params: CardArtParams): string {
   <rect x="0" y="0" width="${W}" height="40" fill="url(#topFade)" opacity="0.5"/>
 </svg>`;
 
-  return `data:image/svg+xml;base64,${btoa(svg)}`;
+  // Use TextEncoder for Unicode-safe base64 (btoa fails on non-Latin1 chars)
+  const encoded = btoa(String.fromCodePoint(...new TextEncoder().encode(svg)));
+  return `data:image/svg+xml;base64,${encoded}`;
 }
 
 function escapeXml(str: string): string {
