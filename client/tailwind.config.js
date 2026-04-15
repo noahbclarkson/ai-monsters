@@ -14,9 +14,11 @@ module.exports = {
           surface: '#12141a',
           elevated: '#1a1d27',
         },
+        // AI Monsters custom border colors — extend the HSL border base
         border: {
           subtle: '#2a2d3a',
           glow: '#3d4050',
+          DEFAULT: 'hsl(var(--border))',
         },
         text: {
           primary: '#f0f0f5',
@@ -45,8 +47,7 @@ module.exports = {
           warning: '#f59e0b',
           danger: '#ef4444',
         },
-        // HSL vars for compatibility
-        border: "hsl(var(--border))",
+        // HSL vars for compatibility (border already defined above with subtle/glow/DEFAULT)
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",

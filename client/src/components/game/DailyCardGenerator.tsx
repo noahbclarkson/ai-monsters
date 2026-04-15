@@ -126,7 +126,7 @@ export default function DailyCardGenerator() {
       {/* Hero section */}
       <div className="text-center mb-10 relative">
         {/* Ambient glows */}
-        <div className="glow-orb glow-orb-purple w-80 h-80 -top-10 left-1/2 -translate-x-1/2 -opacity-30 absolute pointer-events-none" />
+        <div className="glow-orb glow-orb-purple w-80 h-80 -top-10 left-1/2 -translate-x-1/2 opacity-30 absolute pointer-events-none" />
         <div className="glow-orb glow-orb-amber w-48 h-48 top-5 -right-10 opacity-20 absolute pointer-events-none" />
 
         <div className="relative z-10">

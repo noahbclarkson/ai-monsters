@@ -91,8 +91,8 @@ export function GameLobby() {
         let matchFound = false;
         for (let attempt = 0; attempt < maxAttempts; attempt++) {
           await new Promise(r => setTimeout(r, 100));
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const matchesTable = (conn.db as any).game_matches as { iter(): Iterable<{ id: bigint; player1Id: bigint; player2Id: bigint; status: string }> } | undefined;
+          // conn.db has loose types; access game_matches table directly
+          const matchesTable = conn.db.game_matches as { iter(): Iterable<{ id: bigint; player1Id: bigint; player2Id: bigint; status: string }> } | undefined;
           if (matchesTable) {
             for (const row of matchesTable.iter()) {
               const isOurs = (row.player1Id === playerId || row.player2Id === playerId) && row.status === 'Active';
