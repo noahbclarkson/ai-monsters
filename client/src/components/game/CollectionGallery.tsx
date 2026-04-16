@@ -189,10 +189,12 @@ export function CollectionGallery() {
         aiImageUrl = imgData.image_url || '';
       }
 
-      await generateCard(noun, rarity, cardType, '', '');
+      // Save card with AI content directly — no separate update_card_media call needed
+      await generateCard(noun, rarity, cardType, aiDescription, aiImageUrl);
 
-      // generateCard sets server stats but ignores AI description/image — read back
-      // the new card and call update_card_media to persist the actual AI content
+      // Read back the card we just created so the UI can display it immediately.
+      // The subscription will fire after commit, but we poll the table directly
+      // to get the card ID for the gallery update without an extra round-trip.
       const db = conn.db as Record<string, { iter(): Iterable<{ id: bigint; [key: string]: any }> }>;
       let newCard: { id: bigint; [key: string]: any } | null = null;
       let maxId = BigInt(0);
@@ -204,14 +206,6 @@ export function CollectionGallery() {
             newCard = c;
           }
         }
-      }
-      if (newCard && (aiDescription || aiImageUrl)) {
-        const cardId = Number(newCard.id);
-        (conn.reducers as any).update_card_media({
-          cardId,
-          description: aiDescription,
-          imageUrl: aiImageUrl,
-        });
       }
     } catch (error) {
       console.error('Error generating card:', error);

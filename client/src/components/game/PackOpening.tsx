@@ -102,8 +102,8 @@ export function PackOpening() {
           aiImageUrl = '';
         }
 
-        // Save to SpacetimeDB (server ignores aiDescription/aiImageUrl)
-        await generateCard(uniqueName, rarity, cardType, '', '');
+        // Save to SpacetimeDB with AI content directly — no separate update_card_media call needed
+        await generateCard(uniqueName, rarity, cardType, aiDescription, aiImageUrl);
 
         // Read back the card we just created (card with highest id = most recent)
         const db = conn.db as Record<string, { iter(): Iterable<{ id: bigint; [key: string]: any }> }>;
@@ -117,28 +117,17 @@ export function PackOpening() {
               lastCard = {
                 id: Number(card.id),
                 name: card.name,
-                description: card.description,
+                // description and image_url are now saved directly by generateCard
+                description: aiDescription || '',
                 attack: card.attack,
                 defense: card.defense,
                 range: card.range,
                 rarity: card.rarity as CardInfo['rarity'],
                 card_type: card.cardType || card.card_type || 'Unit',
-                image_url: card.imageUrl || card.image_url || '',
+                image_url: aiImageUrl || '',
               };
             }
           }
-        }
-
-        // Update the card with actual AI content (description + image)
-        if (lastCard && (aiDescription || aiImageUrl)) {
-          (conn.reducers as any).update_card_media({
-            cardId: lastCard.id,
-            description: aiDescription,
-            imageUrl: aiImageUrl,
-          });
-          // Use the AI content for the visual preview
-          if (aiDescription) lastCard.description = aiDescription;
-          if (aiImageUrl) lastCard.image_url = aiImageUrl;
         }
 
         if (lastCard) {
