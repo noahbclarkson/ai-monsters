@@ -170,6 +170,12 @@ export function CollectionGallery() {
         }),
       ]);
 
+      if (!conn) {
+        setGenerationError('Lost connection to server. Please try again.');
+        setIsGenerating(false);
+        return;
+      }
+
       let aiDescription = '';
       let aiImageUrl = '';
 
@@ -187,7 +193,6 @@ export function CollectionGallery() {
 
       // generateCard sets server stats but ignores AI description/image — read back
       // the new card and call update_card_media to persist the actual AI content
-      if (!conn) return;
       const db = conn.db as Record<string, { iter(): Iterable<{ id: bigint; [key: string]: any }> }>;
       let newCard: { id: bigint; [key: string]: any } | null = null;
       let maxId = BigInt(0);

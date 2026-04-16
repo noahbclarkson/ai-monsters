@@ -68,18 +68,26 @@ export function GameLobby() {
             aiImageUrl: '',
           });
         }
-        // Re-read cards after generating
-        myCards.length = 0;
-        // Wait a tick for the subscription to fire
-        await new Promise(r => setTimeout(r, 500));
+        // Wait for the new cards to be committed and readable
+        await new Promise(r => setTimeout(r, 600));
       }
 
-      // Try reading from subscription data (allCards) first, then fall back to direct DB read
-      const cardIds = allCards.slice(0, 5).map(c => c.id);
-      if (cardIds.length >= 5) {
-        myCards.length = 0;
-        myCards.push(...cardIds);
+      // Read directly from DB — allCards (subscription state) may not have updated yet
+      // if the subscription has not yet fired after card generation.
+      const cardsTable = (conn.db as Record<string, { iter(): Iterable<{ id: bigint }> }>).cards;
+      const cardIds: bigint[] = [];
+      if (cardsTable) {
+        for (const row of cardsTable.iter()) {
+          cardIds.push(row.id);
+          if (cardIds.length >= 5) break;
+        }
       }
+
+      // Also include any card IDs we already had from before (subscription may have them)
+      const existingIds = allCards.slice(0, 5).map(c => c.id);
+      const mergedIds = [...new Set([...existingIds, ...cardIds])].slice(0, 5);
+      myCards.length = 0;
+      myCards.push(...mergedIds);
 
       if (myCards.length >= 5) {
         await startSinglePlayerMatch(selectedDifficulty, myCards.slice(0, 5));
