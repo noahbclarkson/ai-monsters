@@ -64,43 +64,31 @@ export default function DailyCardGenerator() {
         if (imgData.image_url) aiImageUrl = imgData.image_url;
       }
 
-      await generateCard(noun, rarity, cardType, '', '');
+      // Save directly to SpacetimeDB with AI content — no separate update_card_media call needed
+      await generateCard(noun, rarity, cardType, aiDescription, aiImageUrl);
 
-      await new Promise(resolve => setTimeout(resolve, 1200));
-
+      // Read back the newly created card (highest id = most recent)
       const db = conn.db as Record<string, { iter(): Iterable<{ id: bigint; [key: string]: any }> }>;
       const cardsTable = db.cards;
       let lastCard: any = null;
       let maxId = BigInt(0);
-
       if (cardsTable) {
         for (const card of cardsTable.iter()) {
           if (card.id > maxId) {
             maxId = card.id;
             lastCard = {
-              id: Number(card.id || card.cardId),
+              id: Number(card.id),
               name: card.name,
               description: card.description,
               attack: card.attack,
               defense: card.defense,
               range: card.range,
               rarity: card.rarity,
-              card_type: card.cardType || card.card_type,
-              image_url: card.imageUrl || card.image_url,
+              card_type: card.cardType || 'Unit',
+              image_url: card.imageUrl || '',
             };
           }
         }
-      }
-
-      // Update the card with actual AI content (description + image)
-      if (lastCard && (aiDescription || aiImageUrl)) {
-        (conn.reducers as any).update_card_media({
-          cardId: Number(lastCard.id),
-          description: aiDescription,
-          imageUrl: aiImageUrl,
-        });
-        if (aiDescription) lastCard.description = aiDescription;
-        if (aiImageUrl) lastCard.image_url = aiImageUrl;
       }
 
       setDailyCard(lastCard);

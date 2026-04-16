@@ -25,30 +25,34 @@ export function GameGenerator() {
       const rarity = AICardGenerator.determineRarity();
       const cardType = AICardGenerator.getRandomCardType();
 
-      // Call the real AI description endpoint for a unique, contextual description
+      // Generate AI content before saving — image and description both come from AI
       let aiDescription = AICardGenerator.fallbackDescription(noun, rarity as any, cardType);
-      try {
-        const descRes = await fetch('/api/generate-description', {
+      let aiImageUrl = '';
+
+      const [descRes, imgRes] = await Promise.all([
+        fetch('/api/generate-description', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt: '', noun, rarity, cardType }),
-        });
-        if (descRes.ok) {
-          const descData = await descRes.json();
-          if (descData.description) aiDescription = descData.description;
-        }
-      } catch {
-        // Fall back to template description on network error
+        }),
+        fetch('/api/generate-card-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ noun, cardType, rarity, cardId: Date.now() }),
+        }),
+      ]);
+
+      if (descRes.ok) {
+        const descData = await descRes.json();
+        if (descData.description) aiDescription = descData.description;
+      }
+      if (imgRes.ok) {
+        const imgData = await imgRes.json();
+        if (imgData.image_url) aiImageUrl = imgData.image_url;
       }
 
-      // Save to SpacetimeDB with the AI description
-      await dbGenerateCard(
-        noun,
-        rarity,
-        cardType,
-        aiDescription,
-        '' // image_url handled separately via update_card_media if available
-      );
+      // Save to SpacetimeDB with AI content directly — no separate update_card_media call needed
+      await dbGenerateCard(noun, rarity, cardType, aiDescription, aiImageUrl);
 
       // Read back the newly created card (highest id = most recent)
       if (conn) {
@@ -64,35 +68,11 @@ export function GameGenerator() {
           }
         }
 
-        // Try to get an AI image too
-        let aiImageUrl = '';
-        try {
-          const imgRes = await fetch('/api/generate-card-image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ noun, cardType, rarity, cardId: Date.now() }),
-          });
-          if (imgRes.ok) {
-            const imgData = await imgRes.json();
-            aiImageUrl = imgData.image_url || '';
-          }
-        } catch {
-          // Image is optional
-        }
-
-        if (lastCard && aiImageUrl) {
-          (conn.reducers as any).update_card_media({
-            cardId: Number(lastCard.id),
-            description: aiDescription,
-            imageUrl: aiImageUrl,
-          });
-        }
-
         if (lastCard) {
           const newCard: Card = {
             id: Number(lastCard.id),
             name: lastCard.name,
-            description: aiDescription,
+            description: aiDescription || lastCard.description,
             attack: lastCard.attack,
             defense: lastCard.defense,
             range: lastCard.range,
@@ -157,7 +137,7 @@ export function GameGenerator() {
           });
           if (imgRes.ok) {
             const imgData = await imgRes.json();
-            aiImageUrl = imgData.image_url || '';
+            if (imgData.image_url) aiImageUrl = imgData.image_url;
           }
         } catch {
           // Image is optional
