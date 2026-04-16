@@ -137,7 +137,7 @@ export function useDailyCards() {
       // Update card in SpacetimeDB
       const cardIdNum = typeof cardId === 'bigint' ? Number(cardId) : cardId;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (conn.reducers as any).updateCardMedia({
+      (conn.reducers as any).update_card_media({
         cardId: cardIdNum,
         description,
         imageUrl,

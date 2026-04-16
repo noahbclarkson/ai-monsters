@@ -6,65 +6,201 @@ import { GameCard } from './GameCard';
 import { AICardGenerator } from '@/lib/ai-card-generator';
 import { Card } from '@/types/card';
 import { useCards } from '@/lib/useCards';
+import { useSpacetimeDB } from '@/lib/spacetimedb';
 
 export function GameGenerator() {
   const [generatedCards, setGeneratedCards] = useState<Card[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [packCount, setPackCount] = useState(0);
+  const [generationError, setGenerationError] = useState<string | null>(null);
 
   const { generateCard: dbGenerateCard } = useCards();
+  const { conn } = useSpacetimeDB();
 
   const generateSingleCard = useCallback(async () => {
     setIsGenerating(true);
+    setGenerationError(null);
     try {
-      const newCard = await AICardGenerator.generateCard(
-        generatedCards.length + 1,
-        generatedCards.map(c => c.name)
-      );
-      
-      // Save to SpacetimeDB with full AI description and image
+      const noun = AICardGenerator.generateRandomNoun();
+      const rarity = AICardGenerator.determineRarity();
+      const cardType = AICardGenerator.getRandomCardType();
+
+      // Call the real AI description endpoint for a unique, contextual description
+      let aiDescription = AICardGenerator.fallbackDescription(noun, rarity as any, cardType);
+      try {
+        const descRes = await fetch('/api/generate-description', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: '', noun, rarity, cardType }),
+        });
+        if (descRes.ok) {
+          const descData = await descRes.json();
+          if (descData.description) aiDescription = descData.description;
+        }
+      } catch {
+        // Fall back to template description on network error
+      }
+
+      // Save to SpacetimeDB with the AI description
       await dbGenerateCard(
-        newCard.name,
-        newCard.rarity,
-        newCard.card_type,
-        newCard.description,
-        newCard.image_url
+        noun,
+        rarity,
+        cardType,
+        aiDescription,
+        '' // image_url handled separately via update_card_media if available
       );
-      
-      setGeneratedCards(prev => [...prev, newCard]);
+
+      // Read back the newly created card (highest id = most recent)
+      if (conn) {
+        const db = conn.db as Record<string, { iter(): Iterable<{ id: bigint; [key: string]: any }> }>;
+        let maxId = BigInt(0);
+        let lastCard: any = null;
+        if (db.cards) {
+          for (const row of db.cards.iter()) {
+            if (row.id > maxId) {
+              maxId = row.id;
+              lastCard = row;
+            }
+          }
+        }
+
+        // Try to get an AI image too
+        let aiImageUrl = '';
+        try {
+          const imgRes = await fetch('/api/generate-card-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ noun, cardType, rarity, cardId: Date.now() }),
+          });
+          if (imgRes.ok) {
+            const imgData = await imgRes.json();
+            aiImageUrl = imgData.image_url || '';
+          }
+        } catch {
+          // Image is optional
+        }
+
+        if (lastCard && aiImageUrl) {
+          (conn.reducers as any).update_card_media({
+            cardId: Number(lastCard.id),
+            description: aiDescription,
+            imageUrl: aiImageUrl,
+          });
+        }
+
+        if (lastCard) {
+          const newCard: Card = {
+            id: Number(lastCard.id),
+            name: lastCard.name,
+            description: aiDescription,
+            attack: lastCard.attack,
+            defense: lastCard.defense,
+            range: lastCard.range,
+            rarity: lastCard.rarity,
+            card_type: lastCard.cardType || 'Unit',
+            image_url: aiImageUrl || lastCard.imageUrl || '',
+            created_at: Number(lastCard.createdAt) || 0,
+          };
+          setGeneratedCards(prev => [...prev, newCard]);
+        }
+      }
     } catch (error) {
       console.error('Error generating card:', error);
+      setGenerationError(error instanceof Error ? error.message : 'Failed to generate card.');
     } finally {
       setIsGenerating(false);
     }
-  }, [generatedCards, dbGenerateCard]);
+  }, [dbGenerateCard, conn]);
 
   const generatePack = useCallback(async () => {
     setIsGenerating(true);
+    setGenerationError(null);
     try {
-      const pack = await AICardGenerator.generatePack(
-        generatedCards.map(c => c.name)
-      );
-      
-      // Save to SpacetimeDB with full AI descriptions and images
-      for (const card of pack.cards) {
-        await dbGenerateCard(
-          card.name,
-          card.rarity,
-          card.card_type,
-          card.description,
-          card.image_url
-        );
+      const packRarities: Array<'Common' | 'Rare' | 'Epic' | 'Legendary'> = [
+        'Common', 'Common', 'Rare', 'Rare', 'Epic', 'Rare', 'Legendary',
+      ];
+      const nouns = [
+        'Dragon', 'Phoenix', 'Golem', 'Spectre', 'Wraith',
+        'Knight', 'Wizard', 'Archer', 'Beast', 'Spirit',
+      ];
+
+      for (let i = 0; i < 7; i++) {
+        const rarity = packRarities[i] ?? 'Common';
+        const cardType = (i % 3 === 0 ? 'Building' : i % 3 === 1 ? 'Spell' : 'Unit') as 'Unit' | 'Building' | 'Spell';
+        const suffix = ['Prime', 'Alpha', 'Void', 'Storm', 'Doom', 'Rune', 'Shard'][i];
+        const baseName = nouns[i % nouns.length];
+        const uniqueName = `${baseName} ${suffix}`;
+
+        // Call AI description endpoint
+        let aiDescription = AICardGenerator.fallbackDescription(uniqueName, rarity, cardType);
+        try {
+          const descRes = await fetch('/api/generate-description', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: '', noun: uniqueName, rarity, cardType }),
+          });
+          if (descRes.ok) {
+            const descData = await descRes.json();
+            if (descData.description) aiDescription = descData.description;
+          }
+        } catch {
+          // Fall back to template description
+        }
+
+        // Call AI image endpoint
+        let aiImageUrl = '';
+        try {
+          const imgRes = await fetch('/api/generate-card-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ noun: uniqueName, cardType, rarity, cardId: Date.now() + i }),
+          });
+          if (imgRes.ok) {
+            const imgData = await imgRes.json();
+            aiImageUrl = imgData.image_url || '';
+          }
+        } catch {
+          // Image is optional
+        }
+
+        await dbGenerateCard(uniqueName, rarity, cardType, aiDescription, aiImageUrl);
       }
-      
-      setGeneratedCards(prev => [...prev, ...pack.cards]);
+
       setPackCount(prev => prev + 1);
+
+      // Re-read all cards from SpacetimeDB after batch save
+      if (conn) {
+        const db = conn.db as Record<string, { iter(): Iterable<{ id: bigint; [key: string]: any }> }>;
+        const freshCards: Card[] = [];
+        if (db.cards) {
+          for (const row of db.cards.iter()) {
+            freshCards.push({
+              id: Number(row.id),
+              name: row.name,
+              description: row.description || '',
+              attack: row.attack,
+              defense: row.defense,
+              range: row.range,
+              rarity: row.rarity,
+              card_type: row.cardType || 'Unit',
+              image_url: row.imageUrl || '',
+              created_at: Number(row.createdAt) || 0,
+            });
+          }
+        }
+        // Show the most recently created cards
+        const topCards = freshCards
+          .sort((a, b) => b.id - a.id)
+          .slice(0, 7);
+        setGeneratedCards(prev => [...prev, ...topCards]);
+      }
     } catch (error) {
       console.error('Error generating pack:', error);
+      setGenerationError(error instanceof Error ? error.message : 'Failed to generate pack.');
     } finally {
       setIsGenerating(false);
     }
-  }, [generatedCards, dbGenerateCard]);
+  }, [dbGenerateCard, conn]);
 
   const rarityStats = {
     Common: generatedCards.filter(c => c.rarity === 'Common').length,
@@ -77,7 +213,7 @@ export function GameGenerator() {
     <div>
       {/* Header */}
       <div className="text-center mb-8">
-        <h2 
+        <h2
           className="text-3xl font-bold text-white mb-2"
           style={{ fontFamily: 'Cinzel, serif' }}
         >
@@ -87,6 +223,13 @@ export function GameGenerator() {
           Create unique AI-powered cards with real artwork and intelligent descriptions
         </p>
       </div>
+
+      {/* Error banner */}
+      {generationError && (
+        <div className="glass-card rounded-xl p-4 mb-6 border border-red-500/30">
+          <p className="text-red-400 text-sm">{generationError}</p>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
@@ -124,7 +267,7 @@ export function GameGenerator() {
             </>
           )}
         </button>
-        
+
         <button
           onClick={generatePack}
           disabled={isGenerating}
