@@ -423,11 +423,11 @@ export function GameLobby() {
   );
 
   return (
-    <main className="min-h-screen bg-atmospheric">
+    <div className="min-h-screen bg-atmospheric">
       <div className="container mx-auto px-4 py-8">
         {activeTab === 'lobby' && renderLobby()}
         {activeTab === 'play' && renderGame()}
       </div>
-    </main>
+    </div>
   );
 }
