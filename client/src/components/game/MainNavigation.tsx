@@ -16,6 +16,7 @@ import { CollectionGallery } from '@/components/game/CollectionGallery';
 import { Leaderboard } from '@/components/game/Leaderboard';
 import { PackOpening } from '@/components/game/PackOpening';
 import DailyCardGenerator from '@/components/game/DailyCardGenerator';
+import MusicPlayer from '@/components/MusicPlayer';
 
 interface NavigationTab {
   id: string;
@@ -130,6 +131,9 @@ export function MainNavigation() {
           {activeTab === 'leaderboard' && <Leaderboard />}
         </div>
       </main>
+
+      {/* Music player — persistent across all tabs */}
+      <MusicPlayer />
 
       {/* Footer */}
       <footer className="relative z-10 border-t border-white/5 py-4 mt-auto">
