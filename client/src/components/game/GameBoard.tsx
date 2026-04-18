@@ -87,9 +87,7 @@ export function GameBoard({ gameId, isSpectating = false, onPlayAgain, onBackToL
     // Can't target own cards
     if (targetTile?.owner === playerId) return false;
     
-    // Target empty tile for move, occupied for attack
-    const hasTarget = targetTile?.card_id !== undefined && targetTile?.card_id !== null;
-    return true; // valid if we got here
+    return true;
   };
 
   const handleTileClick = (x: number, y: number) => {
