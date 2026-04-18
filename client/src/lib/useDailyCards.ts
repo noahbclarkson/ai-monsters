@@ -128,7 +128,7 @@ export function useDailyCards() {
         });
         if (imgRes.ok) {
           const imgData = await imgRes.json();
-          imageUrl = imgData.imageUrl || imgData.url || '';
+          imageUrl = imgData.image_url || imgData.url || '';
         }
       } catch {
         // Image generation failed, leave empty
@@ -176,7 +176,10 @@ export function useDailyCards() {
         (c) => !idsBefore.has(String(c.id)) && !previouslySeenIds.current.has(String(c.id))
       );
 
-      // Enhance new cards with AI
+      // After calling generate_daily_cards, enhance each new card with AI content.
+      // Note: generate_daily_cards uses empty AI content (String::new()) since it can't
+      // call external AI APIs from within a SpacetimeDB reducer.
+      // The enhanceCard call here patches AI content onto cards after creation.
       if (newCards.length > 0) {
         setIsEnhancing(true);
         for (const card of newCards) {
