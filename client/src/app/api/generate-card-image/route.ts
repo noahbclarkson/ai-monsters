@@ -119,6 +119,13 @@ export async function POST(request: NextRequest) {
   try {
     const { noun, cardType, rarity, cardId } = await request.json();
 
+    if (!noun) {
+      return NextResponse.json(
+        { error: 'Missing required field: noun' },
+        { status: 400 }
+      );
+    }
+
     // Try MiniMax AI generation first (non-blocking, fast timeout)
     const minimaxImage = await generateWithMiniMax(noun, cardType ?? 'Unit', rarity ?? 'Common');
     if (minimaxImage) {
