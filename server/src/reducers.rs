@@ -775,7 +775,7 @@ pub fn start_single_player_match(
     let bot_rarities = ["Common", "Common", "Rare", "Rare", "Epic"];
     let mut bot_card_ids: Vec<u64> = Vec::new();
     for (i, noun) in bot_card_names.iter().enumerate() {
-        let card_id = generate_id_v2(ctx).wrapping_mul(((i as u64 + 1) % 7) | 1); // multiply to avoid collision within loop
+        let card_id = generate_id_v2(ctx).wrapping_mul(i as u64 + 1); // multipliers 1-5 for 5 bot cards
         let (attack, defense, range) = generate_card_stats(bot_rarities[i], "Unit");
         ctx.db.cards().insert(CardRow {
             id: card_id,

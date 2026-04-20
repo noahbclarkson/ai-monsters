@@ -39,14 +39,6 @@ Rules:
 - Use vivid, fantasy-appropriate language
 - Keep it 2-3 sentences (30-60 words)`;
 
-    const fullPrompt = `${systemPrompt}
-
-Card Name: ${noun}
-Card Type: ${cardType}
-Rarity: ${rarity}
-
-Generate a card description based on the context above. Only return the description text, nothing else.`;
-
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
