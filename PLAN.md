@@ -295,3 +295,18 @@ _Last git commit: 7e4915f — fix(ui): premium icon consistency, remove redundan
 1. **GameLobby back button icon** (7e4915f): Replaced unicode `←` arrow with `ArrowLeft` Lucide SVG icon — consistent with the premium icon standard throughout the rest of the UI.
 2. **MatchEndScreen Play Again button polish** (7e4915f): Removed redundant `absolute -inset-1` gradient inner div that was fighting visually with `btn btn-success` base styling. `btn btn-success` already provides correct green; the extra decorative layer created a muddy layered glow.
 3. **Leaderboard medal redesign** (7e4915f): Medal SVG was cramped (32x40 inside 40x40 container, rank number barely legible at font-size 11). Redesigned: SVG viewBox 38x52, container 48x56, larger medal circle (r=16), rank number at font-size 13 with better text shadow. Container increased from w-12 h-12 to w-14 h-14 to fit.
+
+
+## 2026-04-27 — Audit Cycle (02:56 UTC)
+- cargo check/clippy/test: PASS, 15 tests, npm run build PASS, TypeScript clean
+- App confirmed on :3001 (AI Monsters) — title "AI Monsters - Card Game"
+- SpacetimeDB offline (infrastructure, not code), Skilt app on :3000 (unrelated workspace)
+- Chrome CDP unavailable (VPS policy) — code audit used
+- API verified: /api/generate-description (200, real OpenAI text), /api/generate-card-image (200, gradient SVG)
+- GameBoard, useGame, reducers, attack_card, bot AI, MatchEndScreen, GameLobby, Leaderboard — all reviewed, all correct
+- Unwrap() calls all verified safe: attacker_tile.card_id from board tile (Some path), bot_difficulty (Option unwrap after match)
+- No TODOs/FIXMEs, no dead code, no substantive bugs found
+- No commits (nothing to fix)
+
+_Last updated: 2026-04-27 02:56 UTC_
+
