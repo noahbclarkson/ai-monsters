@@ -16,9 +16,9 @@ This is a product you can demo to anyone and have them say "this is actually imp
 
 ---
 
-## Current State (2026-04-28 10:47 UTC)
+## Current State (2026-04-29 03:47 UTC)
 
-_Last git head: 88b379f (2026-04-27) — docs: update PLAN with 2026-04-27 audit results
+_Last git head: 8c92f5f (2026-04-28) — docs: rewrite PLAN with current state + 2026-04-28 audit
 
 ### Build Status
 - cargo check (server/): PASS
@@ -94,49 +94,47 @@ Agent workspace: `/home/ubuntu/.openclaw/workspace-aimonsters/`
 
 ---
 
-## 2026-04-28 — Audit Cycle (10:47 UTC)
-- cargo check/clippy: PASS, cargo test: 15 PASS, npm run build: PASS (Next.js 16.2.4 Turbopack)
-- TypeScript: clean (tsc --noEmit zero errors)
-- App on :3000 (corrected from stale PLAN references to :3001/:3002)
-- API endpoints verified live via curl:
-  - /api/generate-description: OpenAI text (fallback template since 401)
-  - /api/generate-card-image: gradient SVG data URI (MiniMax offline)
-- SpacetimeDB server not running — infrastructure, not code
-- Browser unavailable (Chrome CDP) — code audit used
-
-**Deep audit: identity validation in all board action reducers**
-
-All 13 reducer call sites for board actions (place_card, attack_card,
-flip_card, switch_card_mode, move_card, end_turn) correctly validate
-ctx.sender() against player_identities table before processing. Pattern:
-
-```rust
-let caller_record = ctx.db.player_identities().identity()
-    .find(ctx.sender()).ok_or("Caller identity not found")?;
-if caller_record.player_id != player_id {
-    return Err("Player ID does not match your identity");
-}
-```
-
-No player can manipulate another player's cards or act in a match they are
-not part of. Server-side validation is the real gate for all game actions.
-
-**Code audit coverage:**
-- useBotMatch: polling + auto-trigger, rating update guard correct
-- useGame: endTurn playerId passthrough, all actions wired to reducers
-- useCards: DB direct read after generation, no subscription race
-- CollectionGallery, PackOpening, DailyCardGenerator: AI content passed directly to generate_card
-- Leaderboard: PAGE_SIZE=10, SpacetimeDB source, no mock data
-- GameBoard: isValidTarget dead variable removed (c0aca8c), all actions correct
-- card-art.ts: TextEncoder for Unicode-safe base64 (dbdd3c7)
-- postcss.config.js: tailwindcss v3 plugin, no v4 @tailwindcss/postcss
-
-**No TODOs/FIXMEs, no unwrap() on user paths, no dead code.**
+## 2026-04-28 — Audit Cycle (23:17 UTC)
+- npm run build: PASS (Next.js 16.2.4 Turbopack, 6 routes)
+- TypeScript: clean
+- App on :3000, both API endpoints verified live:
+  - /api/generate-description: real OpenAI response confirmed (not fallback)
+  - /api/generate-card-image: gradient SVG data URI (MiniMax offline, fallback working)
+- Full codebase audit: all components, hooks, API routes, reducers
+- AI content (description + image_url) saved directly in generate_card — no update_card_media needed (all 5 call sites confirmed)
+- Card ID generation: separate variants (v0/v1/v2) per domain — no collisions between players/cards/matches
+- Identity validation in all 13 board action call sites confirmed
+- Bot turn polling + rating update guard correct
+- Image error handling: GameCard gradient fallback when image fails
+- No TODOs/FIXMEs, no unwrap() on user paths, no dead code
+- postcss.config.js: tailwindcss v3 plugin (not v4) confirmed correct
+- MINIMAX_API_KEY confirmed present in .env.local
+- SpacetimeDB not running (infrastructure, not code)
+- Browser unavailable (Chrome CDP) — code audit + live API used
 
 **Substantive bugs: NONE**
 **No commits** (nothing to fix)
 
-_Last updated: 2026-04-28 10:47 UTC_
+_Last updated: 2026-04-28 23:17 UTC_
+
+## 2026-04-28 — Audit Cycle (10:47 UTC)
+## 2026-04-29 — Audit Cycle (03:22 UTC)
+- cargo check: PASS, npm run build: PASS (Next.js 16.2.4 Turbopack, 6 routes)
+- TypeScript: clean (tsc --noEmit zero errors)
+- App on :3001 (3000 occupied), both AI API endpoints verified live
+- Full codebase audit: hooks, API routes, game components
+- All error states wired: useGame, useBotMatch, useCards, useMatches, useLeaderboard, useDailyCards
+- `/api/card-image` (proxy) and `/api/generate-card-image` (AI+gradient) both present
+- SpacetimeDB bindings: `imageUrl` client matches `image_url` server schema via `.name()` mapping
+- Player ID detection: `loadPlayerIdRef` pattern avoids stale closure issues
+- Rate limiting on both AI endpoints confirmed
+- No TODOs/FIXMEs, no dead code, no substantive bugs
+- Browser unavailable (Chrome CDP permission denied on VPS)
+
+**No commits** (nothing to fix)
+
+_Last updated: 2026-04-29 03:22 UTC_
+
 
 ## 2026-04-27 — Audit Cycle (19:48 UTC)
 - cargo check/clippy/test: PASS, 15 tests, npm run build PASS (Next.js 16.2.4)
