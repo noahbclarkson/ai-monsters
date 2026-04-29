@@ -54,7 +54,7 @@ _Last git head: 8c92f5f (2026-04-28) — docs: rewrite PLAN with current state +
 - SpacetimeDB not running on VPS — no live gameplay testing possible
 - All substantive bugs fixed; project is in maintenance mode
 
-_Last updated: 2026-04-28 10:47 UTC_
+_Last updated: 2026-04-29 07:22 UTC_
 
 ---
 
@@ -146,7 +146,7 @@ _Last updated: 2026-04-29 03:22 UTC_
 - No TODOs/FIXMEs, no dead code, no substantive bugs found
 - No commits (nothing to fix)
 
-_Last updated: 2026-04-28 10:47 UTC_
+_Last updated: 2026-04-29 07:22 UTC_
 
 ## 2026-04-26 — Audit Cycle (19:47 UTC)
 - cargo check/clippy/test: PASS, 15 tests, npm run build PASS (Next.js 16.2.4)
@@ -242,4 +242,4 @@ _Last updated: 2026-04-28 10:47 UTC_
 - Substantive bugs: NONE
 - Commits: NONE
 
-_Last updated: 2026-04-28 10:47 UTC_
+_Last updated: 2026-04-29 07:22 UTC_
