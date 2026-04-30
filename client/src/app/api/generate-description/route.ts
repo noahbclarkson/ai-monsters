@@ -112,7 +112,7 @@ function fallbackDescription(noun: string, rarity: string, cardType: string): st
   const spellDescriptions = [
     `A ${intensity} ${noun} incantation that weaves ancient magic to reshape the battlefield. Its effects echo long after the spell is cast.`,
     `Drawn from forgotten grimoires, this ${intensity} ${noun} spell unleashes devastation upon the unwary. Few survive its wrath unscathed.`,
-    `The air crackles with arcane energy when this ${intensity} ${noun} enchantment is invoked. Reality itself bends to the caster\'s will.`,
+    `The air crackles with arcane energy when this ${intensity} ${noun} enchantment is invoked. Reality itself bends to the caster's will.`,
   ];
 
   if (cardType === 'Building') return pick(buildingDescriptions);
