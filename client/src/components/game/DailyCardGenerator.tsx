@@ -16,7 +16,7 @@ const RARITY_TIERS = [
 
 export default function DailyCardGenerator() {
   const { conn, connected, playerId } = useSpacetimeDB();
-  const { generateCard } = useCards();
+  const { generateCard, fetchCards } = useCards();
   const [generating, setGenerating] = useState(false);
   const [dailyCard, setDailyCard] = useState<any>(null);
   const [revealed, setRevealed] = useState(false);
@@ -67,19 +67,23 @@ export default function DailyCardGenerator() {
       // Save directly to SpacetimeDB with AI content — no separate update_card_media call needed
       await generateCard(noun, rarity, cardType, aiDescription, aiImageUrl);
 
-      // Read back the newly created card (highest id = most recent)
-      const db = conn.db as Record<string, { iter(): Iterable<{ id: bigint; [key: string]: any }> }>;
-      const cardsTable = db.cards;
+      // Wait for subscription to fire, then re-read cards and find the newest one.
+      await new Promise(r => setTimeout(r, 800));
+      fetchCards();
+      await new Promise(r => setTimeout(r, 500));
+
+      // Find the card with the highest id — that's the one we just created.
+      const db = conn.db as Record<string, { iter(): Iterable<{ id: bigint; name: string; description: string; attack: number; defense: number; range: number; rarity: string; cardType: string; imageUrl: string }> }>;
       let lastCard: any = null;
       let maxId = BigInt(0);
-      if (cardsTable) {
-        for (const card of cardsTable.iter()) {
+      if (db.cards) {
+        for (const card of db.cards.iter()) {
           if (card.id > maxId) {
             maxId = card.id;
             lastCard = {
               id: Number(card.id),
               name: card.name,
-              description: card.description,
+              description: card.description || '',
               attack: card.attack,
               defense: card.defense,
               range: card.range,

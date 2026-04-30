@@ -87,5 +87,5 @@ export function useCards() {
     [conn]
   );
 
-  return { cards, loading, error, generateCard };
+  return { cards, loading, error, generateCard, fetchCards };
 }

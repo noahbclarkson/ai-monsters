@@ -40,7 +40,7 @@ export function PackOpening() {
   const [packHovered, setPackHovered] = useState(false);
   const [revealedCount, setRevealedCount] = useState(0);
   const { conn, connected, playerId } = useSpacetimeDB();
-  const { generateCard } = useCards();
+  const { generateCard, fetchCards, cards: allCards } = useCards();
 
   const handleOpenPack = useCallback(async () => {
     if (!conn || !playerId) return;
@@ -48,9 +48,17 @@ export function PackOpening() {
     setOpeningProgress('Summoning cards from the void...');
 
     try {
-      // Generate 5 cards with realistic rarity distribution
-      const generatedCards: CardInfo[] = [];
+      // Record the highest card ID before we start generating so we can
+      // distinguish the newly created cards from existing ones.
+      const db = conn.db as Record<string, { iter(): Iterable<{ id: bigint; name: string; description: string; attack: number; defense: number; range: number; rarity: string; cardType: string; imageUrl: string }> }>;
+      let maxIdBefore = BigInt(0);
+      if (db.cards) {
+        for (const card of db.cards.iter()) {
+          if (card.id > maxIdBefore) maxIdBefore = card.id;
+        }
+      }
 
+      // Generate 5 cards with realistic rarity distribution
       // Shuffle suffixes once per pack so every pack produces different name patterns
       const baseSuffixes = ['Prime', 'Alpha', 'Void', 'Storm', 'Doom'];
       const shuffledSuffixes = [...baseSuffixes].sort(() => Math.random() - 0.5);
@@ -104,42 +112,43 @@ export function PackOpening() {
 
         // Save to SpacetimeDB with AI content directly — no separate update_card_media call needed
         await generateCard(uniqueName, rarity, cardType, aiDescription, aiImageUrl);
+      }
 
-        // Read back the card we just created (card with highest id = most recent)
-        const db = conn.db as Record<string, { iter(): Iterable<{ id: bigint; [key: string]: any }> }>;
-        const cardsTable = db.cards;
-        let lastCard: CardInfo | null = null;
-        let maxId = BigInt(0);
-        if (cardsTable) {
-          for (const card of cardsTable.iter()) {
-            if (card.id > maxId) {
-              maxId = card.id;
-              lastCard = {
-                id: Number(card.id),
-                name: card.name,
-                // description and image_url are now saved directly by generateCard
-                description: aiDescription || '',
-                attack: card.attack,
-                defense: card.defense,
-                range: card.range,
-                rarity: card.rarity as CardInfo['rarity'],
-                card_type: card.cardType || card.card_type || 'Unit',
-                image_url: aiImageUrl || '',
-              };
-            }
+      // Wait for all 5 cards to be committed and subscription to fire.
+      // Then re-read the cards table and pick the 5 most recently created ones
+      // (those with id > maxIdBefore).
+      setOpeningProgress('Collecting your new cards...');
+      await new Promise(r => setTimeout(r, 1000));
+      fetchCards();
+      await new Promise(r => setTimeout(r, 500));
+
+      // Collect cards created during this pack opening (id > maxIdBefore)
+      const newCards: CardInfo[] = [];
+      if (db.cards) {
+        for (const card of db.cards.iter()) {
+          if (card.id > maxIdBefore) {
+            newCards.push({
+              id: Number(card.id),
+              name: card.name,
+              description: card.description || '',
+              attack: card.attack,
+              defense: card.defense,
+              range: card.range,
+              rarity: card.rarity as CardInfo['rarity'],
+              card_type: card.cardType || 'Unit',
+              image_url: card.imageUrl || '',
+            });
           }
-        }
-
-        if (lastCard) {
-          generatedCards.push(lastCard);
         }
       }
 
-      setOpenedCards(generatedCards);
+      // Sort by id descending (most recent first) and take up to 5
+      newCards.sort((a, b) => b.id - a.id);
+      setOpenedCards(newCards.slice(0, 5));
       setShowCards(true);
       setRevealedCount(0);
       // Stagger card reveals — flip each one front-to-back with 180ms between cards
-      for (let i = 0; i < generatedCards.length; i++) {
+      for (let i = 0; i < Math.min(newCards.length, 5); i++) {
         setTimeout(() => {
           setRevealedCount(i + 1);
         }, 300 + i * 180);
@@ -151,7 +160,7 @@ export function PackOpening() {
       setOpening(false);
       setOpeningProgress('');
     }
-  }, [conn, playerId, generateCard]);
+  }, [conn, playerId, generateCard, fetchCards]);
 
   if (!connected) {
     return (

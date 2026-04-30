@@ -39,7 +39,7 @@ const STATS_COLORS = {
 };
 
 export function CollectionGallery() {
-  const { cards: dbCards, loading, error, generateCard } = useCards();
+  const { cards: dbCards, loading, error, generateCard, fetchCards } = useCards();
   const { conn } = useSpacetimeDB();
   const [filteredCards, setFilteredCards] = useState<GalleryCard[]>([]);
   const [selectedCard, setSelectedCard] = useState<GalleryCard | null>(null);
@@ -192,21 +192,10 @@ export function CollectionGallery() {
       // Save card with AI content directly — no separate update_card_media call needed
       await generateCard(noun, rarity, cardType, aiDescription, aiImageUrl);
 
-      // Read back the card we just created so the UI can display it immediately.
-      // The subscription will fire after commit, but we poll the table directly
-      // to get the card ID for the gallery update without an extra round-trip.
-      const db = conn.db as Record<string, { iter(): Iterable<{ id: bigint; [key: string]: any }> }>;
-      let newCard: { id: bigint; [key: string]: any } | null = null;
-      let maxId = BigInt(0);
-      if (db.cards) {
-        for (const c of db.cards.iter()) {
-          // Pick the card with the highest id — that's the one we just created
-          if (c.id > maxId) {
-            maxId = c.id;
-            newCard = c;
-          }
-        }
-      }
+      // Wait for subscription to fire and refresh cards state.
+      // fetchCards is exposed by useCards for callers who want to explicitly re-read.
+      await new Promise(r => setTimeout(r, 800));
+      fetchCards();
     } catch (error) {
       console.error('Error generating card:', error);
       setGenerationError(error instanceof Error ? error.message : 'Failed to generate card. Please try again.');
