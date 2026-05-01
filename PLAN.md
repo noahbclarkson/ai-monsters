@@ -54,7 +54,7 @@ _Last git head: 8c92f5f (2026-04-28) — docs: rewrite PLAN with current state +
 - SpacetimeDB not running on VPS — no live gameplay testing possible
 - All substantive bugs fixed; project is in maintenance mode
 
-_Last updated: 2026-04-29 07:22 UTC_
+_Last updated: 2026-05-01 03:13 UTC_
 
 ---
 
@@ -93,6 +93,30 @@ Agent workspace: `/home/ubuntu/.openclaw/workspace-aimonsters/`
 - Do NOT use AI to generate code without reviewing it for "AI slop" patterns
 
 ---
+
+## 2026-05-01 — Audit Cycle (03:13 UTC)
+- cargo check: PASS, 15 tests PASS, npm run build PASS (Next.js 16.2.4 Turbopack, 6 routes)
+- TypeScript: clean (tsc --noEmit zero errors)
+- App serving on :3000, both AI API endpoints verified live
+- Full codebase audit: all hooks, components, API routes, reducers, CSS
+- postcss.config.js: tailwindcss v3 plugin confirmed correct (no v4 duplicate export)
+- Identity validation confirmed at all reducer entry points (ctx.sender())
+- Card ID unwrap() safety confirmed (ok_or() pattern in all board action reducers)
+- Rate limiting: sliding window (10 req/min description, 5 req/min image) — correct
+- AI pipeline: OpenAI description + MiniMax image with gradient fallback — all correct
+- getCardArtFallback: unique deterministic SVG art per card (name/type/rarity hash)
+- Leaderboard pagination PAGE_SIZE=10 confirmed, medals for top 3, empty state correct
+- CollectionGallery: search + rarity/type filters + sort + modal detail — all correct
+- PackOpening: staggered card reveal, AI content gen, maxIdBefore tracking — correct
+- useDailyCards update_card_media: legitimate two-phase pattern (create + enhance with AI)
+- MatchEndScreen: Victory/Defeat/Draw states, Play Again flow — correct
+- GameCard: 3D rotateY flip, hover glow per rarity, image fallback chain — correct
+- No TODOs/FIXMEs/HACKs in source, no dead code, no btoa() on raw strings
+- OpenAI + MiniMax API keys present and active in .env.local
+- Chrome CDP unavailable (VPS policy) — code audit + live API used
+
+**Substantive bugs: NONE**
+**No commits** (nothing to fix)
 
 ## 2026-04-30 — Audit Cycle (14:19 UTC)
 - cargo check: PASS, 15 tests PASS, npm run build PASS (Next.js 16.2.4 Turbopack, 6 routes)
