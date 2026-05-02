@@ -54,7 +54,12 @@ async function generateWithMiniMax(
         'Authorization': `Bearer ${MINIMAX_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ model: 'image-01', prompt, aspect_ratio: '2:3' }),
+      body: JSON.stringify({
+        model: 'image-01',
+        prompt,
+        aspect_ratio: '2:3',
+        response_format: 'base64',
+      }),
       signal: controller.signal,
     }).finally(() => clearTimeout(timer));
 
@@ -66,7 +71,7 @@ async function generateWithMiniMax(
 
     const data = await response.json() as {
       base_resp?: { status_code: number; status_msg: string };
-      data?: Array<{ image_urls?: string[]; base64?: string }>;
+      data?: { image_urls?: string[]; image_base64?: string[] };
     };
 
     if (data.base_resp?.status_code !== 0) {
@@ -74,19 +79,11 @@ async function generateWithMiniMax(
       return null;
     }
 
-    // MiniMax image-01 returns image_urls[], not base64. Fetch and encode.
-    const imageUrl = data.data?.[0]?.image_urls?.[0];
-    if (imageUrl) {
-      try {
-        const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(10_000) });
-        if (imgRes.ok) {
-          const buf = await imgRes.arrayBuffer();
-          const b64 = Buffer.from(buf).toString('base64');
-          return `data:image/jpeg;base64,${b64}`;
-        }
-      } catch {
-        return null;
-      }
+    // MiniMax image-01 with response_format=base64 returns data.image_base64[]
+    // (data is an object, not an array)
+    const b64 = data.data?.image_base64?.[0];
+    if (b64) {
+      return `data:image/jpeg;base64,${b64}`;
     }
 
     return null;
