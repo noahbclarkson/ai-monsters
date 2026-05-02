@@ -42,11 +42,11 @@ async function generateWithMiniMax(
 
   const prompt = buildCardPrompt(noun, cardType, rarity);
 
-  // Race between MiniMax fetch and a hard 8s timeout.
+  // Race between MiniMax fetch and a hard 15s timeout.
   // If MiniMax is slow/unreachable, we fall through to the gradient fallback.
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8_000);
+    const timer = setTimeout(() => controller.abort(), 20_000);
 
     const response = await fetch(MINIMAX_API_URL, {
       method: 'POST',
@@ -66,7 +66,7 @@ async function generateWithMiniMax(
 
     const data = await response.json() as {
       base_resp?: { status_code: number; status_msg: string };
-      data?: Array<{ base64?: string }>;
+      data?: Array<{ image_urls?: string[]; base64?: string }>;
     };
 
     if (data.base_resp?.status_code !== 0) {
@@ -74,9 +74,19 @@ async function generateWithMiniMax(
       return null;
     }
 
-    const base64 = data.data?.[0]?.base64;
-    if (base64) {
-      return `data:image/jpeg;base64,${base64}`;
+    // MiniMax image-01 returns image_urls[], not base64. Fetch and encode.
+    const imageUrl = data.data?.[0]?.image_urls?.[0];
+    if (imageUrl) {
+      try {
+        const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(10_000) });
+        if (imgRes.ok) {
+          const buf = await imgRes.arrayBuffer();
+          const b64 = Buffer.from(buf).toString('base64');
+          return `data:image/jpeg;base64,${b64}`;
+        }
+      } catch {
+        return null;
+      }
     }
 
     return null;
