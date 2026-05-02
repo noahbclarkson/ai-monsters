@@ -38,7 +38,7 @@ _Last git head: 8c92f5f (2026-04-28) — docs: rewrite PLAN with current state +
 - Full board game: place_card, attack_card, flip_card, switch_card_mode, move_card, end_turn
 - Bot AI: 3 difficulty levels (Easy/Medium/Hard), auto-trigger via polling
 - Elo rating system, matchmaking, pack opening, daily cards
-- AI pipeline: OpenAI text + MiniMax image with gradient fallback (gradient fallback active)
+- AI pipeline: OpenAI text + MiniMax image-01 with gradient fallback (MiniMax fully working)
 - Card generate_card: ai_description/ai_image_url saved directly, no update_card_media needed
 - Leaderboard: SpacetimeDB source, PAGE_SIZE=10 pagination, medals for top 3
 - All subscriptions wired: game_matches, player_hands, cards, players, player_progress
@@ -46,7 +46,7 @@ _Last git head: 8c92f5f (2026-04-28) — docs: rewrite PLAN with current state +
 
 ### Image Generation
 - `/api/generate-description`: OpenAI GPT-4o-mini with fallback template
-- `/api/generate-card-image`: MiniMax image-01 (API key present in .env.local) with gradient fallback
+- `/api/generate-card-image`: MiniMax image-01 with response_format=base64, returns ~695KB JPEG directly as base64. Previously broken (data dict vs array + URL 403), now fixed. Gradient fallback still works as backup.
 - Gradient fallback generates deterministic SVG art per card (name-derived colors, type shapes)
 
 ### Known Issues
