@@ -34,3 +34,6 @@ next-env.d.tstarget/
 .next/
 .docker/spacetimedb-standalone
 spacetimedb-standalone
+
+# Card image cache (runtime artifact, should not be committed)
+client/.card-image-cache/
