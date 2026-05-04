@@ -26,7 +26,6 @@ export function useDailyCards() {
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const previouslySeenIds = useRef(new Set<string>());
 
   const todayDate = getTodayDate();
   const dayStartTimestamp = getDayStartTimestamp();
@@ -34,7 +33,7 @@ export function useDailyCards() {
   const fetchDailyCards = useCallback(() => {
     if (!conn) return;
     try {
-      // eslint-disable-next-line @typescript-eslint/noallelic/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const db = conn.db as any;
       const cardsTable = db.cards as { iter(): Iterable<DbCard> } | undefined;
       if (!cardsTable) return;
@@ -93,13 +92,6 @@ export function useDailyCards() {
     };
   }, [conn, connected, fetchDailyCards, todayDate]);
 
-  // Track seen card IDs to detect new cards from generate_daily_cards
-  useEffect(() => {
-    dailyCards.forEach((c) => {
-      previouslySeenIds.current.add(String(c.id));
-    });
-  }, [dailyCards]);
-
   const enhanceCard = useCallback(async (cardId: bigint, name: string, rarity: string, cardType: string) => {
     if (!conn) return;
 
@@ -117,8 +109,7 @@ export function useDailyCards() {
         description = descData.description || '';
       }
 
-      // Generate AI image using OpenClaw image_generate tool
-      // Since we're in a React hook (client), we call the image API route instead
+      // Generate AI image using the image API route
       let imageUrl = '';
       try {
         const imgRes = await fetch('/api/generate-card-image', {
@@ -153,10 +144,12 @@ export function useDailyCards() {
     setError(null);
 
     try {
-      // Record IDs before calling generate_daily_cards
-      const idsBefore = new Set<string>();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const db = conn.db as any;
       const cardsTable = db.cards as { iter(): Iterable<DbCard> } | undefined;
+
+      // Record IDs before calling generate_daily_cards
+      const idsBefore = new Set<string>();
       if (cardsTable) {
         for (const row of cardsTable.iter()) {
           idsBefore.add(String((row as unknown as DbCard).id));
@@ -167,23 +160,44 @@ export function useDailyCards() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (conn.reducers as any).generateDailyCards();
 
-      // Wait briefly for reducer to complete and subscription to fire
+      // Wait for reducer to complete and subscription to fire
       await new Promise((r) => setTimeout(r, 1500));
       await fetchDailyCards();
 
-      // Find new cards (cards created during this call)
-      const newCards = dailyCards.filter(
-        (c) => !idsBefore.has(String(c.id)) && !previouslySeenIds.current.has(String(c.id))
-      );
+      // Re-read cards directly from the DB to find the newly created ones.
+      // We cannot use the `dailyCards` state variable here — it was captured at
+      // callback creation time (stale closure) and is not updated until the
+      // next render cycle completes after setIsGenerating/setIsEnhancing.
+      const currentIds = new Set<string>();
+      if (cardsTable) {
+        for (const row of cardsTable.iter()) {
+          currentIds.add(String((row as unknown as DbCard).id));
+        }
+      }
+      const newCardIds = [...currentIds].filter((id) => !idsBefore.has(id));
 
       // After calling generate_daily_cards, enhance each new card with AI content.
-      // Note: generate_daily_cards uses empty AI content (String::new()) since it can't
-      // call external AI APIs from within a SpacetimeDB reducer.
+      // Note: generate_daily_cards uses empty AI content (String::new()) since it
+      // cannot call external AI APIs from within a SpacetimeDB reducer.
       // The enhanceCard call here patches AI content onto cards after creation.
-      if (newCards.length > 0) {
+      if (newCardIds.length > 0) {
         setIsEnhancing(true);
-        for (const card of newCards) {
-          await enhanceCard(card.id, card.name, card.rarity, card.cardType);
+        for (const cardIdStr of newCardIds) {
+          const cardId = BigInt(cardIdStr);
+          // Look up the card's metadata directly from the table
+          let cardMeta: { name: string; rarity: string; cardType: string } | null = null;
+          if (cardsTable) {
+            for (const row of cardsTable.iter()) {
+              if (String((row as unknown as DbCard).id) === cardIdStr) {
+                const c = row as unknown as DbCard;
+                cardMeta = { name: c.name, rarity: c.rarity, cardType: c.cardType };
+                break;
+              }
+            }
+          }
+          if (cardMeta) {
+            await enhanceCard(cardId, cardMeta.name, cardMeta.rarity, cardMeta.cardType);
+          }
         }
         setIsEnhancing(false);
       }
@@ -191,7 +205,7 @@ export function useDailyCards() {
       setHasClaimed(true);
       localStorage.setItem(`ai-monsters-daily-${todayDate}`, 'claimed');
 
-      // Re-fetch after enhancement
+      // Re-fetch after enhancement to pick up the updated description/image_url
       await new Promise((r) => setTimeout(r, 500));
       await fetchDailyCards();
     } catch (e) {
@@ -199,7 +213,7 @@ export function useDailyCards() {
     } finally {
       setIsGenerating(false);
     }
-  }, [conn, hasClaimed, dailyCards, enhanceCard, fetchDailyCards, todayDate]);
+  }, [conn, hasClaimed, enhanceCard, fetchDailyCards, todayDate]);
 
   return {
     dailyCards,
