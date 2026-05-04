@@ -94,6 +94,21 @@ Agent workspace: `/home/ubuntu/.openclaw/workspace-aimonsters/`
 
 ---
 
+## 2026-05-03 — Audit Cycle (20:50 UTC)
+- cargo check: PASS, npm run build: PASS (Next.js 16.2.4 Turbopack)
+- TypeScript: clean (tsc --noEmit zero errors)
+- App on :3000, both AI API endpoints verified live:
+  - /api/generate-description: returns real card descriptions with correct card name — no "undefined"
+  - /api/generate-card-image: MiniMax returning real base64 JPEG images (working!)
+- **Bug fixed: "undefined" in AI card descriptions**
+  - Clients sent snake_case (card_name/card_type) but route expected camelCase (noun/cardType)
+  - Prompt template literals interpolated undefined.toLowerCase() → echoed "undefined" in output
+  - Fix: 400 validation for required camelCase fields, template guards, fallback templates cleaned
+- Commit: f8c5ba4 — fix(description): prevent undefined in AI card descriptions
+- Git push: SUCCESS (96d7f5c->f8c5ba4)
+
+_Last updated: 2026-05-03 20:50 UTC_
+
 ## 2026-05-01 — Audit Cycle (03:13 UTC)
 - cargo check: PASS, 15 tests PASS, npm run build PASS (Next.js 16.2.4 Turbopack, 6 routes)
 - TypeScript: clean (tsc --noEmit zero errors)
