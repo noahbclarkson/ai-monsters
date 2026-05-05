@@ -46,7 +46,7 @@ async function generateWithMiniMax(
   // If MiniMax is slow/unreachable, we fall through to the gradient fallback.
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 20_000);
+    const timer = setTimeout(() => controller.abort(), 5_000);
 
     const response = await fetch(MINIMAX_API_URL, {
       method: 'POST',
